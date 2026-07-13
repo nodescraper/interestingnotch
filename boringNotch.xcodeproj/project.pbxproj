@@ -68,6 +68,7 @@
 		11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01C3A00000100000001 /* ChannelExecutor.swift */; };
 		11A0D01F3A00000100000001 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01E3A00000100000001 /* Widget.swift */; };
 		11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0203A00000100000001 /* WidgetEngine.swift */; };
+		11A0D0233A00000100000001 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0223A00000100000001 /* WidgetStore.swift */; };
 		11A0D00F3A00000100000001 /* WidgetExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */; };
 		11A0D0113A00000100000001 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A0D0103A00000100000001 /* XCTest.framework */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
@@ -267,6 +268,7 @@
 		11A0D01C3A00000100000001 /* ChannelExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelExecutor.swift; sourceTree = "<group>"; };
 		11A0D01E3A00000100000001 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
 		11A0D0203A00000100000001 /* WidgetEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetEngine.swift; sourceTree = "<group>"; };
+		11A0D0223A00000100000001 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
 		11A0D00D3A00000100000001 /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetExtractorTests.swift; sourceTree = "<group>"; };
 		11A0D0103A00000100000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -798,6 +800,7 @@
 				11A0D0093A00000100000001 /* Extractor.swift */,
 				11A0D01E3A00000100000001 /* Widget.swift */,
 				11A0D0203A00000100000001 /* WidgetEngine.swift */,
+				11A0D0223A00000100000001 /* WidgetStore.swift */,
 			);
 			path = engine;
 			sourceTree = "<group>";
@@ -1218,6 +1221,7 @@
 				11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */,
 				11A0D01F3A00000100000001 /* Widget.swift in Sources */,
 				11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */,
+				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
 				118EBE252E92DCCB00D54B5A /* AssociatedObject.swift in Sources */,
 				11F748682EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift in Sources */,
 				11F748692EC9AC9600F841DB /* XPCHelperClient.swift in Sources */,

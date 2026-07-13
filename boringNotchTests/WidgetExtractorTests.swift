@@ -370,6 +370,97 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testWidgetStoreLoadsValidManifestsIntoWidgetsAndEngine() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        try writeManifest(
+            makeWidgetManifest(id: "widget-one"),
+            named: "widget-one.notchwidget.json",
+            into: temporaryDirectory
+        )
+        try writeManifest(
+            makeWidgetManifest(id: "widget-two", extractMethod: .raw),
+            named: "widget-two.notchwidget.json",
+            into: temporaryDirectory
+        )
+
+        let engine = RecordingWidgetStoreEngine()
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+
+        let result = store.loadAll()
+
+        XCTAssertEqual(result.widgets.map(\.id), ["widget-one", "widget-two"])
+        XCTAssertTrue(result.failures.isEmpty)
+        XCTAssertEqual(engine.loadedWidgetIDs, ["widget-one", "widget-two"])
+    }
+
+    @MainActor
+    func testWidgetStoreReportsInvalidFilesWhileLoadingValidOnes() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        try writeManifest(
+            makeWidgetManifest(id: "healthy-widget"),
+            named: "healthy-widget.notchwidget.json",
+            into: temporaryDirectory
+        )
+
+        let malformedURL = temporaryDirectory.appendingPathComponent("malformed.notchwidget.json")
+        try "{not valid json".write(to: malformedURL, atomically: true, encoding: .utf8)
+
+        var unknownSchemaManifest = makeWidgetManifest(id: "future-widget")
+        unknownSchemaManifest = WidgetManifest(
+            schema: 2,
+            kind: unknownSchemaManifest.kind,
+            id: unknownSchemaManifest.id,
+            name: unknownSchemaManifest.name,
+            author: unknownSchemaManifest.author,
+            source: unknownSchemaManifest.source,
+            extract: unknownSchemaManifest.extract,
+            render: unknownSchemaManifest.render,
+            onTap: unknownSchemaManifest.onTap,
+            permissions: unknownSchemaManifest.permissions
+        )
+        try writeManifest(
+            unknownSchemaManifest,
+            named: "future-widget.notchwidget.json",
+            into: temporaryDirectory
+        )
+
+        let engine = RecordingWidgetStoreEngine()
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+
+        let result = store.loadAll()
+
+        XCTAssertEqual(result.widgets.map(\.id), ["healthy-widget"])
+        XCTAssertEqual(
+            Set(result.failures.map { $0.fileURL.lastPathComponent }),
+            ["future-widget.notchwidget.json", "malformed.notchwidget.json"]
+        )
+        XCTAssertEqual(engine.loadedWidgetIDs, ["healthy-widget"])
+    }
+
+    @MainActor
+    func testWidgetStoreCreatesMissingDirectoryAndReturnsEmptyResult() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let missingDirectory = temporaryDirectory.appendingPathComponent("widgets", isDirectory: true)
+        let engine = RecordingWidgetStoreEngine()
+        let store = WidgetStore(widgetsDirectoryURL: missingDirectory, engine: engine)
+
+        let result = store.loadAll()
+
+        var isDirectory: ObjCBool = false
+        XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
+        XCTAssertTrue(isDirectory.boolValue)
+        XCTAssertTrue(result.widgets.isEmpty)
+        XCTAssertTrue(result.failures.isEmpty)
+        XCTAssertEqual(engine.loadedWidgetIDs, [])
+    }
+
+    @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
     }
@@ -391,6 +482,19 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTFail("Condition not met within \(timeout) seconds.")
     }
+
+    private func makeTemporaryDirectory() throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    private func writeManifest(_ manifest: WidgetManifest, named fileName: String, into directory: URL) throws {
+        let fileURL = directory.appendingPathComponent(fileName)
+        let data = try JSONEncoder().encode(manifest)
+        try data.write(to: fileURL)
+    }
 }
 
 private actor CountingExecutor: ChannelExecutor {
@@ -401,5 +505,14 @@ private actor CountingExecutor: ChannelExecutor {
     func run(source: WidgetManifest.Source) async throws -> String {
         count += 1
         return "count-\(count)"
+    }
+}
+
+@MainActor
+private final class RecordingWidgetStoreEngine: WidgetStoreEngine {
+    private(set) var loadedWidgetIDs: [String] = []
+
+    func load(_ widgets: [boringNotch.Widget]) {
+        loadedWidgetIDs = widgets.map(\.id)
     }
 }
