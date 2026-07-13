@@ -118,11 +118,12 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         }
     }
 
-    struct Interactive: Codable, Hashable, Sendable {
+        struct Interactive: Codable, Hashable, Sendable {
         let type: Kind
 
         enum Kind: String, Codable, Sendable {
             case colorPicker = "color-picker"
+            case timer
         }
     }
 }

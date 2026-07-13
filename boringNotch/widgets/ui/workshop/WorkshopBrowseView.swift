@@ -81,6 +81,8 @@ enum WorkshopWidgetCatalog {
         switch widget.id {
         case "color-picker":
             return "Pick colors anywhere on screen, copy values, and keep a quick recent history."
+        case "timer":
+            return "Run a focused countdown with presets in the notch and keep a live closed-notch glance."
         default:
             return "Pin this widget to add it as a tab in the notch."
         }

@@ -15,6 +15,8 @@ enum SneakContentType {
     case volume
     case backlight
     case music
+    case colorPicker
+    case timer
     case mic
     case battery
     case download
@@ -260,7 +262,12 @@ class BoringViewCoordinator: ObservableObject {
                 }
                 
                 if status {
-                    self.scheduleSneakPeekHide(for: uuid, duration: duration)
+                    if type == .timer && duration <= 0 {
+                        self.sneakPeekTasks[uuid]?.cancel()
+                        self.sneakPeekTasks[uuid] = nil
+                    } else {
+                        self.scheduleSneakPeekHide(for: uuid, duration: duration)
+                    }
                 } else {
                     self.sneakPeekTasks[uuid]?.cancel()
                     self.sneakPeekTasks[uuid] = nil

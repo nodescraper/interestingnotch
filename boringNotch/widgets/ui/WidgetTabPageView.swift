@@ -9,13 +9,21 @@ import SwiftUI
 
 enum WidgetTabPageKind: Equatable {
     case colorPicker
+    case timer
     case placeholder
 }
 
 enum WidgetTabPageResolver {
     static func pageKind(for widget: Widget) -> WidgetTabPageKind {
-        if widget.manifest.kind == .interactive, widget.manifest.interactive?.type == .colorPicker {
-            return .colorPicker
+        if widget.manifest.kind == .interactive {
+            switch widget.manifest.interactive?.type {
+            case .colorPicker:
+                return .colorPicker
+            case .timer:
+                return .timer
+            case .none:
+                break
+            }
         }
 
         return .placeholder
@@ -34,6 +42,12 @@ struct WidgetTabPageView: View {
                 case .colorPicker:
                     if let model = widget.interactiveRuntime as? ColorPickerWidgetModel {
                         ColorPickerWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
+                case .timer:
+                    if let model = widget.interactiveRuntime as? TimerWidgetModel {
+                        TimerWidgetPageView(widget: widget, model: model)
                     } else {
                         unavailableState
                     }

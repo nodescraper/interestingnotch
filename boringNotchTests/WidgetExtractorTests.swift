@@ -61,27 +61,46 @@ final class WidgetExtractorTests: XCTestCase {
 
     @MainActor
     private func makeInteractiveManifest(
-        id: String = "color-picker"
+        id: String = "color-picker",
+        kind: WidgetManifest.Interactive.Kind = .colorPicker
     ) -> WidgetManifest {
-        WidgetManifest(
+        let name: String
+        let icon: String
+        let label: String
+        let permissions: [String]?
+
+        switch kind {
+        case .colorPicker:
+            name = "Color Picker"
+            icon = "eyedropper.halffull"
+            label = "Pick colors"
+            permissions = ["screen-color-pick", "clipboard"]
+        case .timer:
+            name = "Timer"
+            icon = "timer"
+            label = "Countdown timer"
+            permissions = nil
+        }
+
+        return WidgetManifest(
             schema: 1,
             kind: .interactive,
             id: id,
-            name: "Color Picker",
+            name: name,
             author: "NodeScraper",
             source: nil,
             extract: nil,
             render: .init(
                 template: .iconLabel,
                 slots: [
-                    "icon": .string("eyedropper.halffull"),
-                    "label": .string("Pick colors"),
+                    "icon": .string(icon),
+                    "label": .string(label),
                     "color": .string("accent"),
                 ]
             ),
             onTap: nil,
-            permissions: ["screen-color-pick", "clipboard"],
-            interactive: .init(type: .colorPicker)
+            permissions: permissions,
+            interactive: .init(type: kind)
         )
     }
 
@@ -496,9 +515,9 @@ final class WidgetExtractorTests: XCTestCase {
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
-        XCTAssertEqual(result.widgets.map(\.id), ["color-picker"])
+        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer"])
         XCTAssertTrue(result.failures.isEmpty)
-        XCTAssertEqual(engine.loadedWidgetIDs, ["color-picker"])
+        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer"])
     }
 
     @MainActor
@@ -569,6 +588,80 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTAssertEqual(capped.count, ColorPickerHistoryStore.limit)
         XCTAssertEqual(ColorPickerHistoryStore.restore(base.serializedHistoryValue), base)
+    }
+
+    func testTimerCountdownStateCountsDownToFinished() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        var state = TimerCountdownState(duration: 10, remaining: 10)
+
+        state.start(now: start)
+        state.tick(now: start.addingTimeInterval(4))
+
+        XCTAssertEqual(state.phase, .running)
+        XCTAssertEqual(state.remaining, 6, accuracy: 0.05)
+
+        state.tick(now: start.addingTimeInterval(11))
+
+        XCTAssertEqual(state.phase, .finished)
+        XCTAssertEqual(state.remaining, 0, accuracy: 0.05)
+    }
+
+    func testTimerCountdownStatePauseAndResumePreserveRemainingTime() {
+        let start = Date(timeIntervalSince1970: 2_000)
+        var state = TimerCountdownState(duration: 20, remaining: 20)
+
+        state.start(now: start)
+        state.pause(now: start.addingTimeInterval(7))
+
+        XCTAssertEqual(state.phase, .paused)
+        XCTAssertEqual(state.remaining, 13, accuracy: 0.05)
+
+        state.start(now: start.addingTimeInterval(10))
+        state.tick(now: start.addingTimeInterval(15))
+
+        XCTAssertEqual(state.phase, .running)
+        XCTAssertEqual(state.remaining, 8, accuracy: 0.05)
+    }
+
+    func testTimerCountdownStateResetRestoresFullPresetDuration() {
+        let start = Date(timeIntervalSince1970: 3_000)
+        var state = TimerCountdownState(duration: 1_500, remaining: 1_500)
+
+        state.start(now: start)
+        state.tick(now: start.addingTimeInterval(90))
+        state.reset()
+
+        XCTAssertEqual(state.phase, .idle)
+        XCTAssertEqual(state.remaining, 1_500, accuracy: 0.05)
+        XCTAssertNil(state.scheduledEndDate)
+    }
+
+    @MainActor
+    func testTimerWidgetModelUpdatesSneakPeekAcrossRunPauseAndReset() {
+        let controller = RecordingTimerSneakPeekController()
+        let dates = LockedDateSequence([
+            Date(timeIntervalSince1970: 10),
+            Date(timeIntervalSince1970: 15),
+            Date(timeIntervalSince1970: 30),
+        ])
+        let model = TimerWidgetModel(
+            widgetID: "timer",
+            initialPreset: .init(minutes: 5),
+            countdownState: TimerCountdownState(duration: 20, remaining: 20),
+            now: { dates.next() },
+            sneakPeekController: controller
+        )
+
+        model.toggleStartPause()
+        model.toggleStartPause()
+        model.reset()
+
+        XCTAssertEqual(controller.events, [
+            .hide,
+            .show(progress: 0, duration: 0),
+            .show(progress: 0.25, duration: 0),
+            .hide,
+        ])
     }
 
     func testWidgetSlotRendererResolvesValuePlaceholder() {
@@ -668,6 +761,20 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testInteractiveTimerWidgetBuildsTimerRuntimeAndTabPage() throws {
+        let widget = try Widget(manifest: makeInteractiveManifest(id: "timer", kind: .timer))
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["timer"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["timer"])
+        XCTAssertTrue(widget.interactiveRuntime is TimerWidgetModel)
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .timer)
+    }
+
+    @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
     }
@@ -701,6 +808,41 @@ final class WidgetExtractorTests: XCTestCase {
         let fileURL = directory.appendingPathComponent(fileName)
         let data = try JSONEncoder().encode(manifest)
         try data.write(to: fileURL)
+    }
+}
+
+private final class RecordingTimerSneakPeekController: TimerSneakPeekControlling {
+    enum Event: Equatable {
+        case show(progress: CGFloat, duration: TimeInterval)
+        case hide
+    }
+
+    private(set) var events: [Event] = []
+
+    func showTimer(progress: CGFloat, duration: TimeInterval) {
+        events.append(.show(progress: progress, duration: duration))
+    }
+
+    func hideTimer() {
+        events.append(.hide)
+    }
+}
+
+private final class LockedDateSequence: @unchecked Sendable {
+    private let dates: [Date]
+    private var index = 0
+
+    init(_ dates: [Date]) {
+        self.dates = dates
+    }
+
+    func next() -> Date {
+        defer {
+            if index < dates.count - 1 {
+                index += 1
+            }
+        }
+        return dates[index]
     }
 }
 
