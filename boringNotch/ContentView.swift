@@ -402,8 +402,8 @@ struct ContentView: View {
                         )
                     case .shelf:
                         ShelfView()
-                    case .widgets:
-                        WidgetsPageView()
+                    case .widget(let id):
+                        WidgetTabPageView(widgetID: id)
                     }
                 }
                 .transition(

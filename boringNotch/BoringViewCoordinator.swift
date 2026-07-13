@@ -100,6 +100,7 @@ class BoringViewCoordinator: ObservableObject {
     private var accessibilityObserver: Any?
     private var osdReplacementCancellable: AnyCancellable?
     private var boringShelfCancellable: AnyCancellable?
+    private var pinnedWidgetsCancellable: AnyCancellable?
     private var osdSourceCancellables: [AnyCancellable] = []
 
     private init() {
@@ -170,6 +171,12 @@ class BoringViewCoordinator: ObservableObject {
                     if !change.newValue && self.currentView == .shelf {
                         self.currentView = .home
                     }
+                }
+            }
+        pinnedWidgetsCancellable = Defaults.publisher(.pinnedWidgetIDs)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    self?.sanitizeCurrentView(pinnedWidgetIDs: change.newValue)
                 }
             }
 
@@ -413,5 +420,13 @@ class BoringViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    private func sanitizeCurrentView(pinnedWidgetIDs: [String]) {
+        guard case .widget(let id) = currentView else { return }
+
+        if !pinnedWidgetIDs.contains(id) {
+            currentView = .home
+        }
     }
 }

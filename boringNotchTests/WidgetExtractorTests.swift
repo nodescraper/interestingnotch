@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import Defaults
 import SwiftUI
 import XCTest
 @testable import boringNotch
@@ -498,6 +499,39 @@ final class WidgetExtractorTests: XCTestCase {
         )
 
         XCTAssertEqual(result, "Fallback")
+    }
+
+    func testPinnedWidgetIDsPersistInDefaults() {
+        let originalValue = Defaults[.pinnedWidgetIDs]
+        defer { Defaults[.pinnedWidgetIDs] = originalValue }
+
+        Defaults[.pinnedWidgetIDs] = ["weather", "battery"]
+
+        XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
+    }
+
+    func testWidgetTabResolverDerivesTabsFromPinnedWidgetIDsInOrder() {
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["battery", "git-status"],
+            availableWidgets: [
+                WidgetTabSource(id: "git-status", title: "Git Status", icon: "arrow.triangle.branch"),
+                WidgetTabSource(id: "battery", title: "Battery", icon: "battery.100"),
+            ]
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["battery", "git-status"])
+        XCTAssertEqual(tabs.map(\.view), [.widget(id: "battery"), .widget(id: "git-status")])
+    }
+
+    func testWidgetTabResolverSkipsUnknownPinnedWidgetIDsSafely() {
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["missing-widget", "git-status"],
+            availableWidgets: [
+                WidgetTabSource(id: "git-status", title: "Git Status", icon: "arrow.triangle.branch"),
+            ]
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["git-status"])
     }
 
     @MainActor
