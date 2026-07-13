@@ -214,6 +214,7 @@ extension Defaults.Keys {
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
+    static let clipboardHistoryStoreData = Key<Data?>("clipboardHistoryStoreData", default: nil)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

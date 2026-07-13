@@ -53,6 +53,8 @@ enum WorkshopInstalledSettingsRegistry {
         switch widget.id {
         case "color-picker":
             ColorPickerInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
+        case "clipboard-history":
+            ClipboardHistoryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         default:
             GenericInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         }
@@ -77,6 +79,34 @@ private struct ColorPickerInstalledSettingsSection: View {
             Text(widget.manifest.name)
         } footer: {
             Text("Use the shortcut to open the system eyedropper and store the picked color in this widget’s recent history.")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+}
+
+private struct ClipboardHistoryInstalledSettingsSection: View {
+    let widget: Widget
+    @Binding var pinnedWidgetIDs: [String]
+
+    var body: some View {
+        Section {
+            LabeledContent("Open clipboard shortcut") {
+                KeyboardShortcuts.Recorder(for: .clipboardHistoryPanel)
+                    .frame(minWidth: 130)
+            }
+
+            Button("Clear saved history", role: .destructive) {
+                Defaults[.clipboardHistoryStoreData] = nil
+            }
+
+            Button("Unpin", role: .destructive) {
+                pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)
+            }
+        } header: {
+            Text(widget.manifest.name)
+        } footer: {
+            Text("Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them.")
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }

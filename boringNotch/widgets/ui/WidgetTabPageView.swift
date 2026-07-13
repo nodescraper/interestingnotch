@@ -10,6 +10,7 @@ import SwiftUI
 enum WidgetTabPageKind: Equatable {
     case colorPicker
     case timer
+    case clipboardHistory
     case systemMonitor
     case placeholder
 }
@@ -26,6 +27,8 @@ enum WidgetTabPageResolver {
                 return .colorPicker
             case .timer:
                 return .timer
+            case .clipboardHistory:
+                return .clipboardHistory
             case .none:
                 break
             }
@@ -53,6 +56,12 @@ struct WidgetTabPageView: View {
                 case .timer:
                     if let model = widget.interactiveRuntime as? TimerWidgetModel {
                         TimerWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
+                case .clipboardHistory:
+                    if let model = widget.interactiveRuntime as? ClipboardHistoryWidgetModel {
+                        ClipboardHistoryWidgetPageView(widget: widget, model: model)
                     } else {
                         unavailableState
                     }

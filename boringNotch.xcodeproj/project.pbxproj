@@ -66,6 +66,7 @@
 		11A0D0063A00000100000001 /* ColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0033A00000100000001 /* ColorToken.swift */; };
 		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
 		11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0513A00000100000001 /* TimerWidgetModel.swift */; };
+		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
 		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
 		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
 		11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */; };
@@ -80,6 +81,7 @@
 		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
 		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
+		11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */; };
 		11A0D0333A00000100000001 /* WidgetsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0323A00000100000001 /* WidgetsPageView.swift */; };
 		11A0D0353A00000100000001 /* WidgetTabResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0343A00000100000001 /* WidgetTabResolver.swift */; };
 		11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0363A00000100000001 /* WidgetTabPageView.swift */; };
@@ -289,6 +291,7 @@
 		11A0D0033A00000100000001 /* ColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorToken.swift; sourceTree = "<group>"; };
 		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0513A00000100000001 /* TimerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetModel.swift; sourceTree = "<group>"; };
+		11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSlotRenderer.swift; sourceTree = "<group>"; };
 		11A0D0093A00000100000001 /* Extractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extractor.swift; sourceTree = "<group>"; };
 		11A0D01C3A00000100000001 /* ChannelExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelExecutor.swift; sourceTree = "<group>"; };
@@ -302,6 +305,7 @@
 		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
 		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0323A00000100000001 /* WidgetsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetsPageView.swift; sourceTree = "<group>"; };
 		11A0D0343A00000100000001 /* WidgetTabResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabResolver.swift; sourceTree = "<group>"; };
@@ -838,6 +842,7 @@
 				11A0D0033A00000100000001 /* ColorToken.swift */,
 				11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */,
 				11A0D0513A00000100000001 /* TimerWidgetModel.swift */,
+				11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -860,6 +865,7 @@
 			isa = PBXGroup;
 			children = (
 				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
+				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
 				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
 				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
 				11A0D04B3A00000100000001 /* ScreenColorPicker.swift */,
@@ -1312,6 +1318,7 @@
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
 				11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */,
 				11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */,
+				11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */,
 				11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */,
 				11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */,
 				11A0D00A3A00000100000001 /* Extractor.swift in Sources */,
@@ -1321,6 +1328,7 @@
 				11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */,
 				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
 				11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */,
+				11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */,
 				11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */,
 				11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */,
 				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,

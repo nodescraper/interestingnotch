@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [colorPickerManifest, timerManifest, systemMonitorManifest]
+        [colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -71,6 +71,29 @@ enum WidgetLibrary {
             onTap: nil,
             permissions: nil,
             interactive: .init(type: .timer)
+        )
+    }
+
+    private static var clipboardHistoryManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "clipboard-history",
+            name: "Clipboard History",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("document.on.clipboard"),
+                    "label": .string("Recent clips"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["clipboard"],
+            interactive: .init(type: .clipboardHistory)
         )
     }
 
