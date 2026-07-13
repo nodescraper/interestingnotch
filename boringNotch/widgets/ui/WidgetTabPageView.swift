@@ -10,6 +10,7 @@ import SwiftUI
 enum WidgetTabPageKind: Equatable {
     case colorPicker
     case timer
+    case clipboardHistory
     case systemMonitor
     case placeholder
 }
@@ -26,6 +27,8 @@ enum WidgetTabPageResolver {
                 return .colorPicker
             case .timer:
                 return .timer
+            case .clipboardHistory:
+                return .clipboardHistory
             case .none:
                 break
             }
@@ -37,6 +40,7 @@ enum WidgetTabPageResolver {
 
 struct WidgetTabPageView: View {
     let widgetID: String
+    let animationNamespace: Namespace.ID?
 
     @ObservedObject private var engine = WidgetEngine.shared
 
@@ -52,7 +56,17 @@ struct WidgetTabPageView: View {
                     }
                 case .timer:
                     if let model = widget.interactiveRuntime as? TimerWidgetModel {
-                        TimerWidgetPageView(widget: widget, model: model)
+                        TimerWidgetPageView(
+                            widget: widget,
+                            model: model,
+                            animationNamespace: animationNamespace
+                        )
+                    } else {
+                        unavailableState
+                    }
+                case .clipboardHistory:
+                    if let model = widget.interactiveRuntime as? ClipboardHistoryWidgetModel {
+                        ClipboardHistoryWidgetPageView(widget: widget, model: model)
                     } else {
                         unavailableState
                     }
@@ -172,7 +186,7 @@ private struct WidgetTabPagePreviewHost: View {
     @State private var loaded = false
 
     var body: some View {
-        WidgetTabPageView(widgetID: "preview-widget")
+        WidgetTabPageView(widgetID: "preview-widget", animationNamespace: nil)
             .task {
                 guard !loaded else { return }
                 loaded = true

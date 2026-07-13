@@ -15,49 +15,16 @@ struct SystemMonitorWidgetPageView: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            statusTile
-                .padding(.all, 5)
-
-            detailsColumn
-
-            Spacer(minLength: 0)
-        }
+        detailsColumn
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-
-    private var statusTile: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color.white.opacity(0.08))
-            .overlay {
-                VStack(alignment: .leading, spacing: 10) {
-                    Image(systemName: "cpu")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(.white)
-
-                    Spacer(minLength: 0)
-
-                    tileMetric(symbol: "cpu", label: "CPU", value: snapshot?.cpuDisplay ?? "--%")
-                    tileMetric(symbol: "memorychip", label: "RAM", value: snapshot?.memoryDisplay ?? "--%")
-
-                    if let diskDisplay = snapshot?.diskDisplay {
-                        tileMetric(symbol: "internaldrive", label: "Disk", value: diskDisplay)
-                    }
-                }
-                .padding(14)
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: 144)
     }
 
     private var detailsColumn: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                header
-                metricsBlock
-            }
-            .padding(.top, 10)
-            .padding(.leading, 5)
+            metricsBlock
+                .padding(.top, 10)
+                .padding(.leading, 5)
+                .padding(.trailing, 5)
 
             Spacer(minLength: 0)
 
@@ -67,19 +34,8 @@ struct SystemMonitorWidgetPageView: View {
 
             footer
         }
+        .padding(.bottom, 2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(widget.manifest.name)
-                .font(.headline.weight(.bold))
-                .foregroundStyle(.white)
-
-            Text("Live CPU, memory, and disk vitals.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
     }
 
     private var metricsBlock: some View {
@@ -89,6 +45,10 @@ struct SystemMonitorWidgetPageView: View {
 
             if let diskPercent = snapshot?.diskPercent {
                 metricRow(title: "Disk", symbol: "internaldrive", value: diskPercent)
+            }
+
+            if let temperatureCelsius = snapshot?.temperatureCelsius {
+                metricRow(title: "Temp", symbol: "thermometer.medium", value: temperatureCelsius)
             }
         }
     }
@@ -134,12 +94,15 @@ struct SystemMonitorWidgetPageView: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
 
+            Spacer(minLength: 0)
+
             Text("Load \(snapshot?.loadAverageText ?? "--")")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
         }
         .padding(.leading, 5)
+        .padding(.trailing, 5)
     }
 
     private func barColor(for value: Double?) -> Color {
@@ -147,25 +110,6 @@ struct SystemMonitorWidgetPageView: View {
         return value >= 90 ? .red : .white
     }
 
-    private func tileMetric(symbol: String, label: String, value: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: symbol)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.72))
-                .frame(width: 12)
-
-            Text(label)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.56))
-
-            Spacer(minLength: 0)
-
-            Text(value)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .monospacedDigit()
-        }
-    }
 }
 
 #Preview("System Monitor Widget") {
@@ -219,6 +163,7 @@ private struct SystemMonitorWidgetPreviewHost: View {
                 cpuPercent: 27,
                 memoryPercent: 61,
                 diskPercent: 44,
+                temperatureCelsius: 56,
                 uptimeText: "3h 42m",
                 loadAverageText: "1.02 0.96 0.88"
             ).widgetValue,

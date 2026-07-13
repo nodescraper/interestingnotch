@@ -58,6 +58,7 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
     let cpuPercent: Double
     let memoryPercent: Double
     let diskPercent: Double?
+    let temperatureCelsius: Double?
     let uptimeText: String
     let loadAverageText: String
 
@@ -71,6 +72,25 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
 
     var diskDisplay: String? {
         diskPercent.map(SystemMonitorFormatting.percentString)
+    }
+
+    var temperatureDisplay: String? {
+        temperatureCelsius.map(SystemMonitorFormatting.temperatureString)
+    }
+
+    func displayValue(for metric: SystemMonitorSneakPeekMetric) -> String {
+        switch metric {
+        case .none:
+            return "--%"
+        case .cpu:
+            return cpuDisplay
+        case .memory:
+            return memoryDisplay
+        case .disk:
+            return diskDisplay ?? "--%"
+        case .temperature:
+            return temperatureDisplay ?? "--°"
+        }
     }
 
     var widgetValue: WidgetValue {
@@ -94,6 +114,13 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
             ])
         }
 
+        if let temperatureCelsius {
+            payload["temperature"] = .object([
+                "celsius": .double(temperatureCelsius),
+                "display": .string(SystemMonitorFormatting.temperatureString(temperatureCelsius)),
+            ])
+        }
+
         return .object(payload)
     }
 
@@ -101,12 +128,14 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         cpuPercent: Double,
         memoryPercent: Double,
         diskPercent: Double?,
+        temperatureCelsius: Double? = nil,
         uptimeText: String,
         loadAverageText: String
     ) {
         self.cpuPercent = cpuPercent
         self.memoryPercent = memoryPercent
         self.diskPercent = diskPercent
+        self.temperatureCelsius = temperatureCelsius
         self.uptimeText = uptimeText
         self.loadAverageText = loadAverageText
     }
@@ -125,6 +154,7 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         self.cpuPercent = cpu
         self.memoryPercent = memory
         self.diskPercent = Self.percent(for: "disk", in: root)
+        self.temperatureCelsius = Self.temperature(in: root)
         self.uptimeText = uptime
         self.loadAverageText = loadAverage
     }
@@ -141,11 +171,28 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
             return nil
         }
     }
+
+    private static func temperature(in root: [String: WidgetValue]) -> Double? {
+        guard case .object(let object)? = root["temperature"] else { return nil }
+
+        switch object["celsius"] {
+        case .double(let value):
+            return value
+        case .integer(let value):
+            return Double(value)
+        default:
+            return nil
+        }
+    }
 }
 
 enum SystemMonitorFormatting {
     static func percentString(_ value: Double) -> String {
         "\(Int(value.rounded()))%"
+    }
+
+    static func temperatureString(_ value: Double) -> String {
+        "\(Int(value.rounded()))°"
     }
 
     static func uptimeString(from seconds: TimeInterval) -> String {
@@ -180,6 +227,7 @@ actor SystemMonitorProvider: FrameworkDataProviding {
             cpuPercent: cpuPercent,
             memoryPercent: min(max(memory.percentUsed, 0), 100),
             diskPercent: disk.map { min(max($0.percentUsed, 0), 100) },
+            temperatureCelsius: readTemperatureCelsius(),
             uptimeText: SystemMonitorFormatting.uptimeString(from: ProcessInfo.processInfo.systemUptime),
             loadAverageText: SystemMonitorFormatting.loadAverageString(readLoadAverages())
         )
@@ -265,6 +313,51 @@ actor SystemMonitorProvider: FrameworkDataProviding {
             return [0, 0, 0]
         }
         return loads
+    }
+
+    private func readTemperatureCelsius() -> Double? {
+        var cpuInfo: processor_info_array_t?
+        var cpuCount: natural_t = 0
+        var infoCount: mach_msg_type_number_t = 0
+
+        let result = host_processor_info(
+            mach_host_self(),
+            processor_flavor_t(PROCESSOR_TEMPERATURE),
+            &cpuCount,
+            &cpuInfo,
+            &infoCount
+        )
+
+        guard result == KERN_SUCCESS,
+              let cpuInfo,
+              infoCount > 0 else {
+            return nil
+        }
+
+        defer {
+            let size = vm_size_t(Int(infoCount) * MemoryLayout<integer_t>.size)
+            vm_deallocate(mach_task_self_, vm_address_t(bitPattern: cpuInfo), size)
+        }
+
+        let samples = UnsafeBufferPointer(start: cpuInfo, count: Int(infoCount)).map(Double.init)
+        guard !samples.isEmpty else { return nil }
+
+        let maxSample = samples.max() ?? 0
+        let normalizedSample: Double
+
+        if maxSample > 1_000 {
+            normalizedSample = maxSample / 100.0
+        } else if maxSample > 200 {
+            normalizedSample = maxSample / 10.0
+        } else {
+            normalizedSample = maxSample
+        }
+
+        guard normalizedSample.isFinite, normalizedSample > 0 else {
+            return nil
+        }
+
+        return normalizedSample
     }
 }
 

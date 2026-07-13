@@ -80,6 +80,11 @@ final class WidgetExtractorTests: XCTestCase {
             icon = "timer"
             label = "Countdown timer"
             permissions = nil
+        case .clipboardHistory:
+            name = "Clipboard History"
+            icon = "document.on.clipboard"
+            label = "Recent clips"
+            permissions = ["clipboard"]
         }
 
         return WidgetManifest(
@@ -612,9 +617,9 @@ final class WidgetExtractorTests: XCTestCase {
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
-        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer", "system-monitor"])
+        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer", "clipboard-history", "system-monitor"])
         XCTAssertTrue(result.failures.isEmpty)
-        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer", "system-monitor"])
+        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer", "clipboard-history", "system-monitor"])
     }
 
     @MainActor
@@ -687,6 +692,115 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(ColorPickerHistoryStore.restore(base.serializedHistoryValue), base)
     }
 
+    func testClipboardHistoryStoreCapsUnpinnedItemsAndPreservesPinnedOnes() {
+        let pinned = ClipboardHistoryItem(
+            id: "pinned",
+            kind: .text,
+            content: "Pinned",
+            fingerprint: "pinned",
+            pinned: true
+        )
+        let filler = (0..<ClipboardHistoryStore.limit).map { index in
+            ClipboardHistoryItem(
+                id: "item-\(index)",
+                kind: .text,
+                content: "Item \(index)",
+                fingerprint: "fingerprint-\(index)"
+            )
+        }
+
+        let result = ClipboardHistoryStore.adding(
+            ClipboardHistoryItem(
+                id: "newest",
+                kind: .text,
+                content: "Newest",
+                fingerprint: "newest"
+            ),
+            to: [pinned] + filler
+        )
+
+        XCTAssertTrue(result.contains(where: { $0.id == "pinned" && $0.pinned }))
+        XCTAssertTrue(result.contains(where: { $0.id == "newest" }))
+        XCTAssertEqual(result.count, ClipboardHistoryStore.limit)
+        XCTAssertEqual(result.filter { !$0.pinned }.count, ClipboardHistoryStore.limit - 1)
+    }
+
+    func testClipboardHistoryStoreDedupesConsecutiveDuplicates() {
+        let first = ClipboardHistoryItem(
+            kind: .text,
+            content: "Hello",
+            fingerprint: "same"
+        )
+        let duplicate = ClipboardHistoryItem(
+            kind: .text,
+            content: "Hello",
+            fingerprint: "same"
+        )
+
+        let result = ClipboardHistoryStore.adding(duplicate, to: [first])
+
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.fingerprint, "same")
+    }
+
+    func testClipboardHistoryStorePromotesExistingItemToFront() {
+        let first = ClipboardHistoryItem(
+            id: "first",
+            kind: .text,
+            content: "One",
+            fingerprint: "one"
+        )
+        let second = ClipboardHistoryItem(
+            id: "second",
+            kind: .text,
+            content: "Two",
+            fingerprint: "two"
+        )
+        let third = ClipboardHistoryItem(
+            id: "third",
+            kind: .text,
+            content: "Three",
+            fingerprint: "three"
+        )
+
+        let result = ClipboardHistoryStore.promotingItem(withFingerprint: "three", in: [first, second, third])
+
+        XCTAssertEqual(result.map(\.fingerprint), ["three", "one", "two"])
+    }
+
+    func testClipboardPrivacyFilterSkipsConcealedPasteboardTypes() {
+        XCTAssertFalse(
+            ClipboardHistoryPrivacyFilter.shouldCapture(
+                typeIdentifiers: ["public.utf8-plain-text", "org.nspasteboard.ConcealedType"]
+            )
+        )
+        XCTAssertTrue(
+            ClipboardHistoryPrivacyFilter.shouldCapture(
+                typeIdentifiers: ["public.utf8-plain-text"]
+            )
+        )
+    }
+
+    func testClipboardCaptureResolverDetectsLinksWithinText() {
+        let decision = ClipboardCaptureResolver.decision(
+            from: ClipboardPasteboardSnapshot(
+                changeCount: 1,
+                typeIdentifiers: ["public.utf8-plain-text"],
+                string: "https://openai.com/docs",
+                url: nil,
+                image: nil
+            ),
+            existingItems: []
+        )
+
+        guard case .capture(let item) = decision else {
+            return XCTFail("Expected capture decision.")
+        }
+
+        XCTAssertEqual(item.kind, .link)
+        XCTAssertEqual(item.content, "https://openai.com/docs")
+    }
+
     func testTimerCountdownStateCountsDownToFinished() {
         let start = Date(timeIntervalSince1970: 1_000)
         var state = TimerCountdownState(duration: 10, remaining: 10)
@@ -737,7 +851,7 @@ final class WidgetExtractorTests: XCTestCase {
         let previous = SystemMonitorCPUCounters(user: 100, system: 50, idle: 300, nice: 0)
         let current = SystemMonitorCPUCounters(user: 140, system: 70, idle: 310, nice: 0)
 
-        XCTAssertEqual(current.usagePercent(since: previous), 83.3333, accuracy: 0.01)
+        XCTAssertEqual(current.usagePercent(since: previous), 85.7143, accuracy: 0.01)
     }
 
     func testSystemMonitorMemorySampleComputesUsedPercent() {
@@ -760,17 +874,44 @@ final class WidgetExtractorTests: XCTestCase {
                 "percent": .double(81.1),
                 "display": .string("81%"),
             ]),
+            "temperature": .object([
+                "celsius": .double(54.0),
+                "display": .string("54°"),
+            ]),
             "uptime": .string("Uptime 1h 5m"),
             "loadAverage": .string("Load 1.23 0.98 0.77"),
         ]))
 
-        XCTAssertEqual(snapshot?.cpuPercent, 24.2, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.cpuDisplay, "24%")
-        XCTAssertEqual(snapshot?.memoryPercent, 68.4, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.memoryDisplay, "68%")
-        XCTAssertEqual(snapshot?.diskPercent, 81.1, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.uptimeText, "Uptime 1h 5m")
-        XCTAssertEqual(snapshot?.loadAverageText, "Load 1.23 0.98 0.77")
+        let resolved = try? XCTUnwrap(snapshot)
+        XCTAssertNotNil(resolved)
+        let diskPercent = try? XCTUnwrap(resolved?.diskPercent)
+        let temperature = try? XCTUnwrap(resolved?.temperatureCelsius)
+
+        XCTAssertEqual(resolved!.cpuPercent, 24.2, accuracy: 0.001)
+        XCTAssertEqual(resolved!.cpuDisplay, "24%")
+        XCTAssertEqual(resolved!.memoryPercent, 68.4, accuracy: 0.001)
+        XCTAssertEqual(resolved!.memoryDisplay, "68%")
+        XCTAssertEqual(diskPercent!, 81.1, accuracy: 0.001)
+        XCTAssertEqual(temperature!, 54.0, accuracy: 0.001)
+        XCTAssertEqual(resolved!.temperatureDisplay, "54°")
+        XCTAssertEqual(resolved!.uptimeText, "Uptime 1h 5m")
+        XCTAssertEqual(resolved!.loadAverageText, "Load 1.23 0.98 0.77")
+    }
+
+    func testSystemMonitorSnapshotResolvesConfiguredSneakPeekMetricDisplays() {
+        let snapshot = SystemMonitorSnapshot(
+            cpuPercent: 24.2,
+            memoryPercent: 68.4,
+            diskPercent: 81.1,
+            temperatureCelsius: 54.0,
+            uptimeText: "Uptime 1h 5m",
+            loadAverageText: "Load 1.23 0.98 0.77"
+        )
+
+        XCTAssertEqual(snapshot.displayValue(for: .cpu), "24%")
+        XCTAssertEqual(snapshot.displayValue(for: .memory), "68%")
+        XCTAssertEqual(snapshot.displayValue(for: .disk), "81%")
+        XCTAssertEqual(snapshot.displayValue(for: .temperature), "54°")
     }
 
     @MainActor
@@ -850,6 +991,25 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
     }
 
+    func testSystemMonitorSneakPeekSettingsPersistInDefaults() {
+        let originalEnabled = Defaults[.systemMonitorSneakPeekEnabled]
+        let originalLeft = Defaults[.systemMonitorSneakPeekLeftMetric]
+        let originalRight = Defaults[.systemMonitorSneakPeekRightMetric]
+        defer {
+            Defaults[.systemMonitorSneakPeekEnabled] = originalEnabled
+            Defaults[.systemMonitorSneakPeekLeftMetric] = originalLeft
+            Defaults[.systemMonitorSneakPeekRightMetric] = originalRight
+        }
+
+        Defaults[.systemMonitorSneakPeekEnabled] = false
+        Defaults[.systemMonitorSneakPeekLeftMetric] = .disk
+        Defaults[.systemMonitorSneakPeekRightMetric] = .cpu
+
+        XCTAssertFalse(Defaults[.systemMonitorSneakPeekEnabled])
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekLeftMetric], .disk)
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekRightMetric], .cpu)
+    }
+
     func testWidgetPinStorePinsAndUnpinsWithoutDuplicates() {
         let pinned = WidgetPinStore.pin("weather", in: [])
         XCTAssertEqual(pinned, ["weather"])
@@ -909,6 +1069,25 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(tabs.map(\.id), ["timer"])
         XCTAssertTrue(widget.interactiveRuntime is TimerWidgetModel)
         XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .timer)
+    }
+
+    @MainActor
+    func testClipboardHistoryWidgetBuildsRuntimeAndTabPage() throws {
+        let widget = try Widget(
+            manifest: makeInteractiveManifest(
+                id: "clipboard-history",
+                kind: .clipboardHistory
+            )
+        )
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["clipboard-history"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["clipboard-history"])
+        XCTAssertTrue(widget.interactiveRuntime is ClipboardHistoryWidgetModel)
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .clipboardHistory)
     }
 
     @MainActor
