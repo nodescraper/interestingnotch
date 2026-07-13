@@ -107,4 +107,102 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTAssertEqual(result, .integer(2))
     }
+
+    func testCommandExecutorReturnsStdoutForAllowlistedCommand() async throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let fileURL = temporaryDirectory.appendingPathComponent("widget executor test.txt")
+        try "executor-output".write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let source = WidgetManifest.Source(
+            type: .command,
+            run: #"cat "\#(fileURL.path)""#,
+            url: nil,
+            method: nil,
+            headers: nil,
+            api: nil,
+            interval: 1,
+            timeout: 1,
+            cwd: nil,
+            env: nil
+        )
+
+        let output = try await CommandExecutor().run(source: source)
+        XCTAssertEqual(output, "executor-output")
+    }
+
+    func testCommandExecutorRejectsNonAllowlistedExecutable() async {
+        let source = WidgetManifest.Source(
+            type: .command,
+            run: "perl -e 'print 1'",
+            url: nil,
+            method: nil,
+            headers: nil,
+            api: nil,
+            interval: 1,
+            timeout: 1,
+            cwd: nil,
+            env: nil
+        )
+
+        do {
+            _ = try await CommandExecutor().run(source: source)
+            XCTFail("Expected non-allowlisted command to be rejected.")
+        } catch {
+            XCTAssertEqual(error as? ChannelExecutorError, .executableNotAllowed("perl"))
+        }
+    }
+
+    func testCommandExecutorTimesOutLongRunningCommand() async {
+        let source = WidgetManifest.Source(
+            type: .command,
+            run: #"osascript -e "delay 2""#,
+            url: nil,
+            method: nil,
+            headers: nil,
+            api: nil,
+            interval: 1,
+            timeout: 0.1,
+            cwd: nil,
+            env: nil
+        )
+
+        do {
+            _ = try await CommandExecutor().run(source: source)
+            XCTFail("Expected command to time out.")
+        } catch {
+            XCTAssertEqual(error as? ChannelExecutorError, .timedOut(0.1))
+        }
+    }
+
+    func testCommandExecutorReturnsTypedErrorForNonZeroExit() async {
+        let source = WidgetManifest.Source(
+            type: .command,
+            run: "git --definitely-not-a-real-option",
+            url: nil,
+            method: nil,
+            headers: nil,
+            api: nil,
+            interval: 1,
+            timeout: 1,
+            cwd: nil,
+            env: nil
+        )
+
+        do {
+            _ = try await CommandExecutor().run(source: source)
+            XCTFail("Expected non-zero exit.")
+        } catch {
+            guard case .nonZeroExit(let executable, let code, let stderr) = error as? ChannelExecutorError else {
+                return XCTFail("Expected nonZeroExit error, got \(error)")
+            }
+
+            XCTAssertEqual(executable, "git")
+            XCTAssertNotEqual(code, 0)
+            XCTAssertFalse(stderr.isEmpty)
+        }
+    }
 }
