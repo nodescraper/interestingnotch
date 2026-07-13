@@ -18,6 +18,7 @@ enum OnboardingStep {
     case audioCapturePermission
     case accessibilityPermission
     case musicPermission
+    case widgetSelection
     case softwareUpdatePermission
     case finished
 }
@@ -155,6 +156,16 @@ struct OnboardingView: View {
                 MusicControllerSelectionView(
                     onContinue: {
                         withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .widgetSelection
+                        }
+                    }
+                )
+                .transition(.opacity)
+
+            case .widgetSelection:
+                WidgetSelectionView(
+                    onContinue: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
                             if BoringViewCoordinator.shared.firstLaunch {
                                 step = .softwareUpdatePermission
                             } else {
@@ -209,6 +220,151 @@ struct OnboardingView: View {
         return .accessibilityPermission
     }
     
+}
+
+@MainActor
+struct WidgetSelectionView: View {
+    @ObservedObject private var engine = WidgetEngine.shared
+    @State private var selectedIDs: Set<String>
+
+    let onContinue: () -> Void
+
+    init(onContinue: @escaping () -> Void) {
+        self.onContinue = onContinue
+        _selectedIDs = State(initialValue: Set(Defaults[.pinnedWidgetIDs]))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "square.grid.2x2")
+                .font(.system(size: 52))
+                .foregroundColor(.effectiveAccent)
+                .padding(.top, 24)
+
+            Text("Choose Your Widgets")
+                .font(.title)
+                .fontWeight(.semibold)
+
+            Text("Select the widgets you want to appear as tabs in your notch. You can change this later in the Workshop.")
+                .multilineTextAlignment(.center)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 28)
+
+            ScrollView {
+                VStack(spacing: 10) {
+                    if engine.widgets.isEmpty {
+                        VStack(spacing: 8) {
+                            ProgressView()
+                            Text("Loading available widgets...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 28)
+                    } else {
+                        ForEach(engine.widgets, id: \.id) { widget in
+                            WidgetSelectionRow(
+                                widget: widget,
+                                isSelected: selectedIDs.contains(widget.id)
+                            ) {
+                                toggle(widget.id)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 8)
+            }
+            .scrollDisabled(engine.widgets.count <= 4)
+
+            Text("Active widgets appear next to Home and Shelf in the notch.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+
+            Button("Continue") {
+                Defaults[.pinnedWidgetIDs] = engine.widgets
+                    .map(\.id)
+                    .filter { selectedIDs.contains($0) }
+                onContinue()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.bottom, 24)
+            .keyboardShortcut(.defaultAction)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
+                .ignoresSafeArea()
+        )
+    }
+
+    private func toggle(_ widgetID: String) {
+        if selectedIDs.contains(widgetID) {
+            selectedIDs.remove(widgetID)
+        } else {
+            selectedIDs.insert(widgetID)
+        }
+    }
+}
+
+private struct WidgetSelectionRow: View {
+    let widget: Widget
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        Button(action: onToggle) {
+            HStack(spacing: 12) {
+                Image(systemName: iconName)
+                    .font(.title3)
+                    .frame(width: 28, height: 28)
+                    .foregroundStyle(widget.resolvedColor)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(widget.manifest.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Text(WorkshopWidgetCatalog.description(for: widget))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isSelected ? Color.effectiveAccent : .secondary.opacity(0.5))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Color.effectiveAccent.opacity(0.12) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(isSelected ? Color.effectiveAccent.opacity(0.7) : Color.secondary.opacity(0.25), lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var iconName: String {
+        WidgetSlotRenderer.resolvedString(
+            forSlotNamed: "icon",
+            in: widget.manifest.render.slots,
+            value: widget.lastValue,
+            fallback: "square.grid.2x2"
+        )
+    }
 }
 
 struct SoftwareUpdatePermissionView: View {

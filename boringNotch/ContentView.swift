@@ -36,6 +36,7 @@ struct ContentView: View {
     @State private var haptics: Bool = false
 
     @Namespace var albumArtNamespace
+    @Namespace private var widgetNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
@@ -162,7 +163,13 @@ struct ContentView: View {
     private var compactSystemMonitorWidth: CGFloat {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
-            + (2 * systemMonitorCompactMetricWidth)
+            + (systemMonitorCompactMetricCount * systemMonitorCompactMetricWidth)
+    }
+
+    private var systemMonitorCompactMetricCount: CGFloat {
+        let leftCount = Defaults[.systemMonitorSneakPeekLeftMetric] == .none ? 0 : 1
+        let rightCount = Defaults[.systemMonitorSneakPeekRightMetric] == .none ? 0 : 1
+        return CGFloat(leftCount + rightCount)
     }
 
     var body: some View {
@@ -385,7 +392,7 @@ struct ContentView: View {
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .timer && vm.notchState == .closed {
-                          TimerLiveActivity()
+                          TimerLiveActivity(animationNamespace: widgetNamespace)
                               .allowsHitTesting(false)
                               .frame(width: compactTimerWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .systemMonitor && vm.notchState == .closed {
@@ -476,7 +483,7 @@ struct ContentView: View {
                     case .shelf:
                         ShelfView()
                     case .widget(let id):
-                        WidgetTabPageView(widgetID: id)
+                        WidgetTabPageView(widgetID: id, animationNamespace: widgetNamespace)
                     }
                 }
                 .transition(
@@ -645,7 +652,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func TimerLiveActivity() -> some View {
+    func TimerLiveActivity(animationNamespace: Namespace.ID) -> some View {
         if let model = compactTimerModel {
             let isFinished = model.countdownState.shouldShowCompletionBanner
 
@@ -663,6 +670,7 @@ struct ContentView: View {
                         .rotationEffect(.degrees(-90))
                 }
                 .frame(width: timerCompactRingSize, height: timerCompactRingSize)
+                .matchedGeometryEffect(id: "timer-ring", in: animationNamespace)
                 .padding(.trailing, 2)
 
                 Rectangle()
@@ -687,10 +695,10 @@ struct ContentView: View {
     @ViewBuilder
     func SystemMonitorLiveActivity() -> some View {
         if let widget = compactSystemMonitorWidget {
-            SystemMonitorLiveActivityView(
-                widget: widget,
-                metricWidth: systemMonitorCompactMetricWidth,
-                centerWidth: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin),
+        SystemMonitorLiveActivityView(
+            widget: widget,
+            metricWidth: systemMonitorCompactMetricWidth,
+            centerWidth: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin),
                 totalWidth: compactSystemMonitorWidth,
                 height: displayClosedNotchHeight
             )
@@ -738,7 +746,7 @@ struct ContentView: View {
             }
             
             guard vm.notchState == .closed,
-                  !coordinator.shouldShowSneakPeek(on: vm.screenUUID),
+                  (!coordinator.shouldShowSneakPeek(on: vm.screenUUID) || allowsHoverDuringSneakPeek),
                   Defaults[.openNotchOnHover] else { return }
             
             hoverTask = Task {
@@ -748,7 +756,7 @@ struct ContentView: View {
                 await MainActor.run {
                     guard self.vm.notchState == .closed,
                           self.isHovering,
-                          !self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) else { return }
+                          (!self.coordinator.shouldShowSneakPeek(on: self.vm.screenUUID) || self.allowsHoverDuringSneakPeek) else { return }
                     
                     self.doOpen()
                 }
@@ -768,6 +776,15 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var allowsHoverDuringSneakPeek: Bool {
+        switch coordinator.sneakPeekState(for: vm.screenUUID).type {
+        case .timer, .systemMonitor, .colorPicker:
+            return true
+        default:
+            return false
         }
     }
 
@@ -940,21 +957,13 @@ struct ContentView: View {
     }
 
     private func syncSystemMonitorSneakPeek() {
-        guard compactSystemMonitorWidget != nil else {
+        guard compactSystemMonitorWidget != nil, Defaults[.systemMonitorSneakPeekEnabled] else {
             coordinator.toggleSneakPeek(status: false, type: .systemMonitor, targetScreenUUID: vm.screenUUID)
             return
         }
 
-        let isSelectedSystemMonitor: Bool
-        switch coordinator.currentView {
-        case .widget(let id):
-            isSelectedSystemMonitor = (id == "system-monitor")
-        default:
-            isSelectedSystemMonitor = false
-        }
-
         coordinator.toggleSneakPeek(
-            status: isSelectedSystemMonitor && vm.notchState == .closed,
+            status: vm.notchState == .closed,
             type: .systemMonitor,
             duration: 0,
             targetScreenUUID: vm.screenUUID
@@ -1002,25 +1011,41 @@ private struct SystemMonitorLiveActivityView: View {
     let totalWidth: CGFloat
     let height: CGFloat
 
+    private var rightMetric: SystemMonitorSneakPeekMetric {
+        Defaults[.systemMonitorSneakPeekRightMetric]
+    }
+
+    private var leftMetric: SystemMonitorSneakPeekMetric {
+        Defaults[.systemMonitorSneakPeekLeftMetric]
+    }
+
+    private var snapshot: SystemMonitorSnapshot? {
+        widget.compactSystemMonitorSnapshot
+    }
+
     var body: some View {
         HStack(spacing: 0) {
-            SystemMonitorCompactMetricView(
-                label: "CPU",
-                symbolName: "cpu",
-                displayValue: widget.compactSystemMonitorSnapshot?.cpuDisplay ?? "--%"
-            )
-            .frame(width: metricWidth, height: height, alignment: .leading)
+            if leftMetric != .none {
+                SystemMonitorCompactMetricView(
+                    label: leftMetric.title,
+                    symbolName: leftMetric.symbolName,
+                    displayValue: snapshot?.displayValue(for: leftMetric) ?? "--%"
+                )
+                .frame(width: metricWidth, height: height, alignment: .leading)
+            }
 
             Rectangle()
                 .fill(.black)
                 .frame(width: centerWidth)
 
-            SystemMonitorCompactMetricView(
-                label: "RAM",
-                symbolName: "memorychip",
-                displayValue: widget.compactSystemMonitorSnapshot?.memoryDisplay ?? "--%"
-            )
-            .frame(width: metricWidth, height: height, alignment: .trailing)
+            if rightMetric != .none {
+                SystemMonitorCompactMetricView(
+                    label: rightMetric.title,
+                    symbolName: rightMetric.symbolName,
+                    displayValue: snapshot?.displayValue(for: rightMetric) ?? "--%"
+                )
+                .frame(width: metricWidth, height: height, alignment: .trailing)
+            }
         }
         .frame(width: totalWidth, height: height, alignment: .center)
     }

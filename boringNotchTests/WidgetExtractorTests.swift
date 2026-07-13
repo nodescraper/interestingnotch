@@ -743,6 +743,31 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(result.first?.fingerprint, "same")
     }
 
+    func testClipboardHistoryStorePromotesExistingItemToFront() {
+        let first = ClipboardHistoryItem(
+            id: "first",
+            kind: .text,
+            content: "One",
+            fingerprint: "one"
+        )
+        let second = ClipboardHistoryItem(
+            id: "second",
+            kind: .text,
+            content: "Two",
+            fingerprint: "two"
+        )
+        let third = ClipboardHistoryItem(
+            id: "third",
+            kind: .text,
+            content: "Three",
+            fingerprint: "three"
+        )
+
+        let result = ClipboardHistoryStore.promotingItem(withFingerprint: "three", in: [first, second, third])
+
+        XCTAssertEqual(result.map(\.fingerprint), ["three", "one", "two"])
+    }
+
     func testClipboardPrivacyFilterSkipsConcealedPasteboardTypes() {
         XCTAssertFalse(
             ClipboardHistoryPrivacyFilter.shouldCapture(
@@ -849,6 +874,10 @@ final class WidgetExtractorTests: XCTestCase {
                 "percent": .double(81.1),
                 "display": .string("81%"),
             ]),
+            "temperature": .object([
+                "celsius": .double(54.0),
+                "display": .string("54°"),
+            ]),
             "uptime": .string("Uptime 1h 5m"),
             "loadAverage": .string("Load 1.23 0.98 0.77"),
         ]))
@@ -856,14 +885,33 @@ final class WidgetExtractorTests: XCTestCase {
         let resolved = try? XCTUnwrap(snapshot)
         XCTAssertNotNil(resolved)
         let diskPercent = try? XCTUnwrap(resolved?.diskPercent)
+        let temperature = try? XCTUnwrap(resolved?.temperatureCelsius)
 
         XCTAssertEqual(resolved!.cpuPercent, 24.2, accuracy: 0.001)
         XCTAssertEqual(resolved!.cpuDisplay, "24%")
         XCTAssertEqual(resolved!.memoryPercent, 68.4, accuracy: 0.001)
         XCTAssertEqual(resolved!.memoryDisplay, "68%")
         XCTAssertEqual(diskPercent!, 81.1, accuracy: 0.001)
+        XCTAssertEqual(temperature!, 54.0, accuracy: 0.001)
+        XCTAssertEqual(resolved!.temperatureDisplay, "54°")
         XCTAssertEqual(resolved!.uptimeText, "Uptime 1h 5m")
         XCTAssertEqual(resolved!.loadAverageText, "Load 1.23 0.98 0.77")
+    }
+
+    func testSystemMonitorSnapshotResolvesConfiguredSneakPeekMetricDisplays() {
+        let snapshot = SystemMonitorSnapshot(
+            cpuPercent: 24.2,
+            memoryPercent: 68.4,
+            diskPercent: 81.1,
+            temperatureCelsius: 54.0,
+            uptimeText: "Uptime 1h 5m",
+            loadAverageText: "Load 1.23 0.98 0.77"
+        )
+
+        XCTAssertEqual(snapshot.displayValue(for: .cpu), "24%")
+        XCTAssertEqual(snapshot.displayValue(for: .memory), "68%")
+        XCTAssertEqual(snapshot.displayValue(for: .disk), "81%")
+        XCTAssertEqual(snapshot.displayValue(for: .temperature), "54°")
     }
 
     @MainActor
@@ -941,6 +989,25 @@ final class WidgetExtractorTests: XCTestCase {
         Defaults[.pinnedWidgetIDs] = ["weather", "battery"]
 
         XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
+    }
+
+    func testSystemMonitorSneakPeekSettingsPersistInDefaults() {
+        let originalEnabled = Defaults[.systemMonitorSneakPeekEnabled]
+        let originalLeft = Defaults[.systemMonitorSneakPeekLeftMetric]
+        let originalRight = Defaults[.systemMonitorSneakPeekRightMetric]
+        defer {
+            Defaults[.systemMonitorSneakPeekEnabled] = originalEnabled
+            Defaults[.systemMonitorSneakPeekLeftMetric] = originalLeft
+            Defaults[.systemMonitorSneakPeekRightMetric] = originalRight
+        }
+
+        Defaults[.systemMonitorSneakPeekEnabled] = false
+        Defaults[.systemMonitorSneakPeekLeftMetric] = .disk
+        Defaults[.systemMonitorSneakPeekRightMetric] = .cpu
+
+        XCTAssertFalse(Defaults[.systemMonitorSneakPeekEnabled])
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekLeftMetric], .disk)
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekRightMetric], .cpu)
     }
 
     func testWidgetPinStorePinsAndUnpinsWithoutDuplicates() {

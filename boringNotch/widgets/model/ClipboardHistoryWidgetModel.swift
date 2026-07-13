@@ -234,6 +234,20 @@ enum ClipboardHistoryStore {
         _ = items
         return []
     }
+
+    static func promotingItem(withFingerprint fingerprint: String, in items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
+        guard let index = items.firstIndex(where: { $0.fingerprint == fingerprint }) else {
+            return items
+        }
+
+        guard index != 0 else { return items }
+
+        let item = items[index]
+        var reordered = items
+        reordered.remove(at: index)
+        reordered.insert(item, at: 0)
+        return reordered
+    }
 }
 
 protocol ClipboardHistoryPersisting {
@@ -427,7 +441,10 @@ final class ClipboardHistoryWidgetModel: ObservableObject, InteractiveWidgetRunt
     }
 
     func restoreHistoryItem(_ item: ClipboardHistoryItem) {
+        items = ClipboardHistoryStore.promotingItem(withFingerprint: item.fingerprint, in: items)
+        persist()
         pasteboard.copy(item)
+        lastObservedChangeCount = pasteboard.changeCount
     }
 
     func captureIfNeeded() {

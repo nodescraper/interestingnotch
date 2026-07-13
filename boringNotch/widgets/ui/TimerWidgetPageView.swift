@@ -11,6 +11,7 @@ struct TimerWidgetPageView: View {
     let widget: Widget
 
     @ObservedObject var model: TimerWidgetModel
+    let animationNamespace: Namespace.ID?
 
     var body: some View {
         HStack(alignment: .top, spacing: 15) {
@@ -43,7 +44,17 @@ struct TimerWidgetPageView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
+    @ViewBuilder
     private var countdownRing: some View {
+        if let animationNamespace {
+            timerRing
+                .matchedGeometryEffect(id: "timer-ring", in: animationNamespace)
+        } else {
+            timerRing
+        }
+    }
+
+    private var timerRing: some View {
         ZStack {
             Circle()
                 .stroke(Color.white.opacity(0.12), lineWidth: 7)
@@ -157,7 +168,7 @@ private struct TimerWidgetPreviewHost: View {
 
     var body: some View {
         if let widget = previewWidget {
-            TimerWidgetPageView(widget: widget, model: model)
+            TimerWidgetPageView(widget: widget, model: model, animationNamespace: nil)
         }
     }
 

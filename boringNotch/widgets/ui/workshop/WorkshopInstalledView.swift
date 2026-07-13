@@ -55,6 +55,8 @@ enum WorkshopInstalledSettingsRegistry {
             ColorPickerInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         case "clipboard-history":
             ClipboardHistoryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
+        case "system-monitor":
+            SystemMonitorInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         default:
             GenericInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         }
@@ -113,6 +115,44 @@ private struct ClipboardHistoryInstalledSettingsSection: View {
     }
 }
 
+private struct SystemMonitorInstalledSettingsSection: View {
+    let widget: Widget
+    @Binding var pinnedWidgetIDs: [String]
+    @Default(.systemMonitorSneakPeekEnabled) private var sneakPeekEnabled
+    @Default(.systemMonitorSneakPeekLeftMetric) private var leftMetric
+    @Default(.systemMonitorSneakPeekRightMetric) private var rightMetric
+
+    var body: some View {
+        Section {
+            Toggle("Show sneak peek when closed", isOn: $sneakPeekEnabled)
+
+            Picker("Left side", selection: $leftMetric) {
+                ForEach(SystemMonitorSneakPeekMetric.allCases) { metric in
+                    Label(metric.title, systemImage: metric.symbolName)
+                        .tag(metric)
+                }
+            }
+
+            Picker("Right side", selection: $rightMetric) {
+                ForEach(SystemMonitorSneakPeekMetric.allCases) { metric in
+                    Label(metric.title, systemImage: metric.symbolName)
+                        .tag(metric)
+                }
+            }
+
+            Button("Unpin", role: .destructive) {
+                pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)
+            }
+        } header: {
+            Text(widget.manifest.name)
+        } footer: {
+            Text("Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics.")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+}
+
 private struct GenericInstalledSettingsSection: View {
     let widget: Widget
     @Binding var pinnedWidgetIDs: [String]
@@ -148,7 +188,7 @@ private struct WorkshopInstalledPreviewHost: View {
             .task {
                 guard !loaded else { return }
                 loaded = true
-                Defaults[.pinnedWidgetIDs] = ["color-picker"]
+                Defaults[.pinnedWidgetIDs] = ["color-picker", "system-monitor"]
                 WidgetEngine.shared.load(makePreviewWidgets())
             }
     }
@@ -157,6 +197,7 @@ private struct WorkshopInstalledPreviewHost: View {
     private func makePreviewWidgets() -> [Widget] {
         [
             makeInteractivePreviewWidget(),
+            makeSystemMonitorPreviewWidget(),
         ]
         .compactMap { $0 }
     }
@@ -185,6 +226,51 @@ private struct WorkshopInstalledPreviewHost: View {
                 interactive: .init(type: .colorPicker)
             ),
             lastValue: nil,
+            status: .ok
+        )
+    }
+
+    @MainActor
+    private func makeSystemMonitorPreviewWidget() -> Widget? {
+        try? Widget(
+            manifest: WidgetManifest(
+                schema: 1,
+                kind: .data,
+                id: "system-monitor",
+                name: "System Monitor",
+                author: "Preview",
+                source: .init(
+                    type: .framework,
+                    run: nil,
+                    url: nil,
+                    method: nil,
+                    headers: nil,
+                    api: "system-monitor",
+                    interval: 3,
+                    timeout: nil,
+                    cwd: nil,
+                    env: nil
+                ),
+                extract: .init(method: .jsonPath, pattern: nil, path: "$", table: nil),
+                render: .init(
+                    template: .text,
+                    slots: [
+                        "icon": .string("cpu"),
+                        "label": .string("System Monitor"),
+                        "color": .string("accent"),
+                    ]
+                ),
+                onTap: nil,
+                permissions: nil,
+                interactive: nil
+            ),
+            lastValue: SystemMonitorSnapshot(
+                cpuPercent: 27,
+                memoryPercent: 61,
+                diskPercent: 73,
+                uptimeText: "5h 42m",
+                loadAverageText: "1.12 1.08 0.98"
+            ).widgetValue,
             status: .ok
         )
     }

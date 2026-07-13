@@ -40,6 +40,7 @@ enum WidgetTabPageResolver {
 
 struct WidgetTabPageView: View {
     let widgetID: String
+    let animationNamespace: Namespace.ID?
 
     @ObservedObject private var engine = WidgetEngine.shared
 
@@ -55,7 +56,11 @@ struct WidgetTabPageView: View {
                     }
                 case .timer:
                     if let model = widget.interactiveRuntime as? TimerWidgetModel {
-                        TimerWidgetPageView(widget: widget, model: model)
+                        TimerWidgetPageView(
+                            widget: widget,
+                            model: model,
+                            animationNamespace: animationNamespace
+                        )
                     } else {
                         unavailableState
                     }
@@ -181,7 +186,7 @@ private struct WidgetTabPagePreviewHost: View {
     @State private var loaded = false
 
     var body: some View {
-        WidgetTabPageView(widgetID: "preview-widget")
+        WidgetTabPageView(widgetID: "preview-widget", animationNamespace: nil)
             .task {
                 guard !loaded else { return }
                 loaded = true

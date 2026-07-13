@@ -12,45 +12,11 @@ struct ClipboardHistoryWidgetPageView: View {
 
     @ObservedObject var model: ClipboardHistoryWidgetModel
     @State private var hoveredItemID: String?
+    private let cardHeight: CGFloat = 84
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header
-
-            Divider()
-                .overlay(Color.white.opacity(0.10))
-                .padding(.top, 10)
-                .padding(.bottom, 12)
-
-            content
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(widget.manifest.name)
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(.white)
-
-                Text("Recent clips stay ready to copy again.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 0)
-
-            Button("Clear") {
-                model.clearHistory()
-            }
-            .buttonStyle(.plain)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(model.items.isEmpty ? Color.secondary.opacity(0.45) : Color.white.opacity(0.75))
-            .disabled(model.items.isEmpty)
-        }
-        .padding(.top, 10)
-        .padding(.leading, 5)
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     @ViewBuilder
@@ -66,16 +32,20 @@ struct ClipboardHistoryWidgetPageView: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            .padding(.top, 10)
+            .padding(.leading, 5)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     ForEach(model.items) { item in
                         historyCard(for: item)
                     }
                 }
-                .padding(.vertical, 2)
             }
+            .padding(.top, 10)
+            .padding(.leading, 5)
+            .padding(.bottom, 2)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
     }
@@ -84,36 +54,33 @@ struct ClipboardHistoryWidgetPageView: View {
         Button {
             model.restoreHistoryItem(item)
         } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 8) {
-                    Label(item.kind.title, systemImage: item.kind.symbolName)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .labelStyle(.titleAndIcon)
+            ZStack(alignment: .topLeading) {
+                cardBackground(for: item)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .top, spacing: 8) {
+                        Label(item.kind.title, systemImage: item.kind.symbolName)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(item.kind == .image ? .white.opacity(0.9) : .secondary)
+                            .labelStyle(.titleAndIcon)
+
+                        Spacer(minLength: 0)
+
+                        pinButton(for: item)
+                            .opacity(hoveredItemID == item.id || item.pinned ? 1 : 0)
+                    }
+
+                    preview(for: item)
 
                     Spacer(minLength: 0)
-
-                    pinButton(for: item)
-                        .opacity(hoveredItemID == item.id || item.pinned ? 1 : 0)
                 }
-
-                preview(for: item)
-
-                Spacer(minLength: 0)
-
-                Text(item.previewSubtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
             }
-            .padding(12)
-            .frame(width: 168, height: 116, alignment: .topLeading)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(nsColor: .secondarySystemFill).opacity(0.45))
-            )
+            .frame(width: itemWidth(for: item), height: cardHeight, alignment: .leading)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .strokeBorder(Color.white.opacity(hoveredItemID == item.id ? 0.12 : 0.06), lineWidth: 1)
             }
         }
@@ -124,38 +91,73 @@ struct ClipboardHistoryWidgetPageView: View {
     }
 
     @ViewBuilder
+    private func cardBackground(for item: ClipboardHistoryItem) -> some View {
+        switch item.kind {
+        case .image:
+            if let image = item.thumbnailImage {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay {
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.18),
+                                Color.black.opacity(0.48),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+            } else {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(nsColor: .secondarySystemFill).opacity(0.45))
+            }
+        case .text, .link:
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(nsColor: .secondarySystemFill).opacity(0.45))
+        }
+    }
+
+    private func itemWidth(for item: ClipboardHistoryItem) -> CGFloat {
+        switch item.kind {
+        case .image:
+            if let image = item.thumbnailImage, image.size.height > 0 {
+                let aspectRatio = image.size.width / image.size.height
+                return min(max(cardHeight * aspectRatio, 84), 220)
+            }
+            return 84
+        case .text:
+            return 156
+        case .link:
+            return 176
+        }
+    }
+
+    @ViewBuilder
     private func preview(for item: ClipboardHistoryItem) -> some View {
         switch item.kind {
         case .text:
             Text(item.previewTitle)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.white)
-                .lineLimit(3)
+                .lineLimit(2)
+                .truncationMode(.tail)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         case .link:
             Text(item.previewTitle)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundStyle(.white)
-                .lineLimit(3)
+                .lineLimit(2)
+                .truncationMode(.middle)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         case .image:
-            if let image = item.thumbnailImage {
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, maxHeight: 54, alignment: .leading)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            } else {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.white.opacity(0.05))
-                    .frame(height: 54)
-                    .overlay {
-                        Image(systemName: "photo")
-                            .foregroundStyle(.secondary)
-                    }
-            }
+            Text("Tap to copy image")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.white.opacity(0.95))
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
