@@ -34,6 +34,11 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            Button("Workshop") {
+                DispatchQueue.main.async {
+                    WorkshopWindowController.shared.showWindow()
+                }
+            }
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -312,6 +317,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Task { @MainActor in
+            WidgetLaunchLoader().loadWidgets()
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -447,6 +455,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         viewModel.close()
                     }
                 }
+            }
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .colorPickerPickColor) {
+            Task { @MainActor in
+                guard let pickedColor = await ScreenColorPicker.shared.pickColor(),
+                      let parsed = ColorPickerHSBAColor.from(nsColor: pickedColor) else {
+                    return
+                }
+
+                Defaults[.colorPickerRecentHistory] = ColorPickerHistoryStore.push(
+                    parsed,
+                    into: Defaults[.colorPickerRecentHistory]
+                )
             }
         }
 

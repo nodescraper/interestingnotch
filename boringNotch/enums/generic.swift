@@ -18,9 +18,21 @@ public enum NotchState {
     case open
 }
 
-public enum NotchViews {
+public enum NotchViews: Equatable, Hashable, Sendable {
     case home
     case shelf
+    case widget(id: String)
+
+    var stableID: String {
+        switch self {
+        case .home:
+            return "home"
+        case .shelf:
+            return "shelf"
+        case .widget(let id):
+            return "widget:\(id)"
+        }
+    }
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {

@@ -211,6 +211,8 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
+    static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
+    static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
