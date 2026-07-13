@@ -221,6 +221,8 @@ extension Defaults.Keys {
     static let animationSpeedMultiplier = Key<Double>("animationSpeedMultiplier", default: 1.0)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
+    static let showPinButton = Key<Bool>("showPinButton", default: false)
+    static let pinNotchOpen = Key<Bool>("pinNotchOpen", default: false)
     static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
     static let notchHeightMode = Key<WindowHeightMode>(
         "notchHeightMode",

@@ -14,6 +14,8 @@ struct BoringHeader: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @StateObject var tvm = ShelfStateViewModel.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
+    @Default(.showPinButton) private var showPinButton
+    @Default(.pinNotchOpen) private var pinNotchOpen
 
     private var shouldShowTabs: Bool {
         (!tvm.isEmpty && Defaults[.boringShelf]) || !pinnedWidgetIDs.isEmpty || coordinator.alwaysShowTabs
@@ -63,6 +65,14 @@ struct BoringHeader: View {
                                 WorkshopWindowController.shared.showWindow()
                             }
                         }
+                        if showPinButton {
+                            headerIconButton(
+                                systemName: pinNotchOpen ? "pin.fill" : "pin",
+                                isSelected: pinNotchOpen
+                            ) {
+                                pinNotchOpen.toggle()
+                            }
+                        }
                         if Defaults[.settingsIconInNotch] {
                             headerIconButton(systemName: "gear") {
                                 DispatchQueue.main.async {
@@ -96,10 +106,14 @@ struct BoringHeader: View {
         .environmentObject(vm)
     }
 
-    private func headerIconButton(systemName: String, action: @escaping () -> Void) -> some View {
+    private func headerIconButton(
+        systemName: String,
+        isSelected: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Capsule()
-                .fill(.black)
+                .fill(isSelected ? Color(nsColor: .secondarySystemFill) : .black)
                 .frame(width: 30, height: 30)
                 .overlay {
                     Image(systemName: systemName)

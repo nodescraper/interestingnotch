@@ -31,6 +31,8 @@ struct GeneralSettings: View {
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
+    @Default(.showPinButton) var showPinButton
+    @Default(.pinNotchOpen) var pinNotchOpen
     @Default(.enableOpeningAnimation) var enableOpeningAnimation
     @Default(.animationSpeedMultiplier) var animationSpeedMultiplier
 
@@ -196,6 +198,11 @@ struct GeneralSettings: View {
                 enableGestures = true
             }
         }
+        .onChange(of: showPinButton) {
+            if !showPinButton {
+                pinNotchOpen = false
+            }
+        }
         .alert("Restart to apply language", isPresented: $showLanguageRestartAlert) {
             Button("Later", role: .cancel) {}
             Button("Restart Now") {
@@ -276,6 +283,9 @@ struct GeneralSettings: View {
             }
             Defaults.Toggle(key: .enableHaptics) {
                     Text("Enable haptic feedback")
+            }
+            Defaults.Toggle(key: .showPinButton) {
+                Text("Show pin button in notch")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
             if openNotchOnHover {
