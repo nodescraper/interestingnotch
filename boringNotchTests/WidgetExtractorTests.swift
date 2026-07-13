@@ -460,6 +460,24 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(engine.loadedWidgetIDs, [])
     }
 
+    func testWidgetSlotRendererResolvesValuePlaceholder() {
+        let result = WidgetSlotRenderer.resolveText("$value updates", value: .integer(3))
+
+        XCTAssertEqual(result, "3 updates")
+    }
+
+    func testWidgetSlotRendererUsesDashPlaceholderWhenValueMissing() {
+        let result = WidgetSlotRenderer.resolveText("$value updates", value: nil)
+
+        XCTAssertEqual(result, "— updates")
+    }
+
+    func testWidgetSlotRendererConvertsStringValuesToNumbers() {
+        let result = WidgetSlotRenderer.numericValue(from: .string(" 42.5 "))
+
+        XCTAssertEqual(result, 42.5)
+    }
+
     @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
