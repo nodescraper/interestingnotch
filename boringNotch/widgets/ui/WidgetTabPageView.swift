@@ -28,20 +28,23 @@ struct WidgetTabPageView: View {
     @ObservedObject private var engine = WidgetEngine.shared
 
     var body: some View {
-        if let widget = engine.widgets.first(where: { $0.id == widgetID }) {
-            switch WidgetTabPageResolver.pageKind(for: widget) {
-            case .colorPicker:
-                if let model = widget.interactiveRuntime as? ColorPickerWidgetModel {
-                    ColorPickerWidgetPageView(widget: widget, model: model)
-                } else {
-                    unavailableState
+        Group {
+            if let widget = engine.widgets.first(where: { $0.id == widgetID }) {
+                switch WidgetTabPageResolver.pageKind(for: widget) {
+                case .colorPicker:
+                    if let model = widget.interactiveRuntime as? ColorPickerWidgetModel {
+                        ColorPickerWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
+                case .placeholder:
+                    content(for: widget)
                 }
-            case .placeholder:
-                content(for: widget)
+            } else {
+                unavailableState
             }
-        } else {
-            unavailableState
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func content(for widget: Widget) -> some View {

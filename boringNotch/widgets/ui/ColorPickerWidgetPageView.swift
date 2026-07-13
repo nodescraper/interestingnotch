@@ -13,66 +13,79 @@ struct ColorPickerWidgetPageView: View {
     @ObservedObject var model: ColorPickerWidgetModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            topRow
-            recentRow
+        HStack(alignment: .top, spacing: 12) {
+            swatchView
+            detailsColumn
+            Spacer(minLength: 0)
         }
-        .padding(18)
-        .background(cardBackground)
-        .padding(.horizontal, 22)
-        .padding(.vertical, 18)
     }
 
-    private var topRow: some View {
-        HStack(alignment: .center, spacing: 14) {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+    private var swatchView: some View {
+        ZStack(alignment: .bottomTrailing) {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(model.color.swiftUIColor)
-                .frame(width: 64, height: 64)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                }
 
-            VStack(alignment: .leading, spacing: 4) {
+            Button {
+                Task {
+                    await model.pickScreenColor()
+                }
+            } label: {
+                Image(systemName: "eyedropper")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(.black.opacity(0.38), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(8)
+            .help("Pick a color")
+        }
+        .aspectRatio(1, contentMode: .fit)
+    }
+
+    private var detailsColumn: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 7) {
                 Text(model.displayHex)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
+                Button {
+                    model.copyCurrentColor()
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Copy color")
+            }
+
+            HStack(spacing: 0) {
                 Text("rgb(\(model.displayRGB.red), \(model.displayRGB.green), \(model.displayRGB.blue))")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
 
+            recentRow
             Spacer(minLength: 0)
-
-            HStack(spacing: 10) {
-                actionButton(title: "Pick", systemImage: "eyedropper") {
-                    Task {
-                        await model.pickScreenColor()
-                    }
-                }
-
-                actionButton(title: "Copy", systemImage: "doc.on.doc") {
-                    model.copyCurrentColor()
-                }
-            }
         }
     }
 
     private var recentRow: some View {
-        HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 5) {
             Text("Recent")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
 
             if model.recentHistory.isEmpty {
                 Text("Copied colors and eyedropper picks show up here.")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
             } else {
                 HStack(spacing: 8) {
                     ForEach(model.recentHistory, id: \.self) { entry in
@@ -94,37 +107,7 @@ struct ColorPickerWidgetPageView: View {
                     }
                 }
             }
-
-            Spacer(minLength: 0)
         }
-    }
-
-    private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(Color.white.opacity(0.05))
-            .overlay {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
-            }
-    }
-
-    private func actionButton(
-        title: String,
-        systemImage: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 9)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                )
-        }
-        .buttonStyle(.plain)
     }
 }
 
