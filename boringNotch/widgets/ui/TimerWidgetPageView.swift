@@ -13,82 +13,94 @@ struct TimerWidgetPageView: View {
     @ObservedObject var model: TimerWidgetModel
 
     var body: some View {
-        HStack(alignment: .center, spacing: 30) {
+        HStack(alignment: .top, spacing: 15) {
             countdownRing
+                .padding(.all, 5)
 
-            VStack(alignment: .leading, spacing: 20) {
-                centerCopy
-                presetRow
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    centerCopy
+                    presetRow
+                }
+                .padding(.top, 10)
+                .padding(.leading, 5)
+
+                Spacer(minLength: 0)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.10))
+                    .padding(.vertical, 8)
+
                 controlRow
+                    .padding(.bottom, 2)
+
+                Spacer(minLength: 0)
             }
+            .frame(maxHeight: .infinity)
 
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 16)
-        .padding(.bottom, 26)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var countdownRing: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.12), lineWidth: 10)
+                .stroke(Color.white.opacity(0.12), lineWidth: 7)
 
             Circle()
                 .trim(from: 0, to: max(0.01, 1 - model.countdownState.progress))
                 .stroke(
                     Color.white,
-                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    style: StrokeStyle(lineWidth: 7, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
 
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Text(model.displayTime)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.headline.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
                 Text(model.phaseTitle)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
             }
         }
-        .frame(width: 168, height: 168)
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: 144)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Timer")
         .accessibilityValue(model.accessibilitySummary)
     }
 
     private var centerCopy: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(widget.manifest.name)
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+        VStack(alignment: .leading, spacing: 4) {
+            Text(model.displayTime)
+                .font(.headline.weight(.bold))
                 .foregroundStyle(.white)
+                .monospacedDigit()
+                .lineLimit(1)
 
-            Text("A simple countdown now, structured so Pomodoro phases can layer in later.")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+            Text(model.phaseTitle)
+                .font(.caption)
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(1)
         }
     }
 
     private var presetRow: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 16) {
             ForEach(TimerWidgetModel.presets) { preset in
                 Button {
                     model.selectPreset(preset)
                 } label: {
                     Text(preset.label)
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(isSelectedPreset(preset) ? .black : .white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .background {
-                            Capsule()
-                                .fill(isSelectedPreset(preset) ? Color.white : Color.white.opacity(0.08))
-                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(isSelectedPreset(preset) ? 1 : 0.45))
                 }
                 .buttonStyle(.plain)
             }
@@ -96,40 +108,36 @@ struct TimerWidgetPageView: View {
     }
 
     private var controlRow: some View {
-        HStack(spacing: 12) {
-            Button {
+        HStack(spacing: 16) {
+            HoverButton(
+                icon: model.countdownState.phase == .running ? "pause.fill" : "play.fill",
+                iconColor: .white,
+                scale: .large
+            ) {
                 model.toggleStartPause()
-            } label: {
-                Label(
-                    model.countdownState.phase == .running ? "Pause" : "Start",
-                    systemImage: model.countdownState.phase == .running ? "pause.fill" : "play.fill"
-                )
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(.black)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .background {
-                    Capsule()
-                        .fill(Color.white)
-                }
             }
-            .buttonStyle(.plain)
+            .opacity(primaryControlOpacity)
+            .help(model.countdownState.phase == .running ? "Pause" : "Start")
 
-            Button {
+            HoverButton(
+                icon: "arrow.counterclockwise",
+                iconColor: .white,
+                scale: .large
+            ) {
                 model.reset()
-            } label: {
-                Label("Reset", systemImage: "arrow.counterclockwise")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 9)
-                    .background {
-                        Capsule()
-                            .fill(Color(nsColor: .secondarySystemFill))
-                    }
             }
-            .buttonStyle(.plain)
+            .opacity(secondaryControlOpacity)
+            .help("Reset")
         }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private var primaryControlOpacity: Double {
+        model.countdownState.phase == .running ? 1 : 0.7
+    }
+
+    private var secondaryControlOpacity: Double {
+        model.countdownState.phase == .idle ? 0.45 : 0.7
     }
 
     private func isSelectedPreset(_ preset: TimerPreset) -> Bool {
@@ -139,7 +147,7 @@ struct TimerWidgetPageView: View {
 
 #Preview("Timer Widget") {
     TimerWidgetPreviewHost()
-        .frame(width: 540, height: 280)
+        .frame(width: 440, height: 180)
         .background(.black)
 }
 

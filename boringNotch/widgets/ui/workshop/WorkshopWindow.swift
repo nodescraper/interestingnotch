@@ -10,6 +10,8 @@ import SwiftUI
 private enum WorkshopSection: String, CaseIterable, Identifiable {
     case browse
     case installed
+    case shelf
+    case calendar
 
     var id: Self { self }
 
@@ -17,6 +19,8 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "Browse"
         case .installed: "Installed"
+        case .shelf: "Shelf"
+        case .calendar: "Calendar"
         }
     }
 
@@ -24,6 +28,8 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "square.grid.2x2"
         case .installed: "checklist"
+        case .shelf: "books.vertical"
+        case .calendar: "calendar"
         }
     }
 }
@@ -34,9 +40,14 @@ struct WorkshopWindow: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedSection) {
-                ForEach(WorkshopSection.allCases) { section in
-                    Label(section.title, systemImage: section.systemImage)
-                        .tag(section)
+                Section("Widget Library") {
+                    workshopSidebarItem(.browse)
+                    workshopSidebarItem(.installed)
+                }
+
+                Section("Built-in Widgets") {
+                    workshopSidebarItem(.shelf)
+                    workshopSidebarItem(.calendar)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -50,6 +61,10 @@ struct WorkshopWindow: View {
                     WorkshopBrowseView()
                 case .installed:
                     WorkshopInstalledView()
+                case .shelf:
+                    Shelf()
+                case .calendar:
+                    CalendarSettings()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -67,6 +82,12 @@ struct WorkshopWindow: View {
         .frame(width: 760, height: 560)
         .background(Color(NSColor.windowBackgroundColor))
         .tint(.effectiveAccent)
+    }
+
+    @ViewBuilder
+    private func workshopSidebarItem(_ section: WorkshopSection) -> some View {
+        Label(section.title, systemImage: section.systemImage)
+            .tag(section)
     }
 }
 

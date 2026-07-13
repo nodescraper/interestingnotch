@@ -65,7 +65,10 @@ private struct ColorPickerInstalledSettingsSection: View {
 
     var body: some View {
         Section {
-            KeyboardShortcuts.Recorder("Pick color:", name: .colorPickerPickColor)
+            LabeledContent("Pick color shortcut") {
+                KeyboardShortcuts.Recorder(for: .colorPickerPickColor)
+                    .frame(minWidth: 130)
+            }
 
             Button("Unpin", role: .destructive) {
                 pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)

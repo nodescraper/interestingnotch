@@ -488,6 +488,14 @@ final class ColorPickerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         color = restored
     }
 
+    func applyPickedColor(_ pickedColor: ColorPickerHSBAColor, addToHistory: Bool = true) {
+        color = pickedColor
+
+        if addToHistory {
+            pushCurrentColorToHistory()
+        }
+    }
+
     func copyCurrentColor() {
         pasteboard.copy(previewString)
         pushCurrentColorToHistory()
@@ -499,8 +507,7 @@ final class ColorPickerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
             return
         }
 
-        color = parsed
-        pushCurrentColorToHistory()
+        applyPickedColor(parsed)
     }
 
     private func pushCurrentColorToHistory() {

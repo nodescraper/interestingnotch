@@ -136,11 +136,11 @@ struct ContentView: View {
     }
 
     private var timerCompactRingSize: CGFloat {
-        max(0, displayClosedNotchHeight - 12)
+        max(0, displayClosedNotchHeight - 14)
     }
 
     private var timerCompactTextWidth: CGFloat {
-        vm.hasNotch ? 88 : 78
+        vm.hasNotch ? 92 : 82
     }
 
     private var compactTimerWidth: CGFloat {
@@ -633,6 +633,7 @@ struct ContentView: View {
                         .rotationEffect(.degrees(-90))
                 }
                 .frame(width: timerCompactRingSize, height: timerCompactRingSize)
+                .padding(.trailing, 2)
 
                 Rectangle()
                     .fill(.black)
@@ -640,11 +641,11 @@ struct ContentView: View {
 
                 HStack {
                     Text(isFinished ? "Time's up!" : model.displayTime)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.headline)
                         .monospacedDigit()
                         .foregroundStyle(.white)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.82)
+                        .minimumScaleFactor(0.9)
                 }
                 .frame(width: timerCompactTextWidth, height: displayClosedNotchHeight, alignment: .trailing)
                 .padding(.trailing, 4)

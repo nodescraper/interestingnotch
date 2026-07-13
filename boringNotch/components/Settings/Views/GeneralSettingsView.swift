@@ -27,6 +27,7 @@ struct GeneralSettings: View {
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
+    @Default(.enabledDisplayUUIDs) var enabledDisplayUUIDs
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
     @Default(.enableGestures) var enableGestures
     @Default(.openNotchOnHover) var openNotchOnHover
@@ -59,9 +60,25 @@ struct GeneralSettings: View {
                     Text("Show on all displays")
                 }
                 .onChange(of: showOnAllDisplays) {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.showOnAllDisplaysChanged, object: nil)
+                    if !showOnAllDisplays && enabledDisplayUUIDs.isEmpty {
+                        enabledDisplayUUIDs = [coordinator.preferredScreenUUID].compactMap { $0 }
+                    }
+                    notifyDisplaySelectionChanged()
                 }
+                Section {
+                    ForEach(screens, id: \.uuid) { screen in
+                        Toggle(isOn: displayBinding(for: screen.uuid)) {
+                            Label(screen.name, systemImage: "display")
+                        }
+                    }
+                } header: {
+                    Text("Displays")
+                } footer: {
+                    Text("Choose one or more displays. When no display is selected, the preferred display is used.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .disabled(showOnAllDisplays)
                 Picker("Preferred display", selection: $coordinator.preferredScreenUUID) {
                     ForEach(screens, id: \.uuid) { screen in
                         Text(screen.name).tag(screen.uuid as String?)
@@ -187,6 +204,27 @@ struct GeneralSettings: View {
         } message: {
             Text("Changing the app language requires restarting Boring Notch.")
         }
+    }
+
+    private func displayBinding(for uuid: String) -> Binding<Bool> {
+        Binding(
+            get: { enabledDisplayUUIDs.contains(uuid) },
+            set: { enabled in
+                if enabled {
+                    if !enabledDisplayUUIDs.contains(uuid) {
+                        enabledDisplayUUIDs.append(uuid)
+                    }
+                } else {
+                    enabledDisplayUUIDs.removeAll { $0 == uuid }
+                }
+                notifyDisplaySelectionChanged()
+            }
+        )
+    }
+
+    private func notifyDisplaySelectionChanged() {
+        NotificationCenter.default.post(
+            name: Notification.Name.showOnAllDisplaysChanged, object: nil)
     }
 
     @ViewBuilder
