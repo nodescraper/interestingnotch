@@ -1,14 +1,17 @@
 # BoringNotch SE
 
-`BoringNotch SE` is a personal fork of `boring.notch`, maintained by `NodeScraper`.
+`BoringNotch SE` is a macOS notch utility by `NodeScraper`.
 
-This fork keeps the original notch app idea and extends it with a first-party widget system, including:
+It turns the notch into a customizable surface for media, widgets, shelf tools, calendar access, system controls, and compact live activities.
 
-- dynamic widget tabs in the notch
-- a widget workshop/library
-- a color picker widget
-- a timer widget
-- a system monitor widget
+## Highlights
+
+- dynamic widget tabs inside the notch
+- Workshop library for browsing and pinning widgets
+- built-in color picker widget
+- built-in timer widget
+- built-in system monitor widget
+- media controls, shelf, calendar, and OSD utilities
 
 ## Requirements
 
@@ -18,12 +21,12 @@ This fork keeps the original notch app idea and extends it with a first-party wi
 ## Build From Source
 
 ```bash
-git clone https://github.com/NodeScraper/BoringNotch-SE.git
-cd BoringNotch-SE
+git clone https://github.com/nodescraper/boringnotch-se.git
+cd boringnotch-se
 open boringNotch.xcodeproj
 ```
 
-Or build from Terminal:
+Terminal build:
 
 ```bash
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -destination 'generic/platform=macOS' build
@@ -31,16 +34,14 @@ xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -destination 'gene
 
 ## Run
 
-From Xcode, select the `boringNotch` scheme and press `Cmd + R`.
+Run from Xcode with `Cmd + R`, or open the built app bundle from the derived data path used during your build.
 
-If you already built from Terminal, you can launch the app bundle directly from the derived data location you used for the build.
-
-## Fork Notes
+## Project
 
 - App name: `BoringNotch SE`
 - Maintainer: `NodeScraper`
-- This fork is separate from the upstream `TheBoredTeam/boring.notch` project
+- Platform: macOS
 
 ## Credits
 
-This project builds on the excellent original work from the `boring.notch` contributors and the open-source projects it depends on.
+BoringNotch SE stands on top of a lot of excellent open-source work, including the original notch-app ideas that helped shape this space.
