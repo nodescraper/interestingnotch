@@ -30,7 +30,7 @@ final class WorkshopWindowController: NSWindowController {
     private func setupWindow() {
         guard let window else { return }
 
-        window.title = "Boring Notch Workshop"
+        window.title = "BoringNotch SE Workshop"
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
@@ -39,7 +39,7 @@ final class WorkshopWindowController: NSWindowController {
         window.hidesOnDeactivate = false
         window.isExcludedFromWindowsMenu = false
         window.isRestorable = true
-        window.identifier = NSUserInterfaceItemIdentifier("BoringNotchWorkshopWindow")
+        window.identifier = NSUserInterfaceItemIdentifier("BoringNotchSEWorkshopWindow")
         window.contentView = NSHostingView(rootView: WorkshopWindow())
         window.delegate = self
     }

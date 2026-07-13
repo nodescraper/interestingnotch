@@ -102,7 +102,7 @@ enum WidgetLibrary {
             render: .init(
                 template: .text,
                 slots: [
-                    "icon": .string("waveform.path.ecg"),
+                    "icon": .string("cpu"),
                     "label": .string("System Monitor"),
                     "color": .string("accent"),
                 ]
