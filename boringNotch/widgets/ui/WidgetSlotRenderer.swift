@@ -8,6 +8,22 @@
 import Foundation
 
 enum WidgetSlotRenderer {
+    static func resolvedString(
+        forSlotNamed name: String,
+        in slots: [String: WidgetValue],
+        value: WidgetValue?,
+        fallback: String
+    ) -> String {
+        guard let slotValue = slots[name] else { return fallback }
+
+        switch slotValue {
+        case .string(let template):
+            return resolveText(template, value: value)
+        default:
+            return displayString(for: slotValue)
+        }
+    }
+
     static func resolveText(_ template: String, value: WidgetValue?) -> String {
         template.replacingOccurrences(of: "$value", with: value.map(displayString(for:)) ?? "—")
     }

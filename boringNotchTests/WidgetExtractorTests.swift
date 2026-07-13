@@ -478,6 +478,28 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(result, 42.5)
     }
 
+    func testWidgetSlotRendererResolvesStringSlotTemplates() {
+        let result = WidgetSlotRenderer.resolvedString(
+            forSlotNamed: "label",
+            in: ["label": .string("$value updates")],
+            value: .integer(5),
+            fallback: "Fallback"
+        )
+
+        XCTAssertEqual(result, "5 updates")
+    }
+
+    func testWidgetSlotRendererFallsBackWhenSlotMissing() {
+        let result = WidgetSlotRenderer.resolvedString(
+            forSlotNamed: "label",
+            in: [:],
+            value: .integer(5),
+            fallback: "Fallback"
+        )
+
+        XCTAssertEqual(result, "Fallback")
+    }
+
     @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
