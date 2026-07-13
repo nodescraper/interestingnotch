@@ -13,42 +13,77 @@ struct WorkshopBrowseView: View {
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
 
     var body: some View {
-        WidgetGridView(
-            widgets: engine.widgets,
-            emptyIcon: "square.grid.2x2",
-            emptyTitle: "No widgets yet",
-            emptyMessage: "Add .notchwidget.json files to Application Support to browse and pin them here."
-        ) { widget in
-            WidgetCardView(widget: widget) {
-                pinButton(for: widget)
+        Form {
+            Section {
+                if engine.widgets.isEmpty {
+                    Text("No widgets installed yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(engine.widgets, id: \.id) { widget in
+                        availableWidgetRow(for: widget)
+                    }
+                }
+            } header: {
+                Text("Available Widgets")
+            } footer: {
+                Text("Available widgets are loaded from Application Support. Pin one here to make it appear as a notch tab.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
             }
         }
+        .accentColor(.effectiveAccent)
         .navigationTitle("Browse")
     }
 
-    private func pinButton(for widget: Widget) -> some View {
-        let isPinned = WidgetPinStore.isPinned(widget.id, in: pinnedWidgetIDs)
+    private func availableWidgetRow(for widget: Widget) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            widgetIcon(for: widget)
 
-        return Button {
-            pinnedWidgetIDs = WidgetPinStore.toggle(widget.id, in: pinnedWidgetIDs)
-        } label: {
-            Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.fill" : "pin")
-                .labelStyle(.iconOnly)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(isPinned ? widget.resolvedColor : .white.opacity(0.9))
-                .padding(8)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(.black.opacity(0.35))
-                )
-                .overlay {
-                    Capsule(style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(widget.manifest.name)
+                    .font(.headline)
+
+                Text(WorkshopWidgetCatalog.description(for: widget))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 16)
+
+            Button(isPinned(widget) ? "Unpin" : "Pin") {
+                pinnedWidgetIDs = WidgetPinStore.toggle(widget.id, in: pinnedWidgetIDs)
+            }
         }
-        .buttonStyle(.plain)
-        .help(isPinned ? "Unpin from notch tabs" : "Pin to notch tabs")
-        .accessibilityLabel(isPinned ? "Unpin \(widget.manifest.name)" : "Pin \(widget.manifest.name)")
+        .padding(.vertical, 4)
+    }
+
+    private func widgetIcon(for widget: Widget) -> some View {
+        let symbol = WidgetSlotRenderer.resolvedString(
+            forSlotNamed: "icon",
+            in: widget.manifest.render.slots,
+            value: widget.lastValue,
+            fallback: "square.grid.2x2"
+        )
+
+        return Image(systemName: symbol)
+            .frame(width: 18, height: 18)
+            .foregroundStyle(widget.resolvedColor)
+    }
+
+    private func isPinned(_ widget: Widget) -> Bool {
+        WidgetPinStore.isPinned(widget.id, in: pinnedWidgetIDs)
+    }
+}
+
+enum WorkshopWidgetCatalog {
+    static func description(for widget: Widget) -> String {
+        switch widget.id {
+        case "color-picker":
+            return "Pick colors anywhere on screen, copy values, and keep a quick recent history."
+        default:
+            return "Pin this widget to add it as a tab in the notch."
+        }
     }
 }
 
@@ -72,90 +107,36 @@ private struct WorkshopBrowsePreviewHost: View {
     @MainActor
     private func makePreviewWidgets() -> [Widget] {
         [
-            makePreviewWidget(
-                id: "preview-git",
-                name: "Git Status",
-                template: .iconLabel,
-                lastValue: .integer(2),
-                status: .ok,
-                color: "accent",
-                icon: "arrow.triangle.branch",
-                label: "$value changed"
-            ),
-            makePreviewWidget(
-                id: "preview-brew",
-                name: "Brew Updates",
-                template: .iconLabel,
-                lastValue: nil,
-                status: .loading,
-                color: "warn",
-                icon: "shippingbox",
-                label: "Checking updates"
-            ),
+            makeInteractivePreviewWidget(),
         ]
         .compactMap { $0 }
     }
 
     @MainActor
-    private func makePreviewWidget(
-        id: String,
-        name: String,
-        template: WidgetManifest.Render.Template,
-        lastValue: WidgetValue?,
-        status: WidgetStatus,
-        color: String,
-        icon: String,
-        label: String
-    ) -> Widget? {
+    private func makeInteractivePreviewWidget() -> Widget? {
         try? Widget(
             manifest: WidgetManifest(
                 schema: 1,
-                kind: .data,
-                id: id,
-                name: name,
+                kind: .interactive,
+                id: "color-picker",
+                name: "Color Picker",
                 author: "Preview",
-                source: .init(
-                    type: .command,
-                    run: "cat /dev/null",
-                    url: nil,
-                    method: nil,
-                    headers: nil,
-                    api: nil,
-                    interval: 10,
-                    timeout: 1,
-                    cwd: nil,
-                    env: nil
-                ),
-                extract: .init(
-                    method: .raw,
-                    pattern: nil,
-                    path: nil,
-                    table: nil
-                ),
+                source: nil,
+                extract: nil,
                 render: .init(
-                    template: template,
+                    template: .iconLabel,
                     slots: [
-                        "icon": .string(icon),
-                        "label": .string(label),
-                        "color": .string(color),
+                        "icon": .string("eyedropper"),
+                        "label": .string("Pick color"),
+                        "color": .string("accent"),
                     ]
                 ),
                 onTap: nil,
                 permissions: nil,
-                interactive: nil
+                interactive: .init(type: .colorPicker)
             ),
-            executor: WorkshopBrowsePreviewExecutor(),
-            extractor: ExtractorPipeline(extractors: [RawExtractor()]),
-            lastValue: lastValue,
-            status: status
+            lastValue: nil,
+            status: .ok
         )
-    }
-}
-
-private actor WorkshopBrowsePreviewExecutor: ChannelExecutor {
-    let channelType: WidgetManifest.Source.ChannelType = .command
-
-    func run(source: WidgetManifest.Source) async throws -> String {
-        ""
     }
 }

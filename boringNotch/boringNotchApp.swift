@@ -458,6 +458,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .colorPickerPickColor) {
+            Task { @MainActor in
+                guard let pickedColor = await ScreenColorPicker.shared.pickColor(),
+                      let parsed = ColorPickerHSBAColor.from(nsColor: pickedColor) else {
+                    return
+                }
+
+                Defaults[.colorPickerRecentHistory] = ColorPickerHistoryStore.push(
+                    parsed,
+                    into: Defaults[.colorPickerRecentHistory]
+                )
+            }
+        }
+
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
         

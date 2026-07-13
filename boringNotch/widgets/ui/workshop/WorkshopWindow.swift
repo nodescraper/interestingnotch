@@ -9,42 +9,64 @@ import SwiftUI
 
 private enum WorkshopSection: String, CaseIterable, Identifiable {
     case browse
+    case installed
 
-    var id: String { rawValue }
+    var id: Self { self }
 
     var title: String {
         switch self {
-        case .browse:
-            return "Browse"
+        case .browse: "Browse"
+        case .installed: "Installed"
         }
     }
 
-    var icon: String {
+    var systemImage: String {
         switch self {
-        case .browse:
-            return "square.grid.2x2"
+        case .browse: "square.grid.2x2"
+        case .installed: "checklist"
         }
     }
 }
 
 struct WorkshopWindow: View {
-    @State private var selection: WorkshopSection? = .browse
+    @State private var selectedSection: WorkshopSection = .browse
 
     var body: some View {
         NavigationSplitView {
-            List(WorkshopSection.allCases, selection: $selection) { section in
-                Label(section.title, systemImage: section.icon)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .tag(section)
+            List(selection: $selectedSection) {
+                ForEach(WorkshopSection.allCases) { section in
+                    Label(section.title, systemImage: section.systemImage)
+                        .tag(section)
+                }
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .listStyle(SidebarListStyle())
+            .tint(.effectiveAccent)
+            .toolbar(removing: .sidebarToggle)
+            .navigationSplitViewColumnWidth(200)
         } detail: {
-            switch selection ?? .browse {
-            case .browse:
-                WorkshopBrowseView()
+            Group {
+                switch selectedSection {
+                case .browse:
+                    WorkshopBrowseView()
+                case .installed:
+                    WorkshopInstalledView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .navigationSplitViewStyle(.balanced)
+        .toolbar(removing: .sidebarToggle)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("")
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(true)
             }
         }
-        .frame(minWidth: 820, idealWidth: 920, minHeight: 540, idealHeight: 620)
+        .formStyle(.grouped)
+        .frame(width: 760, height: 560)
+        .background(Color(NSColor.windowBackgroundColor))
+        .tint(.effectiveAccent)
     }
 }
 
