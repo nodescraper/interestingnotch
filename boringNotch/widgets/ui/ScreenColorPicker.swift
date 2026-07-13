@@ -16,11 +16,16 @@ protocol ScreenColorPicking {
 final class ScreenColorPicker: ScreenColorPicking {
     static let shared = ScreenColorPicker()
 
+    private var activeSampler: NSColorSampler?
+
     private init() {}
 
     func pickColor() async -> NSColor? {
         await withCheckedContinuation { continuation in
-            NSColorSampler().show { color in
+            let sampler = NSColorSampler()
+            activeSampler = sampler
+            sampler.show { [weak self] color in
+                self?.activeSampler = nil
                 continuation.resume(returning: color)
             }
         }

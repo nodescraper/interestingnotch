@@ -90,6 +90,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
 
+    @MainActor
+    private var selectedDisplayUUIDs: Set<String> {
+        let available = Set(NSScreen.screens.compactMap(\.displayUUID))
+        if Defaults[.showOnAllDisplays] {
+            return available
+        }
+
+        let explicit = Set(Defaults[.enabledDisplayUUIDs]).intersection(available)
+        if !explicit.isEmpty {
+            return explicit
+        }
+
+        if let preferred = coordinator.preferredScreenUUID, available.contains(preferred) {
+            return [preferred]
+        }
+
+        return Set([NSScreen.main?.displayUUID].compactMap { $0 })
+    }
+
+    @MainActor
+    private var usesDisplaySet: Bool {
+        Defaults[.showOnAllDisplays] || Defaults[.enabledDisplayUUIDs].count > 1
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return false
     }
@@ -141,7 +165,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @MainActor
     private func enableSkyLightOnAllWindows() {
-        if Defaults[.showOnAllDisplays] {
+        if usesDisplaySet {
             windows.values.forEach { window in
                 if let skyWindow = window as? BoringNotchSkyLightWindow {
                     skyWindow.enableSkyLight()
@@ -160,7 +184,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             try? await Task.sleep(for: .milliseconds(150))
             await MainActor.run {
-                if Defaults[.showOnAllDisplays] {
+                if self.usesDisplaySet {
                     self.windows.values.forEach { window in
                         if let skyWindow = window as? BoringNotchSkyLightWindow {
                             skyWindow.disableSkyLight()
@@ -176,24 +200,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func cleanupWindows(shouldInvert: Bool = false) {
-        let shouldCleanupMulti = shouldInvert ? !Defaults[.showOnAllDisplays] : Defaults[.showOnAllDisplays]
-        
-        if shouldCleanupMulti {
-            windows.values.forEach { window in
-                window.close()
-                NotchSpaceManager.shared.notchSpace.windows.remove(window)
-            }
-            windows.removeAll()
-            viewModels.removeAll()
-        } else if let window = window {
+        windows.values.forEach { window in
             window.close()
             NotchSpaceManager.shared.notchSpace.windows.remove(window)
-            if let obs = windowScreenDidChangeObserver {
-                NotificationCenter.default.removeObserver(obs)
-                windowScreenDidChangeObserver = nil
-            }
-            self.window = nil
         }
+        windows.removeAll()
+        viewModels.removeAll()
+
+        if let window {
+            window.close()
+            NotchSpaceManager.shared.notchSpace.windows.remove(window)
+        }
+        if let obs = windowScreenDidChangeObserver {
+            NotificationCenter.default.removeObserver(obs)
+            windowScreenDidChangeObserver = nil
+        }
+        self.window = nil
 
         // ensure OSD integration reflects the current window state
         coordinator.applyOSDSources()
@@ -211,8 +233,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         guard Defaults[.expandedDragDetection] else { return }
 
-        if Defaults[.showOnAllDisplays] {
-            for screen in NSScreen.screens {
+        if usesDisplaySet {
+            for screen in NSScreen.screens where selectedDisplayUUIDs.contains(screen.displayUUID ?? "") {
                 setupDragDetectorForScreen(screen)
             }
         } else {
@@ -257,11 +279,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard Defaults[.boringShelf] else { return }
         guard let uuid = screen.displayUUID else { return }
         
-        if Defaults[.showOnAllDisplays], let viewModel = viewModels[uuid] {
+        if usesDisplaySet, let viewModel = viewModels[uuid] {
             if viewModel.open() {
                 coordinator.currentView = .shelf
             }
-        } else if !Defaults[.showOnAllDisplays], let windowScreen = window?.screen, screen == windowScreen {
+        } else if !usesDisplaySet, let windowScreen = window?.screen, screen == windowScreen {
             if vm.open() {
                 coordinator.currentView = .shelf
             }
@@ -419,7 +441,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 var viewModel = self.vm
 
-                if Defaults[.showOnAllDisplays] {
+                if self.usesDisplaySet {
                     for screen in NSScreen.screens {
                         if screen.frame.contains(mouseLocation) {
                             if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
@@ -465,17 +487,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
 
-                Defaults[.colorPickerRecentHistory] = ColorPickerHistoryStore.push(
-                    parsed,
-                    into: Defaults[.colorPickerRecentHistory]
-                )
+                if
+                    let widget = WidgetEngine.shared.widgets.first(where: {
+                        $0.manifest.kind == .interactive && $0.manifest.interactive?.type == .colorPicker
+                    }),
+                    let model = widget.interactiveRuntime as? ColorPickerWidgetModel
+                {
+                    model.applyPickedColor(parsed)
+                } else {
+                    Defaults[.colorPickerRecentHistory] = ColorPickerHistoryStore.push(
+                        parsed,
+                        into: Defaults[.colorPickerRecentHistory]
+                    )
+                }
+
+                if Defaults[.sneakPeekStyles] == .inline {
+                    self.coordinator.toggleExpandingView(status: true, type: .colorPicker)
+                }
             }
         }
 
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
         
-        if !Defaults[.showOnAllDisplays] {
+        if !usesDisplaySet {
             let viewModel = self.vm
             let window = createBoringNotchWindow(
                 for: NSScreen.main ?? NSScreen.screens.first!, with: viewModel)
@@ -547,11 +582,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func adjustWindowPosition(changeAlpha: Bool = false) {
-        if Defaults[.showOnAllDisplays] {
+        if usesDisplaySet {
             let currentScreenUUIDs = Set(NSScreen.screens.compactMap { $0.displayUUID })
 
-            // Remove windows for screens that no longer exist
-            for uuid in windows.keys where !currentScreenUUIDs.contains(uuid) {
+            let selectedUUIDs = selectedDisplayUUIDs
+
+            // Remove windows for screens that no longer exist or are no longer selected.
+            for uuid in windows.keys where !currentScreenUUIDs.contains(uuid) || !selectedUUIDs.contains(uuid) {
                 if let window = windows[uuid] {
                     window.close()
                     NotchSpaceManager.shared.notchSpace.windows.remove(window)
@@ -560,8 +597,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
 
-            // Create or update windows for all screens
-            for screen in NSScreen.screens {
+            // Create or update windows only for the selected screens.
+            for screen in NSScreen.screens where selectedUUIDs.contains(screen.displayUUID ?? "") {
                 guard let uuid = screen.displayUUID else { continue }
                 
                 if windows[uuid] == nil {
@@ -583,7 +620,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             let selectedScreen: NSScreen
 
-            if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
+            let explicitDisplay = Defaults[.enabledDisplayUUIDs].count == 1
+                ? Defaults[.enabledDisplayUUIDs].first
+                : nil
+
+            if let explicitDisplay, let selected = NSScreen.screen(withUUID: explicitDisplay) {
+                coordinator.selectedScreenUUID = explicitDisplay
+                selectedScreen = selected
+            } else if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {
                 coordinator.selectedScreenUUID = coordinator.preferredScreenUUID ?? ""
                 selectedScreen = preferredScreen
             } else if Defaults[.automaticallySwitchDisplay], let mainScreen = NSScreen.main,

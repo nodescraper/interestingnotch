@@ -19,6 +19,7 @@ struct ContentView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
 
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @ObservedObject var widgetEngine = WidgetEngine.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
@@ -92,6 +93,10 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
+        } else if coordinator.expandingView.type == .colorPicker && coordinator.expandingView.show
+            && vm.notchState == .closed
+        {
+            chinWidth = compactColorPickerWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -112,6 +117,38 @@ struct ContentView: View {
     private var isNotchHeightZero: Bool { vm.effectiveClosedNotchHeight == 0 }
 
     private var displayClosedNotchHeight: CGFloat { isNotchHeightZero ? 10 : vm.effectiveClosedNotchHeight }
+
+    private var colorPickerCompactSideSize: CGFloat {
+        max(0, displayClosedNotchHeight - 12)
+    }
+
+    private var colorPickerCompactCodeWidth: CGFloat {
+        // The built-in Mac notch needs a little more room for the full hex value;
+        // keep external displays compact so their wings do not become oversized.
+        vm.hasNotch ? 104 : 76
+    }
+
+    private var compactColorPickerWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + colorPickerCompactSideSize
+            + colorPickerCompactCodeWidth
+    }
+
+    private var timerCompactRingSize: CGFloat {
+        max(0, displayClosedNotchHeight - 14)
+    }
+
+    private var timerCompactTextWidth: CGFloat {
+        vm.hasNotch ? 92 : 82
+    }
+
+    private var compactTimerWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + timerCompactRingSize
+            + timerCompactTextWidth
+    }
 
     var body: some View {
         // Calculate scale based on gesture progress only
@@ -321,7 +358,11 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .timer && vm.notchState == .closed {
+                          TimerLiveActivity()
+                              .allowsHitTesting(false)
+                              .frame(width: compactTimerWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
                               value: coordinator.binding(for: vm.screenUUID).value,
@@ -331,6 +372,10 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
+                      } else if coordinator.expandingView.type == .colorPicker && coordinator.expandingView.show && vm.notchState == .closed {
+                          ColorPickerLiveActivity()
+                              .allowsHitTesting(false)
+                              .frame(width: compactColorPickerWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -341,15 +386,13 @@ struct ContentView: View {
                                .frame(height: max(24, displayClosedNotchHeight))
                                .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
                        }
-                        // New case to enable compact notch on external displays
-                        else if !vm.hasNotch {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: 11) // idle notch height is halved on non notch display
-                       } else {
+                        // Use the resolved configured height on every display type.
+                       else {
                            Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: displayClosedNotchHeight)
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -538,6 +581,77 @@ struct ContentView: View {
             height: displayClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    @ViewBuilder
+    func ColorPickerLiveActivity() -> some View {
+        let resolvedColor = compactColorPickerColor?.swiftUIColor ?? Color.effectiveAccent
+        let hexValue = compactColorPickerColor?.hexString ?? "Pick Color"
+
+        HStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(resolvedColor)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(.white.opacity(0.28), lineWidth: 1)
+                }
+                .frame(width: colorPickerCompactSideSize, height: colorPickerCompactSideSize)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+            HStack(alignment: .center) {
+                Text(hexValue)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
+            }
+            .frame(width: colorPickerCompactCodeWidth, height: displayClosedNotchHeight, alignment: .trailing)
+            .padding(.trailing, 3)
+        }
+        .frame(width: compactColorPickerWidth, height: displayClosedNotchHeight, alignment: .center)
+    }
+
+    @ViewBuilder
+    func TimerLiveActivity() -> some View {
+        if let model = compactTimerModel {
+            let isFinished = model.countdownState.shouldShowCompletionBanner
+
+            HStack(spacing: 0) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.16), lineWidth: 2)
+
+                    Circle()
+                        .trim(from: 0, to: max(0.02, 1 - model.countdownState.progress))
+                        .stroke(
+                            Color.white,
+                            style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                }
+                .frame(width: timerCompactRingSize, height: timerCompactRingSize)
+                .padding(.trailing, 2)
+
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+                HStack {
+                    Text(isFinished ? "Time's up!" : model.displayTime)
+                        .font(.headline)
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.9)
+                }
+                .frame(width: timerCompactTextWidth, height: displayClosedNotchHeight, alignment: .trailing)
+                .padding(.trailing, 4)
+            }
+            .frame(width: compactTimerWidth, height: displayClosedNotchHeight, alignment: .center)
+        }
     }
 
     @ViewBuilder
@@ -746,6 +860,36 @@ struct ContentView: View {
         case .open:
             return coordinator.currentView == .home && !musicManager.isPlayerIdle && isHoveringMusicArea
         }
+    }
+
+    private var compactColorPickerColor: ColorPickerHSBAColor? {
+        if
+            let widget = widgetEngine.widgets.first(where: {
+                $0.manifest.kind == .interactive && $0.manifest.interactive?.type == .colorPicker
+            }),
+            let model = widget.interactiveRuntime as? ColorPickerWidgetModel
+        {
+            return model.color
+        }
+
+        if let entry = Defaults[.colorPickerRecentHistory].first {
+            return ColorPickerHistoryStore.restore(entry)
+        }
+
+        return nil
+    }
+
+    private var compactTimerModel: TimerWidgetModel? {
+        guard
+            let widget = widgetEngine.widgets.first(where: {
+                $0.manifest.kind == .interactive && $0.manifest.interactive?.type == .timer
+            }),
+            let model = widget.interactiveRuntime as? TimerWidgetModel
+        else {
+            return nil
+        }
+
+        return model
     }
 }
 

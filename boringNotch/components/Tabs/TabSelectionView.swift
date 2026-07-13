@@ -20,13 +20,17 @@ struct TabSelectionView: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var widgetEngine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) var pinnedWidgetIDs
+    @Default(.boringShelf) var boringShelf
     @Namespace var animation
 
     private var tabs: [TabModel] {
-        let baseTabs = [
+        var baseTabs = [
             TabModel(label: "Home", icon: "house.fill", view: .home),
-            TabModel(label: "Shelf", icon: "tray.fill", view: .shelf),
         ]
+
+        if boringShelf {
+            baseTabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+        }
 
         let widgetTabs = WidgetTabResolver
             .descriptors(
