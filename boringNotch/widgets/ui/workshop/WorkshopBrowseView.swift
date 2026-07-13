@@ -1,47 +1,70 @@
 //
-//  WidgetsPageView.swift
+//  WorkshopBrowseView.swift
 //  boringNotch
 //
 //  Created by Codex on 2026-07-13.
 //
 
+import Defaults
 import SwiftUI
 
-struct WidgetsPageView: View {
+struct WorkshopBrowseView: View {
     @ObservedObject private var engine = WidgetEngine.shared
+    @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
 
     var body: some View {
         WidgetGridView(
             widgets: engine.widgets,
             emptyIcon: "square.grid.2x2",
             emptyTitle: "No widgets yet",
-            emptyMessage: "Install a widget in Workshop to see live cards here."
+            emptyMessage: "Add .notchwidget.json files to Application Support to browse and pin them here."
         ) { widget in
-            WidgetCardView(widget: widget)
+            WidgetCardView(widget: widget) {
+                pinButton(for: widget)
+            }
         }
+        .navigationTitle("Browse")
+    }
+
+    private func pinButton(for widget: Widget) -> some View {
+        let isPinned = WidgetPinStore.isPinned(widget.id, in: pinnedWidgetIDs)
+
+        return Button {
+            pinnedWidgetIDs = WidgetPinStore.toggle(widget.id, in: pinnedWidgetIDs)
+        } label: {
+            Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.fill" : "pin")
+                .labelStyle(.iconOnly)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(isPinned ? widget.resolvedColor : .white.opacity(0.9))
+                .padding(8)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(.black.opacity(0.35))
+                )
+                .overlay {
+                    Capsule(style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                }
+        }
+        .buttonStyle(.plain)
+        .help(isPinned ? "Unpin from notch tabs" : "Pin to notch tabs")
+        .accessibilityLabel(isPinned ? "Unpin \(widget.manifest.name)" : "Pin \(widget.manifest.name)")
     }
 }
 
-#Preview("Widgets Empty") {
-    WidgetsPageView()
-        .frame(width: 500, height: 320)
-        .background(.black)
+#Preview("Workshop Browse") {
+    WorkshopBrowsePreviewHost()
+        .frame(width: 760, height: 520)
 }
 
-#Preview("Widgets Loaded") {
-    WidgetsPageLoadedPreview()
-        .frame(width: 500, height: 320)
-        .background(.black)
-}
-
-private struct WidgetsPageLoadedPreview: View {
-    @State private var didLoadPreview = false
+private struct WorkshopBrowsePreviewHost: View {
+    @State private var loaded = false
 
     var body: some View {
-        WidgetsPageView()
+        WorkshopBrowseView()
             .task {
-                guard !didLoadPreview else { return }
-                didLoadPreview = true
+                guard !loaded else { return }
+                loaded = true
                 WidgetEngine.shared.load(makePreviewWidgets())
             }
     }
@@ -57,7 +80,7 @@ private struct WidgetsPageLoadedPreview: View {
                 status: .ok,
                 color: "accent",
                 icon: "arrow.triangle.branch",
-                label: "$value pending"
+                label: "$value changed"
             ),
             makePreviewWidget(
                 id: "preview-brew",
@@ -68,16 +91,6 @@ private struct WidgetsPageLoadedPreview: View {
                 color: "warn",
                 icon: "shippingbox",
                 label: "Checking updates"
-            ),
-            makePreviewWidget(
-                id: "preview-usage",
-                name: "Codex Usage",
-                template: .progress,
-                lastValue: .double(41.2),
-                status: .error("CLI not reachable"),
-                color: "good",
-                icon: "gauge.with.needle",
-                label: "$value%"
             ),
         ]
         .compactMap { $0 }
@@ -130,7 +143,7 @@ private struct WidgetsPageLoadedPreview: View {
                 onTap: nil,
                 permissions: nil
             ),
-            executor: WidgetsPagePreviewExecutor(),
+            executor: WorkshopBrowsePreviewExecutor(),
             extractor: ExtractorPipeline(extractors: [RawExtractor()]),
             lastValue: lastValue,
             status: status
@@ -138,7 +151,7 @@ private struct WidgetsPageLoadedPreview: View {
     }
 }
 
-private actor WidgetsPagePreviewExecutor: ChannelExecutor {
+private actor WorkshopBrowsePreviewExecutor: ChannelExecutor {
     let channelType: WidgetManifest.Source.ChannelType = .command
 
     func run(source: WidgetManifest.Source) async throws -> String {

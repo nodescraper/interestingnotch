@@ -46,10 +46,10 @@ final class WidgetStore {
     init(
         fileManager: FileManager = .default,
         widgetsDirectoryURL: URL? = nil,
-        engine: any WidgetStoreEngine = WidgetEngine.shared
+        engine: (any WidgetStoreEngine)? = nil
     ) {
         self.fileManager = fileManager
-        self.engine = engine
+        self.engine = engine ?? WidgetEngine.shared
         self.widgetsDirectoryURL = widgetsDirectoryURL ?? Self.defaultWidgetsDirectoryURL(fileManager: fileManager)
     }
 

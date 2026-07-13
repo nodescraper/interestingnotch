@@ -7,11 +7,30 @@
 
 import SwiftUI
 
-struct WidgetCardView: View {
+struct WidgetCardView<Accessory: View>: View {
     @ObservedObject var widget: Widget
+    private let accessory: Accessory
+
+    init(
+        widget: Widget,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        self.widget = widget
+        self.accessory = accessory()
+    }
+
+    init(widget: Widget) where Accessory == EmptyView {
+        self.init(widget: widget) {
+            EmptyView()
+        }
+    }
 
     var body: some View {
         templateView
+            .overlay(alignment: .topTrailing) {
+                accessory
+                    .padding(10)
+            }
     }
 
     @ViewBuilder
@@ -127,7 +146,13 @@ private struct WidgetCardPreviewGrid: View {
                 icon: "cpu",
                 label: "$value%"
             ) {
-                WidgetCardView(widget: errorCard)
+                WidgetCardView(widget: errorCard) {
+                    Image(systemName: "pin.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(8)
+                        .background(Color.black.opacity(0.3), in: Capsule())
+                }
             }
         }
         .frame(width: 420)

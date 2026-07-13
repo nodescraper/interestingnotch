@@ -70,10 +70,16 @@
 		11A0D01F3A00000100000001 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01E3A00000100000001 /* Widget.swift */; };
 		11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0203A00000100000001 /* WidgetEngine.swift */; };
 		11A0D0233A00000100000001 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0223A00000100000001 /* WidgetStore.swift */; };
+		11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0383A00000100000001 /* WidgetGridView.swift */; };
 		11A0D0313A00000100000001 /* WidgetCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0303A00000100000001 /* WidgetCardView.swift */; };
 		11A0D0333A00000100000001 /* WidgetsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0323A00000100000001 /* WidgetsPageView.swift */; };
 		11A0D0353A00000100000001 /* WidgetTabResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0343A00000100000001 /* WidgetTabResolver.swift */; };
 		11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0363A00000100000001 /* WidgetTabPageView.swift */; };
+		11A0D03E3A00000100000001 /* WorkshopWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D03D3A00000100000001 /* WorkshopWindow.swift */; };
+		11A0D0403A00000100000001 /* WorkshopWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D03F3A00000100000001 /* WorkshopWindowController.swift */; };
+		11A0D0423A00000100000001 /* WorkshopBrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0413A00000100000001 /* WorkshopBrowseView.swift */; };
+		11A0D0443A00000100000001 /* WidgetPinStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0433A00000100000001 /* WidgetPinStore.swift */; };
+		11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */; };
 		11A0D02A3A00000100000001 /* WidgetTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0293A00000100000001 /* WidgetTemplateCard.swift */; };
 		11A0D02C3A00000100000001 /* IconLabelTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02B3A00000100000001 /* IconLabelTemplate.swift */; };
 		11A0D02E3A00000100000001 /* ProgressTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02D3A00000100000001 /* ProgressTemplate.swift */; };
@@ -278,10 +284,16 @@
 		11A0D01E3A00000100000001 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
 		11A0D0203A00000100000001 /* WidgetEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetEngine.swift; sourceTree = "<group>"; };
 		11A0D0223A00000100000001 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
+		11A0D0383A00000100000001 /* WidgetGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridView.swift; sourceTree = "<group>"; };
 		11A0D0303A00000100000001 /* WidgetCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetCardView.swift; sourceTree = "<group>"; };
 		11A0D0323A00000100000001 /* WidgetsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetsPageView.swift; sourceTree = "<group>"; };
 		11A0D0343A00000100000001 /* WidgetTabResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabResolver.swift; sourceTree = "<group>"; };
 		11A0D0363A00000100000001 /* WidgetTabPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabPageView.swift; sourceTree = "<group>"; };
+		11A0D03D3A00000100000001 /* WorkshopWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopWindow.swift; sourceTree = "<group>"; };
+		11A0D03F3A00000100000001 /* WorkshopWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopWindowController.swift; sourceTree = "<group>"; };
+		11A0D0413A00000100000001 /* WorkshopBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopBrowseView.swift; sourceTree = "<group>"; };
+		11A0D0433A00000100000001 /* WidgetPinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPinStore.swift; sourceTree = "<group>"; };
+		11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLaunchLoader.swift; sourceTree = "<group>"; };
 		11A0D0293A00000100000001 /* WidgetTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTemplateCard.swift; sourceTree = "<group>"; };
 		11A0D02B3A00000100000001 /* IconLabelTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconLabelTemplate.swift; sourceTree = "<group>"; };
 		11A0D02D3A00000100000001 /* ProgressTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressTemplate.swift; sourceTree = "<group>"; };
@@ -825,14 +837,28 @@
 		11A0D0263A00000100000001 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				11A0D0383A00000100000001 /* WidgetGridView.swift */,
 				11A0D0303A00000100000001 /* WidgetCardView.swift */,
 				11A0D0363A00000100000001 /* WidgetTabPageView.swift */,
 				11A0D0343A00000100000001 /* WidgetTabResolver.swift */,
 				11A0D0323A00000100000001 /* WidgetsPageView.swift */,
 				11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */,
 				11A0D0273A00000100000001 /* templates */,
+				11A0D03A3A00000100000001 /* workshop */,
 			);
 			path = ui;
+			sourceTree = "<group>";
+		};
+		11A0D03A3A00000100000001 /* workshop */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0413A00000100000001 /* WorkshopBrowseView.swift */,
+				11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */,
+				11A0D0433A00000100000001 /* WidgetPinStore.swift */,
+				11A0D03D3A00000100000001 /* WorkshopWindow.swift */,
+				11A0D03F3A00000100000001 /* WorkshopWindowController.swift */,
+			);
+			path = workshop;
 			sourceTree = "<group>";
 		};
 		11A0D0273A00000100000001 /* templates */ = {
@@ -1263,10 +1289,16 @@
 				11A0D01F3A00000100000001 /* Widget.swift in Sources */,
 				11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */,
 				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
+				11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */,
 				11A0D0313A00000100000001 /* WidgetCardView.swift in Sources */,
 				11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */,
 				11A0D0353A00000100000001 /* WidgetTabResolver.swift in Sources */,
 				11A0D0333A00000100000001 /* WidgetsPageView.swift in Sources */,
+				11A0D03E3A00000100000001 /* WorkshopWindow.swift in Sources */,
+				11A0D0403A00000100000001 /* WorkshopWindowController.swift in Sources */,
+				11A0D0423A00000100000001 /* WorkshopBrowseView.swift in Sources */,
+				11A0D0443A00000100000001 /* WidgetPinStore.swift in Sources */,
+				11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */,
 				11A0D02A3A00000100000001 /* WidgetTemplateCard.swift in Sources */,
 				11A0D02C3A00000100000001 /* IconLabelTemplate.swift in Sources */,
 				11A0D02E3A00000100000001 /* ProgressTemplate.swift in Sources */,

@@ -461,6 +461,27 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(engine.loadedWidgetIDs, [])
     }
 
+    @MainActor
+    func testWidgetLaunchLoaderLoadsWidgetsIntoEngineFromStore() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        try writeManifest(
+            makeWidgetManifest(id: "launch-widget", extractMethod: .raw),
+            named: "launch-widget.notchwidget.json",
+            into: temporaryDirectory
+        )
+
+        let engine = RecordingWidgetStoreEngine()
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+        let loader = WidgetLaunchLoader(store: store)
+
+        let result = loader.loadWidgets()
+
+        XCTAssertEqual(result.widgets.map(\.id), ["launch-widget"])
+        XCTAssertEqual(engine.loadedWidgetIDs, ["launch-widget"])
+    }
+
     func testWidgetSlotRendererResolvesValuePlaceholder() {
         let result = WidgetSlotRenderer.resolveText("$value updates", value: .integer(3))
 
@@ -508,6 +529,16 @@ final class WidgetExtractorTests: XCTestCase {
         Defaults[.pinnedWidgetIDs] = ["weather", "battery"]
 
         XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
+    }
+
+    func testWidgetPinStorePinsAndUnpinsWithoutDuplicates() {
+        let pinned = WidgetPinStore.pin("weather", in: [])
+        XCTAssertEqual(pinned, ["weather"])
+        XCTAssertEqual(WidgetPinStore.pin("weather", in: pinned), ["weather"])
+        XCTAssertEqual(
+            WidgetPinStore.unpin("weather", in: ["weather", "battery"]),
+            ["battery"]
+        )
     }
 
     func testWidgetTabResolverDerivesTabsFromPinnedWidgetIDsInOrder() {

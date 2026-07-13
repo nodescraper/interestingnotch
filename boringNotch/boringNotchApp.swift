@@ -34,6 +34,11 @@ struct DynamicNotchApp: App {
 
     var body: some Scene {
         MenuBarExtra("boring.notch", systemImage: "sparkle", isInserted: $showMenuBarIcon) {
+            Button("Workshop") {
+                DispatchQueue.main.async {
+                    WorkshopWindowController.shared.showWindow()
+                }
+            }
             Button("Settings") {
                 DispatchQueue.main.async {
                     SettingsWindowController.shared.showWindow()
@@ -312,6 +317,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Task { @MainActor in
+            WidgetLaunchLoader().loadWidgets()
+        }
 
         NotificationCenter.default.addObserver(
             self,
