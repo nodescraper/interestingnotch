@@ -64,6 +64,9 @@
 		11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0013A00000100000001 /* WidgetManifest.swift */; };
 		11A0D0053A00000100000001 /* WidgetValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0023A00000100000001 /* WidgetValue.swift */; };
 		11A0D0063A00000100000001 /* ColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0033A00000100000001 /* ColorToken.swift */; };
+		11A0D00A3A00000100000001 /* Extractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0093A00000100000001 /* Extractor.swift */; };
+		11A0D00F3A00000100000001 /* WidgetExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */; };
+		11A0D0113A00000100000001 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A0D0103A00000100000001 /* XCTest.framework */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
@@ -171,6 +174,13 @@
 			remoteGlobalIDString = 11F7484E2EC9AABA00F841DB;
 			remoteInfo = BoringNotchXPCHelper;
 		};
+		11A0D0193A00000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 14CEF40A2C5CAED200855D72 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 14CEF4112C5CAED300855D72;
+			remoteInfo = boringNotch;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -250,6 +260,10 @@
 		11A0D0013A00000100000001 /* WidgetManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetManifest.swift; sourceTree = "<group>"; };
 		11A0D0023A00000100000001 /* WidgetValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetValue.swift; sourceTree = "<group>"; };
 		11A0D0033A00000100000001 /* ColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorToken.swift; sourceTree = "<group>"; };
+		11A0D0093A00000100000001 /* Extractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extractor.swift; sourceTree = "<group>"; };
+		11A0D00D3A00000100000001 /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetExtractorTests.swift; sourceTree = "<group>"; };
+		11A0D0103A00000100000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -363,6 +377,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		11A0D0143A00000100000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				11A0D0113A00000100000001 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		11F7484C2EC9AABA00F841DB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -645,6 +667,7 @@
 			children = (
 				112B0EB62E30DD0F00562D6C /* mediaremote-adapter */,
 				14CEF4142C5CAED300855D72 /* boringNotch */,
+				11A0D00C3A00000100000001 /* boringNotchTests */,
 				11F748502EC9AABA00F841DB /* BoringNotchXPCHelper */,
 				14CEF4132C5CAED300855D72 /* Products */,
 				14D031EC2C689DB70096E6A1 /* Frameworks */,
@@ -656,6 +679,7 @@
 			children = (
 				14CEF4122C5CAED300855D72 /* boringNotch.app */,
 				11F7484F2EC9AABA00F841DB /* BoringNotchXPCHelper.xpc */,
+				11A0D00D3A00000100000001 /* boringNotchTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -705,6 +729,7 @@
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
+				11A0D0103A00000100000001 /* XCTest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -745,6 +770,7 @@
 			isa = PBXGroup;
 			children = (
 				11A0D0083A00000100000001 /* model */,
+				11A0D00B3A00000100000001 /* engine */,
 			);
 			path = widgets;
 			sourceTree = "<group>";
@@ -757,6 +783,22 @@
 				11A0D0033A00000100000001 /* ColorToken.swift */,
 			);
 			path = model;
+			sourceTree = "<group>";
+		};
+		11A0D00B3A00000100000001 /* engine */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0093A00000100000001 /* Extractor.swift */,
+			);
+			path = engine;
+			sourceTree = "<group>";
+		};
+		11A0D00C3A00000100000001 /* boringNotchTests */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */,
+			);
+			path = boringNotchTests;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -870,6 +912,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		11A0D0123A00000100000001 /* boringNotchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 11A0D01B3A00000100000001 /* Build configuration list for PBXNativeTarget "boringNotchTests" */;
+			buildPhases = (
+				11A0D0133A00000100000001 /* Sources */,
+				11A0D0143A00000100000001 /* Frameworks */,
+				11A0D0153A00000100000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				11A0D01A3A00000100000001 /* PBXTargetDependency */,
+			);
+			name = boringNotchTests;
+			packageProductDependencies = (
+			);
+			productName = boringNotchTests;
+			productReference = 11A0D00D3A00000100000001 /* boringNotchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		11F7484E2EC9AABA00F841DB /* BoringNotchXPCHelper */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 11F7485D2EC9AABA00F841DB /* Build configuration list for PBXNativeTarget "BoringNotchXPCHelper" */;
@@ -939,6 +1001,10 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					11A0D0123A00000100000001 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 14CEF4112C5CAED300855D72;
+					};
 					11F7484E2EC9AABA00F841DB = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -975,12 +1041,20 @@
 			projectRoot = "";
 			targets = (
 				14CEF4112C5CAED300855D72 /* boringNotch */,
+				11A0D0123A00000100000001 /* boringNotchTests */,
 				11F7484E2EC9AABA00F841DB /* BoringNotchXPCHelper */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		11A0D0153A00000100000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		11F7484D2EC9AABA00F841DB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1004,6 +1078,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		11A0D0133A00000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				11A0D00F3A00000100000001 /* WidgetExtractorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		11F7484B2EC9AABA00F841DB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1123,6 +1205,7 @@
 				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
 				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
+				11A0D00A3A00000100000001 /* Extractor.swift in Sources */,
 				118EBE252E92DCCB00D54B5A /* AssociatedObject.swift in Sources */,
 				11F748682EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift in Sources */,
 				11F748692EC9AC9600F841DB /* XPCHelperClient.swift in Sources */,
@@ -1154,6 +1237,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		11A0D01A3A00000100000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 14CEF4112C5CAED300855D72 /* boringNotch */;
+			targetProxy = 11A0D0193A00000100000001 /* PBXContainerItemProxy */;
+		};
 		11F7485A2EC9AABA00F841DB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 11F7484E2EC9AABA00F841DB /* BoringNotchXPCHelper */;
@@ -1162,6 +1250,61 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		11A0D0163A00000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = boringNotchTests;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/boringNotch.app/Contents/MacOS/boringNotch";
+				TEST_TARGET_NAME = boringNotch;
+			};
+			name = Debug;
+		};
+		11A0D0173A00000100000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = boringNotchTests;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = theboringteam.boringnotchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/boringNotch.app/Contents/MacOS/boringNotch";
+				TEST_TARGET_NAME = boringNotch;
+			};
+			name = Release;
+		};
 		11F7485E2EC9AABA00F841DB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1472,6 +1615,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		11A0D01B3A00000100000001 /* Build configuration list for PBXNativeTarget "boringNotchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				11A0D0163A00000100000001 /* Debug */,
+				11A0D0173A00000100000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		11F7485D2EC9AABA00F841DB /* Build configuration list for PBXNativeTarget "BoringNotchXPCHelper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
