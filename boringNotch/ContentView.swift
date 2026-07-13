@@ -97,6 +97,11 @@ struct ContentView: View {
             && vm.notchState == .closed
         {
             chinWidth = compactColorPickerWidth
+        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+            && coordinator.sneakPeekState(for: vm.screenUUID).type == .systemMonitor
+            && vm.notchState == .closed
+        {
+            chinWidth = compactSystemMonitorWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -148,6 +153,16 @@ struct ContentView: View {
             + (2 * liveActivityEdgeMargin)
             + timerCompactRingSize
             + timerCompactTextWidth
+    }
+
+    private var systemMonitorCompactMetricWidth: CGFloat {
+        vm.hasNotch ? 88 : 78
+    }
+
+    private var compactSystemMonitorWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + (2 * systemMonitorCompactMetricWidth)
     }
 
     var body: some View {
@@ -238,6 +253,8 @@ struct ContentView: View {
                                 isHovering = false
                             }
                         }
+
+                        syncSystemMonitorSneakPeek()
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -252,6 +269,15 @@ struct ContentView: View {
                                 }
                             }
                         }
+                    }
+                    .onChange(of: coordinator.currentView) { _, _ in
+                        syncSystemMonitorSneakPeek()
+                    }
+                    .onChange(of: widgetEngine.widgets.count) { _, _ in
+                        syncSystemMonitorSneakPeek()
+                    }
+                    .onAppear {
+                        syncSystemMonitorSneakPeek()
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
@@ -362,7 +388,11 @@ struct ContentView: View {
                           TimerLiveActivity()
                               .allowsHitTesting(false)
                               .frame(width: compactTimerWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && vm.notchState == .closed {
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .systemMonitor && vm.notchState == .closed {
+                          SystemMonitorLiveActivity()
+                              .allowsHitTesting(false)
+                              .frame(width: compactSystemMonitorWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
                               value: coordinator.binding(for: vm.screenUUID).value,
@@ -392,7 +422,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -655,6 +685,19 @@ struct ContentView: View {
     }
 
     @ViewBuilder
+    func SystemMonitorLiveActivity() -> some View {
+        if let widget = compactSystemMonitorWidget {
+            SystemMonitorLiveActivityView(
+                widget: widget,
+                metricWidth: systemMonitorCompactMetricWidth,
+                centerWidth: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin),
+                totalWidth: compactSystemMonitorWidth,
+                height: displayClosedNotchHeight
+            )
+        }
+    }
+
+    @ViewBuilder
     var dragDetector: some View {
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
@@ -890,6 +933,96 @@ struct ContentView: View {
         }
 
         return model
+    }
+
+    private var compactSystemMonitorWidget: Widget? {
+        widgetEngine.widgets.first(where: { $0.id == "system-monitor" })
+    }
+
+    private func syncSystemMonitorSneakPeek() {
+        guard compactSystemMonitorWidget != nil else {
+            coordinator.toggleSneakPeek(status: false, type: .systemMonitor, targetScreenUUID: vm.screenUUID)
+            return
+        }
+
+        let isSelectedSystemMonitor: Bool
+        switch coordinator.currentView {
+        case .widget(let id):
+            isSelectedSystemMonitor = (id == "system-monitor")
+        default:
+            isSelectedSystemMonitor = false
+        }
+
+        coordinator.toggleSneakPeek(
+            status: isSelectedSystemMonitor && vm.notchState == .closed,
+            type: .systemMonitor,
+            duration: 0,
+            targetScreenUUID: vm.screenUUID
+        )
+    }
+}
+
+private extension Widget {
+    var compactSystemMonitorSnapshot: SystemMonitorSnapshot? {
+        SystemMonitorSnapshot(widgetValue: lastValue)
+    }
+}
+
+private struct SystemMonitorCompactMetricView: View {
+    let label: String
+    let symbolName: String
+    let displayValue: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbolName)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.72))
+
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.white.opacity(0.56))
+
+            Text(displayValue)
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+private struct SystemMonitorLiveActivityView: View {
+    @ObservedObject var widget: Widget
+
+    let metricWidth: CGFloat
+    let centerWidth: CGFloat
+    let totalWidth: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        HStack(spacing: 0) {
+            SystemMonitorCompactMetricView(
+                label: "CPU",
+                symbolName: "cpu",
+                displayValue: widget.compactSystemMonitorSnapshot?.cpuDisplay ?? "--%"
+            )
+            .frame(width: metricWidth, height: height, alignment: .leading)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: centerWidth)
+
+            SystemMonitorCompactMetricView(
+                label: "RAM",
+                symbolName: "memorychip",
+                displayValue: widget.compactSystemMonitorSnapshot?.memoryDisplay ?? "--%"
+            )
+            .frame(width: metricWidth, height: height, alignment: .trailing)
+        }
+        .frame(width: totalWidth, height: height, alignment: .center)
     }
 }
 

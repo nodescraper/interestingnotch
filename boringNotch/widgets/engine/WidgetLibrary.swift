@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [colorPickerManifest, timerManifest]
+        [colorPickerManifest, timerManifest, systemMonitorManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -71,6 +71,45 @@ enum WidgetLibrary {
             onTap: nil,
             permissions: nil,
             interactive: .init(type: .timer)
+        )
+    }
+
+    private static var systemMonitorManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .data,
+            id: "system-monitor",
+            name: "System Monitor",
+            author: "NodeScraper",
+            source: .init(
+                type: .framework,
+                run: nil,
+                url: nil,
+                method: nil,
+                headers: nil,
+                api: "system-monitor",
+                interval: 3,
+                timeout: nil,
+                cwd: nil,
+                env: nil
+            ),
+            extract: .init(
+                method: .jsonPath,
+                pattern: nil,
+                path: "$",
+                table: nil
+            ),
+            render: .init(
+                template: .text,
+                slots: [
+                    "icon": .string("waveform.path.ecg"),
+                    "label": .string("System Monitor"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: nil,
+            interactive: nil
         )
     }
 }

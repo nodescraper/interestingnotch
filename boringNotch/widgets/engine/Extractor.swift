@@ -180,6 +180,10 @@ struct JSONPathExtractor: Extractor {
             result.append(.key(currentKey))
         }
 
+        if trimmed == "$" {
+            return []
+        }
+
         guard !result.isEmpty else {
             throw WidgetExtractorError.invalidPath(path)
         }

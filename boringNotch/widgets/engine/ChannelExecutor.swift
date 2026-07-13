@@ -35,6 +35,9 @@ enum WidgetCommandAllowlist {
 enum ChannelExecutorError: LocalizedError, Equatable, Sendable {
     case unsupportedSourceType(expected: WidgetManifest.Source.ChannelType, actual: WidgetManifest.Source.ChannelType)
     case missingCommand
+    case missingFrameworkAPI
+    case unsupportedFrameworkAPI(String)
+    case frameworkEncodingFailed(String)
     case invalidCommand(String)
     case executableNotAllowed(String)
     case executableNotFound(String)
@@ -48,6 +51,12 @@ enum ChannelExecutorError: LocalizedError, Equatable, Sendable {
             return "Channel executor expected \(expected.rawValue), got \(actual.rawValue)"
         case .missingCommand:
             return "Command source is missing a run string."
+        case .missingFrameworkAPI:
+            return "Framework source is missing an api identifier."
+        case .unsupportedFrameworkAPI(let api):
+            return "Framework source '\(api)' is not supported."
+        case .frameworkEncodingFailed(let details):
+            return "Framework source could not be encoded: \(details)"
         case .invalidCommand(let details):
             return "Command could not be parsed: \(details)"
         case .executableNotAllowed(let executable):
@@ -63,6 +72,70 @@ enum ChannelExecutorError: LocalizedError, Equatable, Sendable {
                 return "Command '\(executable)' exited with code \(code)."
             }
             return "Command '\(executable)' exited with code \(code): \(stderr)"
+        }
+    }
+}
+
+protocol FrameworkDataProviding: Sendable {
+    var api: String { get }
+    func fetch() async throws -> WidgetValue
+}
+
+protocol FrameworkProviderFactorying: Sendable {
+    func makeProvider(for api: String) throws -> any FrameworkDataProviding
+}
+
+struct DefaultFrameworkProviderFactory: FrameworkProviderFactorying {
+    func makeProvider(for api: String) throws -> any FrameworkDataProviding {
+        switch api {
+        case SystemMonitorProvider.api:
+            return SystemMonitorProvider()
+        default:
+            throw ChannelExecutorError.unsupportedFrameworkAPI(api)
+        }
+    }
+}
+
+actor FrameworkExecutor: ChannelExecutor {
+    let channelType: WidgetManifest.Source.ChannelType = .framework
+
+    private let factory: any FrameworkProviderFactorying
+    private var providers: [String: any FrameworkDataProviding] = [:]
+
+    init(factory: (any FrameworkProviderFactorying)? = nil) {
+        self.factory = factory ?? DefaultFrameworkProviderFactory()
+    }
+
+    func run(source: WidgetManifest.Source) async throws -> String {
+        guard source.type == .framework else {
+            throw ChannelExecutorError.unsupportedSourceType(expected: .framework, actual: source.type)
+        }
+
+        guard let api = source.api?.trimmingCharacters(in: .whitespacesAndNewlines), !api.isEmpty else {
+            throw ChannelExecutorError.missingFrameworkAPI
+        }
+
+        let provider: any FrameworkDataProviding
+        if let existing = providers[api] {
+            provider = existing
+        } else {
+            let created = try factory.makeProvider(for: api)
+            providers[api] = created
+            provider = created
+        }
+
+        let value = try await provider.fetch()
+
+        do {
+            let data = try JSONEncoder().encode(value)
+            guard let encoded = String(data: data, encoding: .utf8) else {
+                throw ChannelExecutorError.frameworkEncodingFailed("UTF-8 conversion failed.")
+            }
+            return encoded
+        } catch let error as ChannelExecutorError {
+            throw error
+        } catch {
+            throw ChannelExecutorError.frameworkEncodingFailed(error.localizedDescription)
         }
     }
 }

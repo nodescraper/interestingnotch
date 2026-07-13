@@ -10,11 +10,16 @@ import SwiftUI
 enum WidgetTabPageKind: Equatable {
     case colorPicker
     case timer
+    case systemMonitor
     case placeholder
 }
 
 enum WidgetTabPageResolver {
     static func pageKind(for widget: Widget) -> WidgetTabPageKind {
+        if widget.id == "system-monitor" {
+            return .systemMonitor
+        }
+
         if widget.manifest.kind == .interactive {
             switch widget.manifest.interactive?.type {
             case .colorPicker:
@@ -51,6 +56,8 @@ struct WidgetTabPageView: View {
                     } else {
                         unavailableState
                     }
+                case .systemMonitor:
+                    SystemMonitorWidgetPageView(widget: widget)
                 case .placeholder:
                     content(for: widget)
                 }

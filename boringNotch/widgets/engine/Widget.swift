@@ -102,7 +102,9 @@ private enum WidgetRuntimeResolver {
             switch source.type {
             case .command:
                 return CommandExecutor()
-            case .http, .framework:
+            case .framework:
+                return FrameworkExecutor()
+            case .http:
                 throw WidgetConfigurationError.unsupportedChannelType(source.type)
             }
         case .interactive:

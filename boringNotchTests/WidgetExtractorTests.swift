@@ -104,6 +104,50 @@ final class WidgetExtractorTests: XCTestCase {
         )
     }
 
+    @MainActor
+    private func makeFrameworkManifest(
+        id: String = "system-monitor",
+        api: String = SystemMonitorProvider.api,
+        interval: TimeInterval = 3
+    ) -> WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .data,
+            id: id,
+            name: "System Monitor",
+            author: "NodeScraper",
+            source: .init(
+                type: .framework,
+                run: nil,
+                url: nil,
+                method: nil,
+                headers: nil,
+                api: api,
+                interval: interval,
+                timeout: nil,
+                cwd: nil,
+                env: nil
+            ),
+            extract: .init(
+                method: .jsonPath,
+                pattern: nil,
+                path: "$",
+                table: nil
+            ),
+            render: .init(
+                template: .text,
+                slots: [
+                    "icon": .string("waveform.path.ecg"),
+                    "label": .string("System Monitor"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: nil,
+            interactive: nil
+        )
+    }
+
     func testRawExtractorPassesThroughString() throws {
         let result = try RawExtractor().extract(from: .raw("hello"))
         XCTAssertEqual(result, .string("hello"))
@@ -150,6 +194,21 @@ final class WidgetExtractorTests: XCTestCase {
         let result = try extractor.extract(from: .raw(json))
 
         XCTAssertEqual(result, .string("success"))
+    }
+
+    func testJSONPathReturnsWholeObjectForRootPath() throws {
+        let extractor = JSONPathExtractor(path: "$")
+        let json = #"{"cpu":{"percent":27},"memory":{"percent":61}}"#
+
+        let result = try extractor.extract(from: .raw(json))
+
+        XCTAssertEqual(
+            result,
+            .object([
+                "cpu": .object(["percent": .integer(27)]),
+                "memory": .object(["percent": .integer(61)]),
+            ])
+        )
     }
 
     func testJSONPathReturnsObjectValuesWhenPathPointsAtObject() throws {
@@ -227,6 +286,36 @@ final class WidgetExtractorTests: XCTestCase {
 
         let output = try await CommandExecutor().run(source: source)
         XCTAssertEqual(output, "executor-output")
+    }
+
+    func testFrameworkExecutorEncodesProviderValueAsJSON() async throws {
+        let source = WidgetManifest.Source(
+            type: .framework,
+            run: nil,
+            url: nil,
+            method: nil,
+            headers: nil,
+            api: "system-monitor",
+            interval: 1,
+            timeout: nil,
+            cwd: nil,
+            env: nil
+        )
+        let provider = TestFrameworkProvider(
+            api: "system-monitor",
+            value: .object([
+                "cpu": .object(["percent": .double(37.5)]),
+                "memory": .object(["percent": .integer(62)]),
+            ])
+        )
+        let output = try await FrameworkExecutor(
+            factory: TestFrameworkProviderFactory(providers: ["system-monitor": provider])
+        ).run(source: source)
+
+        XCTAssertEqual(
+            try JSONPathExtractor(path: "cpu.percent").extract(from: .raw(output)),
+            .double(37.5)
+        )
     }
 
     func testCommandExecutorRejectsNonAllowlistedExecutable() async {
@@ -307,6 +396,14 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTAssertEqual(widget.executor?.channelType, .command)
         XCTAssertEqual(widget.extractor?.extractors.map(\.method), [.trim])
+    }
+
+    @MainActor
+    func testWidgetSelectsFrameworkExecutorAndRootJSONExtractor() throws {
+        let widget = try Widget(manifest: makeFrameworkManifest())
+
+        XCTAssertEqual(widget.executor?.channelType, .framework)
+        XCTAssertEqual(widget.extractor?.extractors.map(\.method), [.jsonPath])
     }
 
     @MainActor
@@ -515,9 +612,9 @@ final class WidgetExtractorTests: XCTestCase {
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
-        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer"])
+        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer", "system-monitor"])
         XCTAssertTrue(result.failures.isEmpty)
-        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer"])
+        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer", "system-monitor"])
     }
 
     @MainActor
@@ -634,6 +731,46 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(state.phase, .idle)
         XCTAssertEqual(state.remaining, 1_500, accuracy: 0.05)
         XCTAssertNil(state.scheduledEndDate)
+    }
+
+    func testSystemMonitorCPUCountersCalculateUsagePercentFromDeltas() {
+        let previous = SystemMonitorCPUCounters(user: 100, system: 50, idle: 300, nice: 0)
+        let current = SystemMonitorCPUCounters(user: 140, system: 70, idle: 310, nice: 0)
+
+        XCTAssertEqual(current.usagePercent(since: previous), 83.3333, accuracy: 0.01)
+    }
+
+    func testSystemMonitorMemorySampleComputesUsedPercent() {
+        let sample = SystemMonitorMemorySample(usedBytes: 6_000, totalBytes: 8_000)
+
+        XCTAssertEqual(sample.percentUsed, 75, accuracy: 0.001)
+    }
+
+    func testSystemMonitorSnapshotParsesWidgetValueObject() {
+        let snapshot = SystemMonitorSnapshot(widgetValue: .object([
+            "cpu": .object([
+                "percent": .double(24.2),
+                "display": .string("24%"),
+            ]),
+            "memory": .object([
+                "percent": .double(68.4),
+                "display": .string("68%"),
+            ]),
+            "disk": .object([
+                "percent": .double(81.1),
+                "display": .string("81%"),
+            ]),
+            "uptime": .string("Uptime 1h 5m"),
+            "loadAverage": .string("Load 1.23 0.98 0.77"),
+        ]))
+
+        XCTAssertEqual(snapshot?.cpuPercent, 24.2, accuracy: 0.001)
+        XCTAssertEqual(snapshot?.cpuDisplay, "24%")
+        XCTAssertEqual(snapshot?.memoryPercent, 68.4, accuracy: 0.001)
+        XCTAssertEqual(snapshot?.memoryDisplay, "68%")
+        XCTAssertEqual(snapshot?.diskPercent, 81.1, accuracy: 0.001)
+        XCTAssertEqual(snapshot?.uptimeText, "Uptime 1h 5m")
+        XCTAssertEqual(snapshot?.loadAverageText, "Load 1.23 0.98 0.77")
     }
 
     @MainActor
@@ -775,6 +912,19 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testSystemMonitorWidgetLoadsAndResolvesToSystemMonitorTabPage() throws {
+        let widget = try Widget(manifest: makeFrameworkManifest())
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["system-monitor"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["system-monitor"])
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .systemMonitor)
+    }
+
+    @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
     }
@@ -854,6 +1004,27 @@ private actor CountingExecutor: ChannelExecutor {
     func run(source: WidgetManifest.Source) async throws -> String {
         count += 1
         return "count-\(count)"
+    }
+}
+
+private struct TestFrameworkProviderFactory: FrameworkProviderFactorying {
+    let providers: [String: any FrameworkDataProviding]
+
+    func makeProvider(for api: String) throws -> any FrameworkDataProviding {
+        guard let provider = providers[api] else {
+            throw ChannelExecutorError.unsupportedFrameworkAPI(api)
+        }
+
+        return provider
+    }
+}
+
+private struct TestFrameworkProvider: FrameworkDataProviding {
+    let api: String
+    let value: WidgetValue
+
+    func fetch() async throws -> WidgetValue {
+        value
     }
 }
 
