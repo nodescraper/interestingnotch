@@ -13,24 +13,27 @@ import XCTest
 final class WidgetExtractorTests: XCTestCase {
     @MainActor
     private func makeWidgetManifest(
+        id: String = "git-status",
         extractMethod: WidgetManifest.Extract.Method = .trim,
+        command: String = "git status --short",
+        interval: TimeInterval = 10,
         extractPath: String? = nil,
         color: String = "good"
     ) -> WidgetManifest {
         WidgetManifest(
             schema: 1,
             kind: .data,
-            id: "git-status",
+            id: id,
             name: "Git Status",
             author: "NodeScraper",
             source: .init(
                 type: .command,
-                run: "git status --short",
+                run: command,
                 url: nil,
                 method: nil,
                 headers: nil,
                 api: nil,
-                interval: 10,
+                interval: interval,
                 timeout: 5,
                 cwd: nil,
                 env: nil
@@ -278,7 +281,125 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testWidgetEnginePopulatesValueAndMarksWidgetOKAfterTick() async throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let fileURL = temporaryDirectory.appendingPathComponent("engine-value.txt")
+        try "engine-output".write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let widget = try Widget(
+            manifest: makeWidgetManifest(
+                extractMethod: .raw,
+                command: #"cat "\#(fileURL.path)""#
+            )
+        )
+        let engine = WidgetEngine()
+        defer { engine.load([]) }
+
+        engine.load([widget])
+
+        try await waitUntil {
+            widget.status == .ok && widget.lastValue == .string("engine-output")
+        }
+    }
+
+    @MainActor
+    func testWidgetEngineIsolatesFailuresBetweenWidgets() async throws {
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let fileURL = temporaryDirectory.appendingPathComponent("healthy-widget.txt")
+        try "healthy-output".write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let healthyWidget = try Widget(
+            manifest: makeWidgetManifest(
+                id: "healthy-widget",
+                extractMethod: .raw,
+                command: #"cat "\#(fileURL.path)""#
+            )
+        )
+        let failingWidget = try Widget(
+            manifest: makeWidgetManifest(
+                id: "failing-widget",
+                command: "git --definitely-not-a-real-option"
+            )
+        )
+        let engine = WidgetEngine()
+        defer { engine.load([]) }
+
+        engine.load([failingWidget, healthyWidget])
+
+        try await waitUntil {
+            if case .error = failingWidget.status {
+                return healthyWidget.status == .ok && healthyWidget.lastValue == .string("healthy-output")
+            }
+            return false
+        }
+    }
+
+    @MainActor
+    func testWidgetEngineReloadCancelsOldPollingLoops() async throws {
+        let executor = CountingExecutor()
+        let widget = try Widget(
+            manifest: makeWidgetManifest(
+                id: "counting-widget",
+                extractMethod: .raw,
+                interval: 0.05
+            ),
+            executor: executor,
+            extractor: ExtractorPipeline(extractors: [RawExtractor()])
+        )
+        let engine = WidgetEngine()
+
+        engine.load([widget])
+        try await waitUntil {
+            await executor.count >= 2
+        }
+
+        engine.load([])
+        let countAfterCancellation = await executor.count
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        let finalCount = await executor.count
+
+        XCTAssertEqual(finalCount, countAfterCancellation)
+    }
+
+    @MainActor
     private func resolvedNSColor(from color: Color) -> NSColor? {
         NSColor(color).usingColorSpace(.deviceRGB)
+    }
+
+    private func waitUntil(
+        timeout: TimeInterval = 1,
+        pollInterval: UInt64 = 10_000_000,
+        condition: @escaping @MainActor () async -> Bool
+    ) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+
+        while Date() < deadline {
+            if await condition() {
+                return
+            }
+
+            try await Task.sleep(nanoseconds: pollInterval)
+        }
+
+        XCTFail("Condition not met within \(timeout) seconds.")
+    }
+}
+
+private actor CountingExecutor: ChannelExecutor {
+    let channelType: WidgetManifest.Source.ChannelType = .command
+
+    private(set) var count = 0
+
+    func run(source: WidgetManifest.Source) async throws -> String {
+        count += 1
+        return "count-\(count)"
     }
 }
