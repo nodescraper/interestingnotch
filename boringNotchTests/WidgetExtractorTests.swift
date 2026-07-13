@@ -5,10 +5,55 @@
 //  Created by Codex on 2026-07-13.
 //
 
+import AppKit
+import SwiftUI
 import XCTest
 @testable import boringNotch
 
 final class WidgetExtractorTests: XCTestCase {
+    @MainActor
+    private func makeWidgetManifest(
+        extractMethod: WidgetManifest.Extract.Method = .trim,
+        extractPath: String? = nil,
+        color: String = "good"
+    ) -> WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .data,
+            id: "git-status",
+            name: "Git Status",
+            author: "NodeScraper",
+            source: .init(
+                type: .command,
+                run: "git status --short",
+                url: nil,
+                method: nil,
+                headers: nil,
+                api: nil,
+                interval: 10,
+                timeout: 5,
+                cwd: nil,
+                env: nil
+            ),
+            extract: .init(
+                method: extractMethod,
+                pattern: nil,
+                path: extractPath,
+                table: nil
+            ),
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("arrow.triangle.branch"),
+                    "label": .string("$value changed"),
+                    "color": .string(color),
+                ]
+            ),
+            onTap: nil,
+            permissions: nil
+        )
+    }
+
     func testRawExtractorPassesThroughString() throws {
         let result = try RawExtractor().extract(from: .raw("hello"))
         XCTAssertEqual(result, .string("hello"))
@@ -204,5 +249,36 @@ final class WidgetExtractorTests: XCTestCase {
             XCTAssertNotEqual(code, 0)
             XCTAssertFalse(stderr.isEmpty)
         }
+    }
+
+    @MainActor
+    func testWidgetSelectsCommandExecutorAndConfiguredExtractor() throws {
+        let widget = try Widget(manifest: makeWidgetManifest(extractMethod: .trim))
+
+        XCTAssertEqual(widget.executor.channelType, .command)
+        XCTAssertEqual(widget.extractor.extractors.map(\.method), [.trim])
+    }
+
+    @MainActor
+    func testWidgetStartsLoadingWithNilValue() throws {
+        let widget = try Widget(manifest: makeWidgetManifest())
+
+        XCTAssertNil(widget.lastValue)
+        XCTAssertEqual(widget.status, .loading)
+    }
+
+    @MainActor
+    func testWidgetResolvedColorUsesManifestColorToken() throws {
+        let widget = try Widget(manifest: makeWidgetManifest(color: "good"))
+
+        XCTAssertEqual(
+            resolvedNSColor(from: widget.resolvedColor),
+            resolvedNSColor(from: ColorToken.good.resolve())
+        )
+    }
+
+    @MainActor
+    private func resolvedNSColor(from color: Color) -> NSColor? {
+        NSColor(color).usingColorSpace(.deviceRGB)
     }
 }
