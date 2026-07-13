@@ -141,7 +141,8 @@ private struct WorkshopBrowsePreviewHost: View {
                     ]
                 ),
                 onTap: nil,
-                permissions: nil
+                permissions: nil,
+                interactive: nil
             ),
             executor: WorkshopBrowsePreviewExecutor(),
             extractor: ExtractorPipeline(extractors: [RawExtractor()]),

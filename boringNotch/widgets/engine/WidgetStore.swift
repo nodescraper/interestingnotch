@@ -19,11 +19,23 @@ struct WidgetStoreLoadResult {
 
 enum WidgetStoreError: LocalizedError, Equatable, Sendable {
     case unsupportedSchema(Int)
+    case missingSource
+    case missingExtract
+    case missingInteractiveConfiguration
+    case missingCommandRun
 
     var errorDescription: String? {
         switch self {
         case .unsupportedSchema(let schema):
             return "Widget schema version \(schema) is not supported."
+        case .missingSource:
+            return "Data widgets must define a source."
+        case .missingExtract:
+            return "Data widgets must define an extract block."
+        case .missingInteractiveConfiguration:
+            return "Interactive widgets must define an interactive configuration."
+        case .missingCommandRun:
+            return "Command widgets must define a run string."
         }
     }
 }
@@ -41,15 +53,18 @@ final class WidgetStore {
 
     private let fileManager: FileManager
     private let engine: any WidgetStoreEngine
+    private let seedBundledManifests: Bool
     let widgetsDirectoryURL: URL
 
     init(
         fileManager: FileManager = .default,
         widgetsDirectoryURL: URL? = nil,
-        engine: (any WidgetStoreEngine)? = nil
+        engine: (any WidgetStoreEngine)? = nil,
+        seedBundledManifests: Bool = true
     ) {
         self.fileManager = fileManager
         self.engine = engine ?? WidgetEngine.shared
+        self.seedBundledManifests = seedBundledManifests
         self.widgetsDirectoryURL = widgetsDirectoryURL ?? Self.defaultWidgetsDirectoryURL(fileManager: fileManager)
     }
 
@@ -59,6 +74,9 @@ final class WidgetStore {
 
         do {
             try fileManager.createDirectory(at: widgetsDirectoryURL, withIntermediateDirectories: true)
+            if seedBundledManifests {
+                try WidgetLibrary.seedBundledManifestsIfNeeded(into: widgetsDirectoryURL, fileManager: fileManager)
+            }
         } catch {
             let failure = WidgetStoreLoadFailure(fileURL: widgetsDirectoryURL, message: error.localizedDescription)
             engine.load([])
@@ -105,6 +123,25 @@ final class WidgetStore {
     private func validate(manifest: WidgetManifest) throws {
         guard manifest.schema == 1 else {
             throw WidgetStoreError.unsupportedSchema(manifest.schema)
+        }
+
+        switch manifest.kind {
+        case .data:
+            guard let source = manifest.source else {
+                throw WidgetStoreError.missingSource
+            }
+            guard manifest.extract != nil else {
+                throw WidgetStoreError.missingExtract
+            }
+            if source.type == .command {
+                guard let run = source.run?.trimmingCharacters(in: .whitespacesAndNewlines), !run.isEmpty else {
+                    throw WidgetStoreError.missingCommandRun
+                }
+            }
+        case .interactive:
+            guard manifest.interactive != nil else {
+                throw WidgetStoreError.missingInteractiveConfiguration
+            }
         }
     }
 

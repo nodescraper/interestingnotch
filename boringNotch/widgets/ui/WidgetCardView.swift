@@ -203,7 +203,8 @@ private struct WidgetCardPreviewGrid: View {
                     ]
                 ),
                 onTap: nil,
-                permissions: nil
+                permissions: nil,
+                interactive: nil
             ),
             executor: WidgetPreviewExecutor(),
             extractor: ExtractorPipeline(extractors: [RawExtractor()]),

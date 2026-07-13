@@ -25,7 +25,7 @@ final class WidgetEngine: ObservableObject {
         cancelAllTasks()
         self.widgets = widgets
 
-        for widget in widgets where widget.status != .disabled {
+        for widget in widgets where widget.status != .disabled && widget.isPollingEnabled {
             tasks[widget.id] = makePollingTask(for: widget)
         }
     }
@@ -42,7 +42,7 @@ final class WidgetEngine: ObservableObject {
 
                 guard !Task.isCancelled else { return }
 
-                let interval = await self?.interval(for: widget.id) ?? widget.interval
+                let interval = self?.interval(for: widget.id) ?? widget.interval
                 let sleepDuration = UInt64(max(interval, 0) * 1_000_000_000)
 
                 if sleepDuration == 0 {
@@ -65,9 +65,18 @@ final class WidgetEngine: ObservableObject {
             return
         }
 
+        guard
+            let source = widget.manifest.source,
+            let executor = widget.executor,
+            let extractor = widget.extractor
+        else {
+            widget.status = .error("Widget poll configuration is unavailable.")
+            return
+        }
+
         do {
-            let rawOutput = try await widget.executor.run(source: widget.manifest.source)
-            let value = try widget.extractor.extract(from: rawOutput)
+            let rawOutput = try await executor.run(source: source)
+            let value = try extractor.extract(from: rawOutput)
             widget.lastValue = value
             widget.status = .ok
         } catch {

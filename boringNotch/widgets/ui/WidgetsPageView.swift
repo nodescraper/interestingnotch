@@ -128,7 +128,8 @@ private struct WidgetsPageLoadedPreview: View {
                     ]
                 ),
                 onTap: nil,
-                permissions: nil
+                permissions: nil,
+                interactive: nil
             ),
             executor: WidgetsPagePreviewExecutor(),
             extractor: ExtractorPipeline(extractors: [RawExtractor()]),

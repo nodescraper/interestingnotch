@@ -64,14 +64,18 @@
 		11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0013A00000100000001 /* WidgetManifest.swift */; };
 		11A0D0053A00000100000001 /* WidgetValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0023A00000100000001 /* WidgetValue.swift */; };
 		11A0D0063A00000100000001 /* ColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0033A00000100000001 /* ColorToken.swift */; };
+		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
 		11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */; };
 		11A0D00A3A00000100000001 /* Extractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0093A00000100000001 /* Extractor.swift */; };
 		11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01C3A00000100000001 /* ChannelExecutor.swift */; };
 		11A0D01F3A00000100000001 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01E3A00000100000001 /* Widget.swift */; };
 		11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0203A00000100000001 /* WidgetEngine.swift */; };
 		11A0D0233A00000100000001 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0223A00000100000001 /* WidgetStore.swift */; };
+		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
 		11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0383A00000100000001 /* WidgetGridView.swift */; };
 		11A0D0313A00000100000001 /* WidgetCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0303A00000100000001 /* WidgetCardView.swift */; };
+		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
+		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0333A00000100000001 /* WidgetsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0323A00000100000001 /* WidgetsPageView.swift */; };
 		11A0D0353A00000100000001 /* WidgetTabResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0343A00000100000001 /* WidgetTabResolver.swift */; };
 		11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0363A00000100000001 /* WidgetTabPageView.swift */; };
@@ -278,14 +282,18 @@
 		11A0D0013A00000100000001 /* WidgetManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetManifest.swift; sourceTree = "<group>"; };
 		11A0D0023A00000100000001 /* WidgetValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetValue.swift; sourceTree = "<group>"; };
 		11A0D0033A00000100000001 /* ColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorToken.swift; sourceTree = "<group>"; };
+		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSlotRenderer.swift; sourceTree = "<group>"; };
 		11A0D0093A00000100000001 /* Extractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extractor.swift; sourceTree = "<group>"; };
 		11A0D01C3A00000100000001 /* ChannelExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelExecutor.swift; sourceTree = "<group>"; };
 		11A0D01E3A00000100000001 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
 		11A0D0203A00000100000001 /* WidgetEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetEngine.swift; sourceTree = "<group>"; };
 		11A0D0223A00000100000001 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
+		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
 		11A0D0383A00000100000001 /* WidgetGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridView.swift; sourceTree = "<group>"; };
 		11A0D0303A00000100000001 /* WidgetCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetCardView.swift; sourceTree = "<group>"; };
+		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
+		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0323A00000100000001 /* WidgetsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetsPageView.swift; sourceTree = "<group>"; };
 		11A0D0343A00000100000001 /* WidgetTabResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabResolver.swift; sourceTree = "<group>"; };
 		11A0D0363A00000100000001 /* WidgetTabPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabPageView.swift; sourceTree = "<group>"; };
@@ -818,6 +826,7 @@
 				11A0D0013A00000100000001 /* WidgetManifest.swift */,
 				11A0D0023A00000100000001 /* WidgetValue.swift */,
 				11A0D0033A00000100000001 /* ColorToken.swift */,
+				11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -829,6 +838,7 @@
 				11A0D0093A00000100000001 /* Extractor.swift */,
 				11A0D01E3A00000100000001 /* Widget.swift */,
 				11A0D0203A00000100000001 /* WidgetEngine.swift */,
+				11A0D0493A00000100000001 /* WidgetLibrary.swift */,
 				11A0D0223A00000100000001 /* WidgetStore.swift */,
 			);
 			path = engine;
@@ -837,6 +847,8 @@
 		11A0D0263A00000100000001 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
+				11A0D04B3A00000100000001 /* ScreenColorPicker.swift */,
 				11A0D0383A00000100000001 /* WidgetGridView.swift */,
 				11A0D0303A00000100000001 /* WidgetCardView.swift */,
 				11A0D0363A00000100000001 /* WidgetTabPageView.swift */,
@@ -1283,12 +1295,16 @@
 				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
 				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
+				11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */,
 				11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */,
 				11A0D00A3A00000100000001 /* Extractor.swift in Sources */,
 				11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */,
 				11A0D01F3A00000100000001 /* Widget.swift in Sources */,
 				11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */,
+				11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */,
 				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
+				11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */,
+				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,
 				11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */,
 				11A0D0313A00000100000001 /* WidgetCardView.swift in Sources */,
 				11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */,

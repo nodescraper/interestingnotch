@@ -54,7 +54,34 @@ final class WidgetExtractorTests: XCTestCase {
                 ]
             ),
             onTap: nil,
-            permissions: nil
+            permissions: nil,
+            interactive: nil
+        )
+    }
+
+    @MainActor
+    private func makeInteractiveManifest(
+        id: String = "color-picker"
+    ) -> WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: id,
+            name: "Color Picker",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("eyedropper.halffull"),
+                    "label": .string("Pick colors"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["screen-color-pick", "clipboard"],
+            interactive: .init(type: .colorPicker)
         )
     }
 
@@ -259,8 +286,8 @@ final class WidgetExtractorTests: XCTestCase {
     func testWidgetSelectsCommandExecutorAndConfiguredExtractor() throws {
         let widget = try Widget(manifest: makeWidgetManifest(extractMethod: .trim))
 
-        XCTAssertEqual(widget.executor.channelType, .command)
-        XCTAssertEqual(widget.extractor.extractors.map(\.method), [.trim])
+        XCTAssertEqual(widget.executor?.channelType, .command)
+        XCTAssertEqual(widget.extractor?.extractors.map(\.method), [.trim])
     }
 
     @MainActor
@@ -279,6 +306,18 @@ final class WidgetExtractorTests: XCTestCase {
             resolvedNSColor(from: widget.resolvedColor),
             resolvedNSColor(from: ColorToken.good.resolve())
         )
+    }
+
+    @MainActor
+    func testInteractiveWidgetBuildsColorPickerRuntimeWithoutPolling() throws {
+        let widget = try Widget(manifest: makeInteractiveManifest())
+
+        XCTAssertEqual(widget.manifest.kind, .interactive)
+        XCTAssertNil(widget.executor)
+        XCTAssertNil(widget.extractor)
+        XCTAssertFalse(widget.isPollingEnabled)
+        XCTAssertEqual(widget.status, .ok)
+        XCTAssertTrue(widget.interactiveRuntime is ColorPickerWidgetModel)
     }
 
     @MainActor
@@ -387,7 +426,7 @@ final class WidgetExtractorTests: XCTestCase {
         )
 
         let engine = RecordingWidgetStoreEngine()
-        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine, seedBundledManifests: false)
 
         let result = store.loadAll()
 
@@ -421,7 +460,8 @@ final class WidgetExtractorTests: XCTestCase {
             extract: unknownSchemaManifest.extract,
             render: unknownSchemaManifest.render,
             onTap: unknownSchemaManifest.onTap,
-            permissions: unknownSchemaManifest.permissions
+            permissions: unknownSchemaManifest.permissions,
+            interactive: unknownSchemaManifest.interactive
         )
         try writeManifest(
             unknownSchemaManifest,
@@ -430,7 +470,7 @@ final class WidgetExtractorTests: XCTestCase {
         )
 
         let engine = RecordingWidgetStoreEngine()
-        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine, seedBundledManifests: false)
 
         let result = store.loadAll()
 
@@ -443,7 +483,7 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
-    func testWidgetStoreCreatesMissingDirectoryAndReturnsEmptyResult() throws {
+    func testWidgetStoreSeedsColorPickerManifestWhenDirectoryIsMissing() throws {
         let temporaryDirectory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
@@ -456,9 +496,9 @@ final class WidgetExtractorTests: XCTestCase {
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
-        XCTAssertTrue(result.widgets.isEmpty)
+        XCTAssertEqual(result.widgets.map(\.id), ["color-picker"])
         XCTAssertTrue(result.failures.isEmpty)
-        XCTAssertEqual(engine.loadedWidgetIDs, [])
+        XCTAssertEqual(engine.loadedWidgetIDs, ["color-picker"])
     }
 
     @MainActor
@@ -473,13 +513,62 @@ final class WidgetExtractorTests: XCTestCase {
         )
 
         let engine = RecordingWidgetStoreEngine()
-        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine)
+        let store = WidgetStore(widgetsDirectoryURL: temporaryDirectory, engine: engine, seedBundledManifests: false)
         let loader = WidgetLaunchLoader(store: store)
 
         let result = loader.loadWidgets()
 
         XCTAssertEqual(result.widgets.map(\.id), ["launch-widget"])
         XCTAssertEqual(engine.loadedWidgetIDs, ["launch-widget"])
+    }
+
+    func testColorPickerConversionsMatchPureRedAcrossFormats() throws {
+        let color = try XCTUnwrap(ColorPickerHSBAColor.fromHex("#FF0000"))
+
+        XCTAssertEqual(color.rgb, .init(red: 255, green: 0, blue: 0))
+        XCTAssertEqual(color.hsl, .init(hue: 0, saturation: 100, lightness: 50))
+        XCTAssertEqual(color.hexString, "#FF0000")
+        XCTAssertEqual(color.alphaPercent, 100)
+    }
+
+    func testColorPickerInteractionMathMapsCornersCorrectly() {
+        let size = CGSize(width: 200, height: 100)
+
+        let topLeft = ColorPickerInteractionMath.saturationBrightness(at: .zero, in: size)
+        let bottomRight = ColorPickerInteractionMath.saturationBrightness(
+            at: CGPoint(x: 200, y: 100),
+            in: size
+        )
+
+        XCTAssertEqual(topLeft.saturation, 0)
+        XCTAssertEqual(topLeft.brightness, 1)
+        XCTAssertEqual(bottomRight.saturation, 1)
+        XCTAssertEqual(bottomRight.brightness, 0)
+    }
+
+    func testColorPickerHistoryPushCapsDedupesAndRestores() throws {
+        let base = try XCTUnwrap(ColorPickerHSBAColor.fromHex("#FF0000"))
+        let blue = try XCTUnwrap(ColorPickerHSBAColor.fromHex("#0000FF"))
+
+        var history = ColorPickerHistoryStore.push(base, into: [])
+        history = ColorPickerHistoryStore.push(blue, into: history)
+        history = ColorPickerHistoryStore.push(base, into: history)
+
+        XCTAssertEqual(history.first, base.serializedHistoryValue)
+        XCTAssertEqual(history.count, 2)
+
+        let capped = (0..<20).reduce(history) { partial, index in
+            let value = ColorPickerHSBAColor(
+                hue: Double(index) / 20,
+                saturation: 1,
+                brightness: 1,
+                alpha: 1
+            )
+            return ColorPickerHistoryStore.push(value, into: partial)
+        }
+
+        XCTAssertEqual(capped.count, ColorPickerHistoryStore.limit)
+        XCTAssertEqual(ColorPickerHistoryStore.restore(base.serializedHistoryValue), base)
     }
 
     func testWidgetSlotRendererResolvesValuePlaceholder() {
@@ -563,6 +652,19 @@ final class WidgetExtractorTests: XCTestCase {
         )
 
         XCTAssertEqual(tabs.map(\.id), ["git-status"])
+    }
+
+    @MainActor
+    func testInteractiveWidgetLoadsAndResolvesToColorPickerTabPage() throws {
+        let widget = try Widget(manifest: makeInteractiveManifest())
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["color-picker"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["color-picker"])
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .colorPicker)
     }
 
     @MainActor

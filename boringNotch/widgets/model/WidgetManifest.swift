@@ -13,14 +13,42 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
     let id: String
     let name: String
     let author: String?
-    let source: Source
-    let extract: Extract
+    let source: Source?
+    let extract: Extract?
     let render: Render
     let onTap: DeclaredAction?
     let permissions: [String]?
+    let interactive: Interactive?
+
+    init(
+        schema: Int,
+        kind: Kind,
+        id: String,
+        name: String,
+        author: String?,
+        source: Source?,
+        extract: Extract?,
+        render: Render,
+        onTap: DeclaredAction?,
+        permissions: [String]?,
+        interactive: Interactive? = nil
+    ) {
+        self.schema = schema
+        self.kind = kind
+        self.id = id
+        self.name = name
+        self.author = author
+        self.source = source
+        self.extract = extract
+        self.render = render
+        self.onTap = onTap
+        self.permissions = permissions
+        self.interactive = interactive
+    }
 
     enum Kind: String, Codable, Sendable {
         case data
+        case interactive
     }
 
     struct Source: Codable, Hashable, Sendable {
@@ -87,6 +115,14 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
             case copyHex = "copy-hex"
             case openURL = "open-url"
             case run
+        }
+    }
+
+    struct Interactive: Codable, Hashable, Sendable {
+        let type: Kind
+
+        enum Kind: String, Codable, Sendable {
+            case colorPicker = "color-picker"
         }
     }
 }

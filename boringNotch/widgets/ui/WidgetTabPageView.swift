@@ -7,6 +7,21 @@
 
 import SwiftUI
 
+enum WidgetTabPageKind: Equatable {
+    case colorPicker
+    case placeholder
+}
+
+enum WidgetTabPageResolver {
+    static func pageKind(for widget: Widget) -> WidgetTabPageKind {
+        if widget.manifest.kind == .interactive, widget.manifest.interactive?.type == .colorPicker {
+            return .colorPicker
+        }
+
+        return .placeholder
+    }
+}
+
 struct WidgetTabPageView: View {
     let widgetID: String
 
@@ -14,7 +29,16 @@ struct WidgetTabPageView: View {
 
     var body: some View {
         if let widget = engine.widgets.first(where: { $0.id == widgetID }) {
-            content(for: widget)
+            switch WidgetTabPageResolver.pageKind(for: widget) {
+            case .colorPicker:
+                if let model = widget.interactiveRuntime as? ColorPickerWidgetModel {
+                    ColorPickerWidgetPageView(widget: widget, model: model)
+                } else {
+                    unavailableState
+                }
+            case .placeholder:
+                content(for: widget)
+            }
         } else {
             unavailableState
         }
@@ -140,51 +164,26 @@ private struct WidgetTabPagePreviewHost: View {
         try? Widget(
             manifest: WidgetManifest(
                 schema: 1,
-                kind: .data,
+                kind: .interactive,
                 id: "preview-widget",
-                name: "Preview Widget",
+                name: "Color Picker",
                 author: "Preview",
-                source: .init(
-                    type: .command,
-                    run: "cat /dev/null",
-                    url: nil,
-                    method: nil,
-                    headers: nil,
-                    api: nil,
-                    interval: 10,
-                    timeout: 1,
-                    cwd: nil,
-                    env: nil
-                ),
-                extract: .init(
-                    method: .raw,
-                    pattern: nil,
-                    path: nil,
-                    table: nil
-                ),
+                source: nil,
+                extract: nil,
                 render: .init(
                     template: .iconLabel,
                     slots: [
-                        "icon": .string("paintpalette.fill"),
-                        "label": .string("Preview"),
+                        "icon": .string("eyedropper.halffull"),
+                        "label": .string("Pick colors"),
                         "color": .string("accent"),
                     ]
                 ),
                 onTap: nil,
-                permissions: nil
+                permissions: nil,
+                interactive: .init(type: .colorPicker)
             ),
-            executor: WidgetTabPagePreviewExecutor(),
-            extractor: ExtractorPipeline(extractors: [RawExtractor()]),
-            lastValue: .string("Preview"),
+            lastValue: nil,
             status: .ok
         )
-    }
-}
-
-private actor WidgetTabPagePreviewExecutor: ChannelExecutor {
-    let channelType: WidgetManifest.Source.ChannelType = .command
-
-    func run(source: WidgetManifest.Source) async throws -> String {
-        ""
     }
 }
