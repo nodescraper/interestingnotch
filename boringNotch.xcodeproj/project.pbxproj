@@ -61,6 +61,9 @@
 		11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */; };
 		11985BEF2F37E48900F81585 /* OSDIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BEE2F37E48900F81585 /* OSDIconView.swift */; };
 		11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11985BF32F38520A00F81585 /* DraggableProgressBar.swift */; };
+		11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0013A00000100000001 /* WidgetManifest.swift */; };
+		11A0D0053A00000100000001 /* WidgetValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0023A00000100000001 /* WidgetValue.swift */; };
+		11A0D0063A00000100000001 /* ColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0033A00000100000001 /* ColorToken.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
@@ -244,6 +247,9 @@
 		11985BE42F37A3FC00F81585 /* BetterDisplayNotificationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetterDisplayNotificationModels.swift; sourceTree = "<group>"; };
 		11985BEE2F37E48900F81585 /* OSDIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSDIconView.swift; sourceTree = "<group>"; };
 		11985BF32F38520A00F81585 /* DraggableProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggableProgressBar.swift; sourceTree = "<group>"; };
+		11A0D0013A00000100000001 /* WidgetManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetManifest.swift; sourceTree = "<group>"; };
+		11A0D0023A00000100000001 /* WidgetValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetValue.swift; sourceTree = "<group>"; };
+		11A0D0033A00000100000001 /* ColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorToken.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -666,6 +672,7 @@
 				14D570C72C5F38760011E668 /* models */,
 				14D570BA2C5E98E30011E668 /* enums */,
 				14D570B72C5E98960011E668 /* animations */,
+				11A0D0073A00000100000001 /* widgets */,
 				147163B52C5D804B0068B555 /* managers */,
 				1153BD8E2D986B1F00979FB0 /* MediaControllers */,
 				B15063502C63D3F600EBB0E3 /* extensions */,
@@ -732,6 +739,24 @@
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
+			sourceTree = "<group>";
+		};
+		11A0D0073A00000100000001 /* widgets */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0083A00000100000001 /* model */,
+			);
+			path = widgets;
+			sourceTree = "<group>";
+		};
+		11A0D0083A00000100000001 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0013A00000100000001 /* WidgetManifest.swift */,
+				11A0D0023A00000100000001 /* WidgetValue.swift */,
+				11A0D0033A00000100000001 /* ColorToken.swift */,
+			);
+			path = model;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -1095,6 +1120,9 @@
 				B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */,
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */,
+				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
+				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
+				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
 				118EBE252E92DCCB00D54B5A /* AssociatedObject.swift in Sources */,
 				11F748682EC9AC9600F841DB /* BoringNotchXPCHelperProtocol.swift in Sources */,
 				11F748692EC9AC9600F841DB /* XPCHelperClient.swift in Sources */,
