@@ -199,7 +199,11 @@ enum ClipboardImageThumbnailer {
 }
 
 enum ClipboardHistoryStore {
-    static let limit = 50
+    static let maximumLimit = 100
+
+    static var limit: Int {
+        min(max(Defaults[.clipboardHistoryMaxItems], 1), maximumLimit)
+    }
 
     static func adding(_ item: ClipboardHistoryItem, to existing: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
         guard existing.first?.fingerprint != item.fingerprint else {
@@ -207,17 +211,23 @@ enum ClipboardHistoryStore {
         }
 
         var items = [item] + existing
-        guard items.count > limit else { return items }
+        return enforcingLimit(on: items, limit: limit)
+    }
+
+    static func enforcingLimit(on items: [ClipboardHistoryItem], limit: Int = limit) -> [ClipboardHistoryItem] {
+        let sanitizedLimit = min(max(limit, 1), maximumLimit)
+        guard items.count > sanitizedLimit else { return items }
 
         var index = items.count - 1
-        while items.count > limit, index >= 0 {
-            if !items[index].pinned {
-                items.remove(at: index)
+        var trimmed = items
+        while trimmed.count > sanitizedLimit, index >= 0 {
+            if !trimmed[index].pinned {
+                trimmed.remove(at: index)
             }
             index -= 1
         }
 
-        return items
+        return Array(trimmed.prefix(sanitizedLimit))
     }
 
     static func togglingPin(for itemID: String, in items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {

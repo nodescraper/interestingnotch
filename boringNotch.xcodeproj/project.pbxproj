@@ -69,6 +69,8 @@
 		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
 		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
 		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
+		11A0D0803A00000100000001 /* AccessoryBatteryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */; };
+		11A0D0823A00000100000001 /* AccessoryBatteryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */; };
 		11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */; };
 		11A0D00A3A00000100000001 /* Extractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0093A00000100000001 /* Extractor.swift */; };
 		11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01C3A00000100000001 /* ChannelExecutor.swift */; };
@@ -300,6 +302,7 @@
 		11A0D0223A00000100000001 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
 		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
 		11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorProvider.swift; sourceTree = "<group>"; };
+		11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryProvider.swift; sourceTree = "<group>"; };
 		11A0D0383A00000100000001 /* WidgetGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridView.swift; sourceTree = "<group>"; };
 		11A0D0303A00000100000001 /* WidgetCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetCardView.swift; sourceTree = "<group>"; };
 		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
@@ -307,6 +310,7 @@
 		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0323A00000100000001 /* WidgetsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetsPageView.swift; sourceTree = "<group>"; };
 		11A0D0343A00000100000001 /* WidgetTabResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabResolver.swift; sourceTree = "<group>"; };
 		11A0D0363A00000100000001 /* WidgetTabPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabPageView.swift; sourceTree = "<group>"; };
@@ -850,6 +854,7 @@
 		11A0D00B3A00000100000001 /* engine */ = {
 			isa = PBXGroup;
 			children = (
+				11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */,
 				11A0D01C3A00000100000001 /* ChannelExecutor.swift */,
 				11A0D0093A00000100000001 /* Extractor.swift */,
 				11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */,
@@ -864,6 +869,7 @@
 		11A0D0263A00000100000001 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */,
 				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
 				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
 				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
@@ -1320,6 +1326,7 @@
 				11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */,
 				11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */,
 				11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */,
+				11A0D0803A00000100000001 /* AccessoryBatteryProvider.swift in Sources */,
 				11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */,
 				11A0D00A3A00000100000001 /* Extractor.swift in Sources */,
 				11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */,
@@ -1330,6 +1337,7 @@
 				11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */,
 				11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */,
 				11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */,
+				11A0D0823A00000100000001 /* AccessoryBatteryWidgetPageView.swift in Sources */,
 				11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */,
 				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,
 				11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */,

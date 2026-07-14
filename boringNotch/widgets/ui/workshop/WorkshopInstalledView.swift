@@ -57,6 +57,8 @@ enum WorkshopInstalledSettingsRegistry {
             ClipboardHistoryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         case "system-monitor":
             SystemMonitorInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
+        case "accessory-battery":
+            AccessoryBatteryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         default:
             GenericInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         }
@@ -90,12 +92,20 @@ private struct ColorPickerInstalledSettingsSection: View {
 private struct ClipboardHistoryInstalledSettingsSection: View {
     let widget: Widget
     @Binding var pinnedWidgetIDs: [String]
+    @Default(.clipboardHistoryMaxItems) private var maxHistoryItems
 
     var body: some View {
         Section {
             LabeledContent("Open clipboard shortcut") {
                 KeyboardShortcuts.Recorder(for: .clipboardHistoryPanel)
                     .frame(minWidth: 130)
+            }
+
+            Stepper(value: $maxHistoryItems, in: 1...ClipboardHistoryStore.maximumLimit) {
+                LabeledContent("Max history items") {
+                    Text("\(maxHistoryItems)")
+                        .monospacedDigit()
+                }
             }
 
             Button("Clear saved history", role: .destructive) {
@@ -108,10 +118,29 @@ private struct ClipboardHistoryInstalledSettingsSection: View {
         } header: {
             Text(widget.manifest.name)
         } footer: {
-            Text("Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them.")
+            Text("Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them. Max history is capped at 100 items.")
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }
+        .onChange(of: maxHistoryItems) { _, newValue in
+            maxHistoryItems = min(max(newValue, 1), ClipboardHistoryStore.maximumLimit)
+            trimClipboardHistoryStore()
+        }
+    }
+
+    private func trimClipboardHistoryStore() {
+        guard
+            let data = Defaults[.clipboardHistoryStoreData],
+            let payload = try? JSONDecoder().decode([String: [ClipboardHistoryItem]].self, from: data)
+        else {
+            return
+        }
+
+        let trimmedPayload = payload.mapValues { items in
+            ClipboardHistoryStore.enforcingLimit(on: items, limit: maxHistoryItems)
+        }
+
+        Defaults[.clipboardHistoryStoreData] = try? JSONEncoder().encode(trimmedPayload)
     }
 }
 
@@ -147,6 +176,47 @@ private struct SystemMonitorInstalledSettingsSection: View {
             Text(widget.manifest.name)
         } footer: {
             Text("Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics.")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+}
+
+private struct AccessoryBatteryInstalledSettingsSection: View {
+    let widget: Widget
+    @Binding var pinnedWidgetIDs: [String]
+    @Default(.accessoryBatterySneakPeekEnabled) private var sneakPeekEnabled
+    @Default(.accessoryBatteryPrimaryDeviceID) private var primaryDeviceID
+
+    private var snapshot: AccessoryBatterySnapshot? {
+        AccessoryBatterySnapshot(widgetValue: widget.lastValue)
+    }
+
+    private var reportingDevices: [AccessoryBatteryDeviceSnapshot] {
+        snapshot?.reportingDevices ?? []
+    }
+
+    var body: some View {
+        Section {
+            Toggle("Show sneak peek when closed", isOn: $sneakPeekEnabled)
+
+            Picker("Primary device", selection: $primaryDeviceID) {
+                Text("Automatic")
+                    .tag(nil as String?)
+
+                ForEach(reportingDevices, id: \.id) { device in
+                    Label(device.name, systemImage: device.symbolName)
+                        .tag(Optional(device.id))
+                }
+            }
+
+            Button("Unpin", role: .destructive) {
+                pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)
+            }
+        } header: {
+            Text(widget.manifest.name)
+        } footer: {
+            Text("Pick which reporting accessory shows in the closed-notch sneak peek. Automatic prefers AirPods when available.")
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }

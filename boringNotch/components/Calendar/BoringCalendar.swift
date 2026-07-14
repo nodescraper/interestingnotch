@@ -469,6 +469,20 @@ struct CalendarView: View {
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
     @Default(.calendarWeekView) private var calendarWeekView
+    let expandsToFill: Bool
+
+    private var expandedMonthRailWidth: CGFloat { 72 }
+    private var expandedHeaderSpacing: CGFloat { 12 }
+    private var expandedStripFadeWidth: CGFloat { 10 }
+    private var expandedDialConfig: Config {
+        var config = Config()
+        config.offset = 1
+        return config
+    }
+
+    init(expandsToFill: Bool = false) {
+        self.expandsToFill = expandsToFill
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -482,12 +496,38 @@ struct CalendarView: View {
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                EmptyEventsView(selectedDate: selectedDate)
-                    .frame(maxHeight: .infinity, alignment: .center)
+                if expandsToFill {
+                    HStack(alignment: .top, spacing: 18) {
+                        Color.clear
+                            .frame(width: expandedMonthRailWidth)
+
+                        EmptyEventsView(selectedDate: selectedDate)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .top)
+                            .offset(y: -22)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                } else {
+                    EmptyEventsView(selectedDate: selectedDate)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                }
             } else {
-                EventListView(events: calendarManager.events)
+                if expandsToFill {
+                    HStack(alignment: .top, spacing: 18) {
+                        Color.clear
+                            .frame(width: expandedMonthRailWidth)
+
+                        EventListView(events: calendarManager.events)
+                            .padding(.leading, 25)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                } else {
+                    EventListView(events: calendarManager.events)
+                }
             }
         }
+        .frame(maxWidth: expandsToFill ? .infinity : nil, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: selectedDate) {
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
@@ -525,39 +565,72 @@ struct CalendarView: View {
 
             WeekStripPicker(selectedDate: $selectedDate)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
     }
 
     /// Original scrolling day-dial layout: month/year on the left, dial on the right.
     private var dialHeader: some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading) {
-                Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                Text(selectedDate.formatted(.dateTime.year()))
-                    .font(.title3)
-                    .fontWeight(.light)
-                    .foregroundColor(Color(white: 0.65))
-            }
+        Group {
+            if expandsToFill {
+                HStack(alignment: .center, spacing: expandedHeaderSpacing) {
+                    monthYearHeader(compact: false)
+                        .frame(width: expandedMonthRailWidth, alignment: .leading)
+                        .padding(.leading, 15)
+                        .padding(.top, 30)
 
-            ZStack(alignment: .top) {
-                WheelPicker(selectedDate: $selectedDate, config: Config())
-                HStack(alignment: .top) {
-                    LinearGradient(
-                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                    )
-                    .frame(width: 20)
-                    Spacer()
-                    LinearGradient(
-                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                    )
-                    .frame(width: 20)
+                    ZStack(alignment: .top) {
+                        WheelPicker(selectedDate: $selectedDate, config: expandedDialConfig)
+                        HStack(alignment: .top) {
+                            LinearGradient(
+                                colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: expandedStripFadeWidth)
+                            Spacer()
+                            LinearGradient(
+                                colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: expandedStripFadeWidth)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                HStack(alignment: .center, spacing: 8) {
+                    monthYearHeader(compact: true)
+
+                    ZStack(alignment: .top) {
+                        WheelPicker(selectedDate: $selectedDate, config: Config())
+                        HStack(alignment: .top) {
+                            LinearGradient(
+                                colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 20)
+                            Spacer()
+                            LinearGradient(
+                                colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 20)
+                        }
+                    }
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func monthYearHeader(compact: Bool) -> some View {
+        VStack(alignment: .leading) {
+            Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                .font(compact ? .title3 : .system(size: 28, weight: .bold, design: .rounded))
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            Text(selectedDate.formatted(.dateTime.year()))
+                .font(compact ? .title3 : .system(size: 18, weight: .medium, design: .rounded))
+                .foregroundColor(Color(white: 0.65))
+        }
+        .frame(maxHeight: .infinity, alignment: .center)
     }
 }
 
@@ -644,6 +717,7 @@ struct EventListView: View {
                 }
             }
             .listStyle(.plain)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .scrollIndicators(.never)
             .scrollContentBackground(.hidden)
             .background(Color.clear)
@@ -654,7 +728,7 @@ struct EventListView: View {
                 scrollToRelevantEvent(proxy: proxy)
             }
         }
-        Spacer(minLength: 0)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func eventRow(_ event: EventModel) -> some View {
@@ -708,6 +782,7 @@ struct EventListView: View {
                                 ? 0.6 : 1.0
                     )
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 4)
             )
         } else {
@@ -750,6 +825,7 @@ struct EventListView: View {
                     .font(.caption)
                     .frame(minWidth: 44, alignment: .trailing)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .opacity(
                     event.eventStatus == .ended && Calendar.current.isDateInToday(event.start)
                         ? 0.6 : 1.0)

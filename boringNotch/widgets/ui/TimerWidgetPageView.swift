@@ -10,38 +10,23 @@ import SwiftUI
 struct TimerWidgetPageView: View {
     let widget: Widget
 
+    @EnvironmentObject var vm: BoringViewModel
     @ObservedObject var model: TimerWidgetModel
     let animationNamespace: Namespace.ID?
+    private let timerVisualBlockSize: CGFloat = 100
+    private let timerRingSize: CGFloat = 100
 
     var body: some View {
-        HStack(alignment: .top, spacing: 15) {
+        HStack(alignment: .bottom, spacing: 22) {
             countdownRing
-                .padding(.all, 5)
+                .frame(width: timerVisualBlockSize, height: timerVisualBlockSize)
+                .padding(.leading, 15)
+                .padding(.bottom, 20)
 
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 8) {
-                    centerCopy
-                    presetRow
-                }
-                .padding(.top, 10)
-                .padding(.leading, 5)
-
-                Spacer(minLength: 0)
-
-                Divider()
-                    .overlay(Color.white.opacity(0.10))
-                    .padding(.vertical, 8)
-
-                controlRow
-                    .padding(.bottom, 2)
-
-                Spacer(minLength: 0)
-            }
-            .frame(maxHeight: .infinity)
-
-            Spacer(minLength: 0)
+            timerControls
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .buttonStyle(PlainButtonStyle())
     }
 
     @ViewBuilder
@@ -76,50 +61,77 @@ struct TimerWidgetPageView: View {
                     .minimumScaleFactor(0.8)
 
                 Text(model.phaseTitle)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.gray)
                     .textCase(.uppercase)
             }
         }
         .aspectRatio(1, contentMode: .fit)
-        .frame(maxWidth: 144)
+        .frame(width: timerRingSize, height: timerRingSize)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Timer")
         .accessibilityValue(model.accessibilitySummary)
     }
 
-    private var centerCopy: some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private var timerControls: some View {
+        VStack(alignment: .leading) {
+            timerInfoAndPresets
+            controlRow
+        }
+    }
+
+    private var timerInfoAndPresets: some View {
+        GeometryReader { geo in
+            VStack(alignment: .leading, spacing: 4) {
+                centerCopy(width: geo.size.width)
+                presetTrack
+            }
+        }
+        .padding(.top, 10)
+        .padding(.leading, 5)
+    }
+
+    private func centerCopy(width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
             Text(model.displayTime)
                 .font(.headline.weight(.bold))
                 .foregroundStyle(.white)
                 .monospacedDigit()
                 .lineLimit(1)
+                .frame(width: width, alignment: .leading)
 
             Text(model.phaseTitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.headline)
+                .fontWeight(.medium)
+                .foregroundStyle(.gray)
                 .lineLimit(1)
+                .frame(width: width, alignment: .leading)
         }
     }
 
-    private var presetRow: some View {
-        HStack(spacing: 16) {
-            ForEach(TimerWidgetModel.presets) { preset in
-                Button {
-                    model.selectPreset(preset)
-                } label: {
-                    Text(preset.label)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(isSelectedPreset(preset) ? 1 : 0.45))
+    private var presetTrack: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 16) {
+                ForEach(TimerWidgetModel.presets) { preset in
+                    Button {
+                        model.selectPreset(preset)
+                    } label: {
+                        Text(preset.label)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white.opacity(isSelectedPreset(preset) ? 1 : 0.45))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            
+            Divider()
+                .overlay(Color.white.opacity(0.10))
         }
+        .frame(height: 36, alignment: .top)
     }
 
     private var controlRow: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 6) {
             HoverButton(
                 icon: model.countdownState.phase == .running ? "pause.fill" : "play.fill",
                 iconColor: .white,
@@ -133,7 +145,7 @@ struct TimerWidgetPageView: View {
             HoverButton(
                 icon: "arrow.counterclockwise",
                 iconColor: .white,
-                scale: .large
+                scale: .medium
             ) {
                 model.reset()
             }

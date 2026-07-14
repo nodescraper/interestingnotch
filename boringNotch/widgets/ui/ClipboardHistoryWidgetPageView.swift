@@ -12,7 +12,7 @@ struct ClipboardHistoryWidgetPageView: View {
 
     @ObservedObject var model: ClipboardHistoryWidgetModel
     @State private var hoveredItemID: String?
-    private let cardHeight: CGFloat = 84
+    private let cardSize: CGFloat = 100
 
     var body: some View {
         content
@@ -44,7 +44,7 @@ struct ClipboardHistoryWidgetPageView: View {
                 }
             }
             .padding(.top, 10)
-            .padding(.leading, 5)
+            .padding(.leading, 15)
             .padding(.bottom, 2)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
@@ -77,7 +77,7 @@ struct ClipboardHistoryWidgetPageView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 10)
             }
-            .frame(width: itemWidth(for: item), height: cardHeight, alignment: .leading)
+            .frame(width: cardSize, height: cardSize, alignment: .leading)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -116,21 +116,6 @@ struct ClipboardHistoryWidgetPageView: View {
         case .text, .link:
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color(nsColor: .secondarySystemFill).opacity(0.45))
-        }
-    }
-
-    private func itemWidth(for item: ClipboardHistoryItem) -> CGFloat {
-        switch item.kind {
-        case .image:
-            if let image = item.thumbnailImage, image.size.height > 0 {
-                let aspectRatio = image.size.width / image.size.height
-                return min(max(cardHeight * aspectRatio, 84), 220)
-            }
-            return 84
-        case .text:
-            return 156
-        case .link:
-            return 176
         }
     }
 

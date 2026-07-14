@@ -12,6 +12,7 @@ enum WidgetTabPageKind: Equatable {
     case timer
     case clipboardHistory
     case systemMonitor
+    case accessoryBattery
     case placeholder
 }
 
@@ -19,6 +20,10 @@ enum WidgetTabPageResolver {
     static func pageKind(for widget: Widget) -> WidgetTabPageKind {
         if widget.id == "system-monitor" {
             return .systemMonitor
+        }
+
+        if widget.id == "accessory-battery" {
+            return .accessoryBattery
         }
 
         if widget.manifest.kind == .interactive {
@@ -72,6 +77,8 @@ struct WidgetTabPageView: View {
                     }
                 case .systemMonitor:
                     SystemMonitorWidgetPageView(widget: widget)
+                case .accessoryBattery:
+                    AccessoryBatteryWidgetPageView(widget: widget)
                 case .placeholder:
                     content(for: widget)
                 }

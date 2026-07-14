@@ -16,9 +16,14 @@ struct BoringHeader: View {
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
     @Default(.showPinButton) private var showPinButton
     @Default(.pinNotchOpen) private var pinNotchOpen
+    @Default(.showCalendar) private var showCalendar
+    @Default(.showCalendarAsSeparateTab) private var showCalendarAsSeparateTab
 
     private var shouldShowTabs: Bool {
-        (!tvm.isEmpty && Defaults[.boringShelf]) || !pinnedWidgetIDs.isEmpty || coordinator.alwaysShowTabs
+        (!tvm.isEmpty && Defaults[.boringShelf])
+            || (showCalendar && showCalendarAsSeparateTab)
+            || !pinnedWidgetIDs.isEmpty
+            || coordinator.alwaysShowTabs
     }
 
     var body: some View {

@@ -39,6 +39,8 @@ struct ContentView: View {
     @Namespace private var widgetNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.systemMonitorSneakPeekEnabled) private var systemMonitorSneakPeekEnabled
+    @Default(.accessoryBatterySneakPeekEnabled) private var accessoryBatterySneakPeekEnabled
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -103,6 +105,11 @@ struct ContentView: View {
             && vm.notchState == .closed
         {
             chinWidth = compactSystemMonitorWidth
+        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID)
+            && coordinator.sneakPeekState(for: vm.screenUUID).type == .accessoryBattery
+            && vm.notchState == .closed
+        {
+            chinWidth = compactAccessoryBatteryWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -164,6 +171,21 @@ struct ContentView: View {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
             + (systemMonitorCompactMetricCount * systemMonitorCompactMetricWidth)
+    }
+
+    private var accessoryBatteryCompactNameWidth: CGFloat {
+        vm.hasNotch ? 112 : 96
+    }
+
+    private var accessoryBatteryCompactValueWidth: CGFloat {
+        vm.hasNotch ? 60 : 52
+    }
+
+    private var compactAccessoryBatteryWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + accessoryBatteryCompactNameWidth
+            + accessoryBatteryCompactValueWidth
     }
 
     private var systemMonitorCompactMetricCount: CGFloat {
@@ -262,6 +284,7 @@ struct ContentView: View {
                         }
 
                         syncSystemMonitorSneakPeek()
+                        syncAccessoryBatterySneakPeek()
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
@@ -279,12 +302,25 @@ struct ContentView: View {
                     }
                     .onChange(of: coordinator.currentView) { _, _ in
                         syncSystemMonitorSneakPeek()
+                        syncAccessoryBatterySneakPeek()
+                    }
+                    .onChange(of: systemMonitorSneakPeekEnabled) { _, _ in
+                        syncSystemMonitorSneakPeek()
+                    }
+                    .onChange(of: accessoryBatterySneakPeekEnabled) { _, _ in
+                        syncAccessoryBatterySneakPeek()
                     }
                     .onChange(of: widgetEngine.widgets.count) { _, _ in
                         syncSystemMonitorSneakPeek()
+                        syncAccessoryBatterySneakPeek()
+                    }
+                    .onReceive(widgetEngine.objectWillChange) { _ in
+                        syncSystemMonitorSneakPeek()
+                        syncAccessoryBatterySneakPeek()
                     }
                     .onAppear {
                         syncSystemMonitorSneakPeek()
+                        syncAccessoryBatterySneakPeek()
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
@@ -399,6 +435,10 @@ struct ContentView: View {
                           SystemMonitorLiveActivity()
                               .allowsHitTesting(false)
                               .frame(width: compactSystemMonitorWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .accessoryBattery && vm.notchState == .closed {
+                          AccessoryBatteryLiveActivity()
+                              .allowsHitTesting(false)
+                              .frame(width: compactAccessoryBatteryWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
@@ -429,7 +469,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .accessoryBattery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -480,6 +520,8 @@ struct ContentView: View {
                             horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                             isHoveringMusicArea: $isHoveringMusicArea
                         )
+                    case .calendar:
+                        CalendarTabPageView()
                     case .shelf:
                         ShelfView()
                     case .widget(let id):
@@ -706,6 +748,48 @@ struct ContentView: View {
     }
 
     @ViewBuilder
+    func AccessoryBatteryLiveActivity() -> some View {
+        if let device = compactAccessoryBatteryPrimaryDevice {
+            HStack(spacing: 0) {
+                HStack(spacing: 6) {
+                    Image(systemName: device.symbolName)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(device.isCritical ? .red : .white.opacity(0.78))
+
+                    Text(device.name)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+                .frame(width: accessoryBatteryCompactNameWidth, height: displayClosedNotchHeight, alignment: .leading)
+
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+                HStack(spacing: 4) {
+                    if device.isCharging {
+                        Image(systemName: "bolt.fill")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.72))
+                    }
+
+                    Text(device.primaryDisplay)
+                        .font(.headline.weight(.bold))
+                        .monospacedDigit()
+                        .foregroundStyle(device.isCritical ? .red : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .frame(width: accessoryBatteryCompactValueWidth, height: displayClosedNotchHeight, alignment: .trailing)
+                .padding(.trailing, 4)
+            }
+            .frame(width: compactAccessoryBatteryWidth, height: displayClosedNotchHeight, alignment: .center)
+        }
+    }
+
+    @ViewBuilder
     var dragDetector: some View {
         if Defaults[.boringShelf] && vm.notchState == .closed {
             Color.clear
@@ -773,6 +857,8 @@ struct ContentView: View {
                     
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
                         self.vm.close()
+                        self.syncSystemMonitorSneakPeek()
+                        self.syncAccessoryBatterySneakPeek()
                     }
                 }
             }
@@ -781,7 +867,7 @@ struct ContentView: View {
 
     private var allowsHoverDuringSneakPeek: Bool {
         switch coordinator.sneakPeekState(for: vm.screenUUID).type {
-        case .timer, .systemMonitor, .colorPicker:
+        case .timer, .systemMonitor, .colorPicker, .accessoryBattery:
             return true
         default:
             return false
@@ -956,8 +1042,21 @@ struct ContentView: View {
         widgetEngine.widgets.first(where: { $0.id == "system-monitor" })
     }
 
+    private var compactAccessoryBatteryWidget: Widget? {
+        widgetEngine.widgets.first(where: { $0.id == "accessory-battery" })
+    }
+
+    private var compactAccessoryBatteryPrimaryDevice: AccessoryBatteryDeviceSnapshot? {
+        guard let widget = compactAccessoryBatteryWidget,
+              let snapshot = AccessoryBatterySnapshot(widgetValue: widget.lastValue) else {
+            return nil
+        }
+
+        return snapshot.primaryDevice(preferredID: Defaults[.accessoryBatteryPrimaryDeviceID])
+    }
+
     private func syncSystemMonitorSneakPeek() {
-        guard compactSystemMonitorWidget != nil, Defaults[.systemMonitorSneakPeekEnabled] else {
+        guard compactSystemMonitorWidget != nil, systemMonitorSneakPeekEnabled else {
             coordinator.toggleSneakPeek(status: false, type: .systemMonitor, targetScreenUUID: vm.screenUUID)
             return
         }
@@ -968,6 +1067,46 @@ struct ContentView: View {
             duration: 0,
             targetScreenUUID: vm.screenUUID
         )
+    }
+
+    private func syncAccessoryBatterySneakPeek() {
+        guard compactAccessoryBatteryPrimaryDevice != nil, accessoryBatterySneakPeekEnabled else {
+            coordinator.toggleSneakPeek(status: false, type: .accessoryBattery, targetScreenUUID: vm.screenUUID)
+            return
+        }
+
+        coordinator.toggleSneakPeek(
+            status: vm.notchState == .closed,
+            type: .accessoryBattery,
+            duration: 0,
+            targetScreenUUID: vm.screenUUID
+        )
+    }
+}
+
+private struct CalendarTabPageView: View {
+    @EnvironmentObject var vm: BoringViewModel
+
+    var body: some View {
+        GeometryReader { geometry in
+            HStack {
+                let expandedCalendarWidth = max(CGFloat(215), geometry.size.width - 24)
+
+                CalendarView(expandsToFill: true)
+                    .frame(width: expandedCalendarWidth, alignment: .topLeading)
+                    .frame(maxHeight: .infinity, alignment: .topLeading)
+                    .onHover { isHovering in
+                        vm.isHoveringCalendar = isHovering
+                    }
+                    .environmentObject(vm)
+
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding(.leading, 12)
+            .padding(.trailing, 12)
+            .padding(.top, 2)
+        }
     }
 }
 

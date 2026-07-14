@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest]
+        [colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest, accessoryBatteryManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -132,6 +132,45 @@ enum WidgetLibrary {
             ),
             onTap: nil,
             permissions: nil,
+            interactive: nil
+        )
+    }
+
+    private static var accessoryBatteryManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .data,
+            id: "accessory-battery",
+            name: "Accessory Battery",
+            author: "NodeScraper",
+            source: .init(
+                type: .framework,
+                run: nil,
+                url: nil,
+                method: nil,
+                headers: nil,
+                api: AccessoryBatteryProvider.api,
+                interval: 30,
+                timeout: nil,
+                cwd: nil,
+                env: nil
+            ),
+            extract: .init(
+                method: .jsonPath,
+                pattern: nil,
+                path: "$",
+                table: nil
+            ),
+            render: .init(
+                template: .text,
+                slots: [
+                    "icon": .string("airpodspro"),
+                    "label": .string("Accessory Battery"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["bluetooth"],
             interactive: nil
         )
     }

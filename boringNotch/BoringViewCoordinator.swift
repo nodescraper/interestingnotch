@@ -18,6 +18,7 @@ enum SneakContentType {
     case colorPicker
     case timer
     case systemMonitor
+    case accessoryBattery
     case mic
     case battery
     case download

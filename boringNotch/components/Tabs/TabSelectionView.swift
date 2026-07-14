@@ -38,26 +38,31 @@ struct TabSelectionView: View {
     @ObservedObject var widgetEngine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) var pinnedWidgetIDs
     @Default(.boringShelf) var boringShelf
+    @Default(.showCalendar) var showCalendar
+    @Default(.showCalendarAsSeparateTab) var showCalendarAsSeparateTab
     @State private var widgetPageIndex = 0
     @Namespace var animation
 
-    private let visibleWidgetSlots = 4
     private let maxWidgetTabsBeforePaging = 3
 
-    private var baseTabs: [TabModel] {
-        var baseTabs = [
+    private var primaryTabs: [TabModel] {
+        [
             TabModel(label: "Home", icon: "house.fill", view: .home),
         ]
-
-        if boringShelf {
-            baseTabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
-        }
-
-        return baseTabs
     }
 
-    private var widgetTabs: [TabModel] {
-        WidgetTabResolver
+    private var secondaryTabs: [TabModel] {
+        var tabs: [TabModel] = []
+
+        if boringShelf {
+            tabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+        }
+
+        if showCalendar && showCalendarAsSeparateTab {
+            tabs.append(TabModel(label: "Calendar", icon: "calendar", view: .calendar))
+        }
+
+        let widgetTabs = WidgetTabResolver
             .descriptors(
                 pinnedWidgetIDs: pinnedWidgetIDs,
                 availableWidgets: WidgetTabResolver.sources(from: widgetEngine.widgets)
@@ -65,6 +70,9 @@ struct TabSelectionView: View {
             .map { descriptor in
                 TabModel(label: descriptor.title, icon: descriptor.icon, view: descriptor.view)
             }
+
+        tabs.append(contentsOf: widgetTabs)
+        return tabs
     }
 
     private var widgetPageCount: Int {
@@ -76,16 +84,16 @@ struct TabSelectionView: View {
     }
 
     private var widgetPageStartIndices: [Int] {
-        guard !widgetTabs.isEmpty else { return [0] }
-        guard widgetTabs.count > maxWidgetTabsBeforePaging else { return [0] }
+        guard !secondaryTabs.isEmpty else { return [0] }
+        guard secondaryTabs.count > maxWidgetTabsBeforePaging else { return [0] }
 
         var starts = [0]
         var currentIndex = 3
 
-        while currentIndex < widgetTabs.count {
+        while currentIndex < secondaryTabs.count {
             starts.append(currentIndex)
 
-            let remainingAfterThisPage = widgetTabs.count - currentIndex
+            let remainingAfterThisPage = secondaryTabs.count - currentIndex
             currentIndex += remainingAfterThisPage > 3 ? 2 : 3
         }
 
@@ -93,9 +101,9 @@ struct TabSelectionView: View {
     }
 
     private var visibleWidgetItems: [WidgetTabStripItem] {
-        guard !widgetTabs.isEmpty else { return [] }
-        guard widgetTabs.count > maxWidgetTabsBeforePaging else {
-            return widgetTabs.map(WidgetTabStripItem.tab)
+        guard !secondaryTabs.isEmpty else { return [] }
+        guard secondaryTabs.count > maxWidgetTabsBeforePaging else {
+            return secondaryTabs.map(WidgetTabStripItem.tab)
         }
 
         let pageIndex = normalizedWidgetPageIndex
@@ -103,7 +111,7 @@ struct TabSelectionView: View {
         let isLastPage = pageIndex == widgetPageCount - 1
         let startIndex = widgetPageStartIndices[pageIndex]
         let visibleCount = isFirstPage || isLastPage ? 3 : 2
-        let endIndex = min(startIndex + visibleCount, widgetTabs.count)
+        let endIndex = min(startIndex + visibleCount, secondaryTabs.count)
 
         var items: [WidgetTabStripItem] = []
 
@@ -111,7 +119,7 @@ struct TabSelectionView: View {
             items.append(.previousPage)
         }
 
-        items.append(contentsOf: widgetTabs[startIndex..<endIndex].map(WidgetTabStripItem.tab))
+        items.append(contentsOf: secondaryTabs[startIndex..<endIndex].map(WidgetTabStripItem.tab))
 
         if !isLastPage {
             items.append(.nextPage)
@@ -121,7 +129,7 @@ struct TabSelectionView: View {
     }
 
     private var tabs: [WidgetTabStripItem] {
-        baseTabs.map(WidgetTabStripItem.tab) + visibleWidgetItems
+        primaryTabs.map(WidgetTabStripItem.tab) + visibleWidgetItems
     }
 
     var body: some View {
@@ -183,11 +191,10 @@ struct TabSelectionView: View {
     }
 
     private func syncWidgetPageToSelection() {
-        guard case .widget(let id) = coordinator.currentView else { return }
-        guard let index = widgetTabs.firstIndex(where: { $0.id == id }) else { return }
-        guard widgetTabs.count > maxWidgetTabsBeforePaging else { return }
+        guard let selectedTabIndex = secondaryTabs.firstIndex(where: { $0.view == coordinator.currentView }) else { return }
+        guard secondaryTabs.count > maxWidgetTabsBeforePaging else { return }
 
-        let resolvedPage = widgetPageStartIndices.lastIndex(where: { $0 <= index }) ?? 0
+        let resolvedPage = widgetPageStartIndices.lastIndex(where: { $0 <= selectedTabIndex }) ?? 0
         widgetPageIndex = min(resolvedPage, max(0, widgetPageCount - 1))
     }
 }

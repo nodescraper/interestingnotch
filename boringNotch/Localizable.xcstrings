@@ -855,6 +855,12 @@
         }
       }
     },
+    "Accessory battery unavailable" : {
+
+    },
+    "Active widgets appear next to Home and Shelf in the notch." : {
+
+    },
     "Add" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2626,6 +2632,12 @@
         }
       }
     },
+    "Available Widgets" : {
+
+    },
+    "Available widgets are loaded from Application Support. Pin one here to make it appear as a notch tab." : {
+
+    },
     "Backlight" : {
       "localizations" : {
         "de" : {
@@ -3163,6 +3175,7 @@
       }
     },
     "Boring Notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -3258,6 +3271,7 @@
     },
     "Boring Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
       "comment" : "A description of the software update permission.",
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -3298,6 +3312,7 @@
       }
     },
     "boring.notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -3390,6 +3405,15 @@
           }
         }
       }
+    },
+    "BoringNotch SE" : {
+
+    },
+    "BoringNotch SE by NodeScraper" : {
+
+    },
+    "BoringNotch SE can check for updates in the background. You can still check manually from the menu bar at any time." : {
+
     },
     "Brightness" : {
       "localizations" : {
@@ -3524,6 +3548,12 @@
           }
         }
       }
+    },
+    "Browse" : {
+
+    },
+    "Built-in Widgets" : {
+
     },
     "Calendar" : {
       "localizations" : {
@@ -4111,6 +4141,7 @@
       }
     },
     "Changing the app language requires restarting Boring Notch." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4149,6 +4180,9 @@
           }
         }
       }
+    },
+    "Changing the app language requires restarting BoringNotch SE." : {
+
     },
     "Charging" : {
       "localizations" : {
@@ -4944,6 +4978,12 @@
         }
       }
     },
+    "Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics." : {
+
+    },
+    "Choose one or more displays. When no display is selected, the preferred display is used." : {
+
+    },
     "Choose which service to use when sharing files from the shelf. Click the shelf button to select files, or drag files onto it to share immediately." : {
       "localizations" : {
         "de" : {
@@ -5055,6 +5095,9 @@
           }
         }
       }
+    },
+    "Choose Your Widgets" : {
+
     },
     "Circle" : {
       "localizations" : {
@@ -5173,6 +5216,9 @@
           }
         }
       }
+    },
+    "Clear saved history" : {
+
     },
     "Clear slot" : {
       "localizations" : {
@@ -5977,6 +6023,12 @@
         }
       }
     },
+    "Connect AirPods, a Magic accessory, or another reporting Bluetooth device to see it here." : {
+
+    },
+    "Connected" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "cs" : {
@@ -6147,6 +6199,12 @@
         }
       }
     },
+    "Copied colors and eyedropper picks show up here." : {
+
+    },
+    "Copy color" : {
+
+    },
     "Copy items on drag" : {
       "localizations" : {
         "de" : {
@@ -6252,6 +6310,9 @@
           }
         }
       }
+    },
+    "Copy something to start a history." : {
+
     },
     "Currently selected: %@" : {
       "localizations" : {
@@ -7411,6 +7472,9 @@
           }
         }
       }
+    },
+    "Displays" : {
+
     },
     "Download" : {
       "localizations" : {
@@ -11741,6 +11805,9 @@
         }
       }
     },
+    "Installed" : {
+
+    },
     "Installed extensions" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11902,6 +11969,7 @@
     },
     "Keep Boring Notch Updated" : {
       "comment" : "A title for a view that allows users to configure Boring Notch's update preferences.",
+      "extractionState" : "stale",
       "localizations" : {
         "fr" : {
           "stringUnit" : {
@@ -11928,6 +11996,12 @@
           }
         }
       }
+    },
+    "Keep BoringNotch SE Updated" : {
+
+    },
+    "Keep item" : {
+
     },
     "Keep newer shelf items in front" : {
       "comment" : "A toggle that allows users to reverse the order of shelf items."
@@ -12258,6 +12332,21 @@
         }
       }
     },
+    "Left side" : {
+
+    },
+    "Load %@" : {
+
+    },
+    "Loading accessory batteries…" : {
+
+    },
+    "Loading available widgets..." : {
+
+    },
+    "Looking for connected Bluetooth devices that report battery levels." : {
+
+    },
     "Low" : {
       "localizations" : {
         "cs" : {
@@ -12483,6 +12572,7 @@
       }
     },
     "Made with 🫶🏻 by not so boring not.people" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -14932,6 +15022,12 @@
         }
       }
     },
+    "No accessories with battery info" : {
+
+    },
+    "no battery info" : {
+
+    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -15262,6 +15358,12 @@
           }
         }
       }
+    },
+    "No widgets are pinned right now." : {
+
+    },
+    "No widgets installed yet." : {
+
     },
     "Normalize gesture direction" : {
       "localizations" : {
@@ -16154,6 +16256,9 @@
           }
         }
       }
+    },
+    "Open clipboard shortcut" : {
+
     },
     "Open Notch" : {
       "extractionState" : "stale",
@@ -17093,6 +17198,12 @@
         }
       }
     },
+    "Pause" : {
+
+    },
+    "Pick a color" : {
+
+    },
     "Pick a Color" : {
       "localizations" : {
         "de" : {
@@ -17198,6 +17309,21 @@
           }
         }
       }
+    },
+    "Pick color shortcut" : {
+
+    },
+    "Pick which reporting accessory shows in the closed-notch sneak peek. Automatic prefers AirPods when available." : {
+
+    },
+    "Pin" : {
+
+    },
+    "Pin a widget from Browse to make it appear in the notch and configure it here." : {
+
+    },
+    "Pinned widget page" : {
+
     },
     "Player tinting" : {
       "localizations" : {
@@ -17462,6 +17588,9 @@
           }
         }
       }
+    },
+    "Primary device" : {
+
     },
     "Progress bar style" : {
       "extractionState" : "stale",
@@ -18003,6 +18132,9 @@
           }
         }
       }
+    },
+    "Recent" : {
+
     },
     "Release name" : {
       "localizations" : {
@@ -18733,6 +18865,9 @@
         }
       }
     },
+    "Reset" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "de" : {
@@ -18953,6 +19088,7 @@
       }
     },
     "Restart Boring Notch" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -19064,6 +19200,9 @@
         }
       }
     },
+    "Restart BoringNotch SE" : {
+
+    },
     "Restart Now" : {
       "localizations" : {
         "en" : {
@@ -19137,6 +19276,19 @@
           }
         }
       }
+    },
+    "rgb(%lld, %lld, %lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "rgb(%1$lld, %2$lld, %3$lld)"
+          }
+        }
+      }
+    },
+    "Right side" : {
+
     },
     "Running" : {
       "extractionState" : "stale",
@@ -19420,6 +19572,9 @@
           }
         }
       }
+    },
+    "Select the widgets you want to appear as tabs in your notch. You can change this later in the Workshop." : {
+
     },
     "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {
       "localizations" : {
@@ -21945,6 +22100,9 @@
         }
       }
     },
+    "Show pin button in notch" : {
+
+    },
     "Show power status icons" : {
       "localizations" : {
         "cs" : {
@@ -22426,6 +22584,9 @@
           }
         }
       }
+    },
+    "Show sneak peek when closed" : {
+
     },
     "Slider color" : {
       "localizations" : {
@@ -23341,6 +23502,12 @@
         }
       }
     },
+    "Start" : {
+
+    },
+    "Status: %@" : {
+
+    },
     "Stopped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -23707,6 +23874,29 @@
         }
       }
     },
+    "System Setting" : {
+      "comment" : "Week starts on: follow the macOS system setting",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Setting"
+          }
+        }
+      }
+    },
+    "Tap to copy image" : {
+
+    },
+    "Text, links, and images appear here. Concealed clipboard items are skipped automatically." : {
+
+    },
+    "This placeholder confirms dynamic notch-tab navigation is wired. The real full-page widget UI lands in the next tickets." : {
+
+    },
+    "This widget does not expose installed options yet." : {
+
+    },
     "Time to Full Charge: %@" : {
       "localizations" : {
         "en" : {
@@ -23833,6 +24023,9 @@
           }
         }
       }
+    },
+    "Timer" : {
+
     },
     "Tint progress bar with accent color" : {
       "extractionState" : "stale",
@@ -24584,6 +24777,12 @@
         }
       }
     },
+    "Unpin" : {
+
+    },
+    "Unpin item" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "cs" : {
@@ -24695,6 +24894,9 @@
           }
         }
       }
+    },
+    "Uptime %@" : {
+
     },
     "Use accent color" : {
       "localizations" : {
@@ -24835,6 +25037,12 @@
           }
         }
       }
+    },
+    "Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them." : {
+
+    },
+    "Use the shortcut to open the system eyedropper and store the picked color in this widget’s recent history." : {
+
     },
     "Use your macOS system accent color" : {
       "localizations" : {
@@ -25585,17 +25793,6 @@
         }
       }
     },
-    "System Setting" : {
-      "comment" : "Week starts on: follow the macOS system setting (shown with the resolved day in parentheses)",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Setting"
-          }
-        }
-      }
-    },
     "Weekly view" : {
       "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
       "localizations" : {
@@ -25718,6 +25915,15 @@
           }
         }
       }
+    },
+    "Widget Library" : {
+
+    },
+    "Widget unavailable" : {
+
+    },
+    "Widget-specific settings will appear here as more widgets declare them." : {
+
     },
     "Window Appearance" : {
       "localizations" : {
@@ -25930,6 +26136,9 @@
           }
         }
       }
+    },
+    "Workshop" : {
+
     },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
       "localizations" : {

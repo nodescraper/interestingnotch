@@ -11,11 +11,14 @@ struct ColorPickerWidgetPageView: View {
     let widget: Widget
 
     @ObservedObject var model: ColorPickerWidgetModel
+    private let swatchBlockSize: CGFloat = 100
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .bottom, spacing: 22) {
             swatchView
-                .padding(.all, 5)
+                .frame(width: swatchBlockSize, height: swatchBlockSize)
+                .padding(.leading, 15)
+                .padding(.bottom, 20)
             detailsColumn
             Spacer(minLength: 0)
         }
@@ -24,6 +27,8 @@ struct ColorPickerWidgetPageView: View {
 
     private var swatchView: some View {
         ZStack(alignment: .bottomTrailing) {
+            swatchGlow
+
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(model.color.swiftUIColor)
 
@@ -43,7 +48,16 @@ struct ColorPickerWidgetPageView: View {
             .help("Pick a color")
         }
         .aspectRatio(1, contentMode: .fit)
-        .frame(maxWidth: 144)
+        .frame(width: swatchBlockSize, height: swatchBlockSize)
+    }
+
+    private var swatchGlow: some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(model.color.swiftUIColor)
+            .scaleEffect(x: 1.18, y: 1.24)
+            .rotationEffect(.degrees(92))
+            .blur(radius: 28)
+            .opacity(0.28)
     }
 
     private var detailsColumn: some View {
