@@ -25,6 +25,7 @@ Carthage/Build/
 
 # Derived data
 DerivedData/
+.derivedData/
 
 # Build output
 build/
@@ -52,4 +53,3 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
-

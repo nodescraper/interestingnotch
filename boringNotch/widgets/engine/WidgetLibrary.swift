@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest, accessoryBatteryManifest]
+        [calendarManifest, colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest, accessoryBatteryManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -48,6 +48,29 @@ enum WidgetLibrary {
             onTap: nil,
             permissions: ["screen-color-pick", "clipboard"],
             interactive: .init(type: .colorPicker)
+        )
+    }
+
+    private static var calendarManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "calendar",
+            name: "Calendar",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("calendar"),
+                    "label": .string("Full calendar"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["calendar", "reminders"],
+            interactive: .init(type: .calendar)
         )
     }
 

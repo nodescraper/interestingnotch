@@ -37,6 +37,7 @@ struct ContentView: View {
 
     @Namespace var albumArtNamespace
     @Namespace private var widgetNamespace
+    private let timerWidgetOrange = Color(red: 0.96, green: 0.58, blue: 0.24)
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.systemMonitorSneakPeekEnabled) private var systemMonitorSneakPeekEnabled
@@ -96,20 +97,12 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if coordinator.expandingView.type == .colorPicker && coordinator.expandingView.show
+        } else if compactTimerLiveModel != nil
             && vm.notchState == .closed
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
         {
-            chinWidth = compactColorPickerWidth
-        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID)
-            && coordinator.sneakPeekState(for: vm.screenUUID).type == .systemMonitor
-            && vm.notchState == .closed
-        {
-            chinWidth = compactSystemMonitorWidth
-        } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID)
-            && coordinator.sneakPeekState(for: vm.screenUUID).type == .accessoryBattery
-            && vm.notchState == .closed
-        {
-            chinWidth = compactAccessoryBatteryWidth
+            chinWidth += nativeTimerCompactExtraWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -163,6 +156,28 @@ struct ContentView: View {
             + timerCompactTextWidth
     }
 
+    private var nativeTimerVisualSize: CGFloat {
+        max(0, displayClosedNotchHeight - 12)
+    }
+
+    private var compactTimerBadgeSize: CGFloat {
+        max(0, nativeTimerVisualSize - 4)
+    }
+
+    private var nativeTimerTimeWidth: CGFloat {
+        vm.hasNotch ? 58 : 54
+    }
+
+    private var nativeTimerCompactExtraWidth: CGFloat {
+        nativeTimerVisualSize + nativeTimerTimeWidth + 10
+    }
+
+    private var nativeTimerCompactWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + nativeTimerCompactExtraWidth
+    }
+
     private var systemMonitorCompactMetricWidth: CGFloat {
         vm.hasNotch ? 88 : 78
     }
@@ -186,6 +201,15 @@ struct ContentView: View {
             + (2 * liveActivityEdgeMargin)
             + accessoryBatteryCompactNameWidth
             + accessoryBatteryCompactValueWidth
+    }
+
+    private var tabSwitchTransition: AnyTransition {
+        .asymmetric(
+            insertion: .scale(scale: 0.8, anchor: .center)
+                .combined(with: .opacity),
+            removal: .scale(scale: 0.8, anchor: .center)
+                .combined(with: .opacity)
+        )
     }
 
     private var systemMonitorCompactMetricCount: CGFloat {
@@ -228,7 +252,7 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
@@ -427,19 +451,7 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .timer && vm.notchState == .closed {
-                          TimerLiveActivity(animationNamespace: widgetNamespace)
-                              .allowsHitTesting(false)
-                              .frame(width: compactTimerWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .systemMonitor && vm.notchState == .closed {
-                          SystemMonitorLiveActivity()
-                              .allowsHitTesting(false)
-                              .frame(width: compactSystemMonitorWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && coordinator.sneakPeekState(for: vm.screenUUID).type == .accessoryBattery && vm.notchState == .closed {
-                          AccessoryBatteryLiveActivity()
-                              .allowsHitTesting(false)
-                              .frame(width: compactAccessoryBatteryWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && vm.notchState == .closed {
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
                               value: coordinator.binding(for: vm.screenUUID).value,
@@ -449,10 +461,9 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if coordinator.expandingView.type == .colorPicker && coordinator.expandingView.show && vm.notchState == .closed {
-                          ColorPickerLiveActivity()
-                              .allowsHitTesting(false)
-                              .frame(width: compactColorPickerWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if compactTimerLiveModel != nil && vm.notchState == .closed && !vm.hideOnClosed && (!coordinator.expandingView.show || coordinator.expandingView.type == .music) {
+                          NativeTimerCompactActivity()
+                              .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -469,7 +480,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .accessoryBattery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -506,33 +517,38 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (vm.notchState == .closed))) { view in
+              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .accessoryBattery) && (vm.notchState == .closed))) { view in
                   view
                       .fixedSize()
               }
               .zIndex(1)
             if vm.notchState == .open {
-                VStack {
-                    switch coordinator.currentView {
-                    case .home:
+                ZStack {
+                    if coordinator.currentView == .home {
                         NotchHomeView(
                             albumArtNamespace: albumArtNamespace,
                             horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                             isHoveringMusicArea: $isHoveringMusicArea
                         )
-                    case .calendar:
+                        .transition(tabSwitchTransition)
+                    }
+
+                    if coordinator.currentView == .calendar {
                         CalendarTabPageView()
-                    case .shelf:
+                            .transition(tabSwitchTransition)
+                    }
+
+                    if coordinator.currentView == .shelf {
                         ShelfView()
-                    case .widget(let id):
+                            .transition(tabSwitchTransition)
+                    }
+
+                    if case .widget(let id) = coordinator.currentView {
                         WidgetTabPageView(widgetID: id, animationNamespace: widgetNamespace)
+                            .transition(tabSwitchTransition)
                     }
                 }
-                .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
-                )
+                .animation(.smooth(duration: 0.35), value: coordinator.currentView)
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
@@ -660,6 +676,34 @@ struct ContentView: View {
             height: displayClosedNotchHeight,
             alignment: .center
         )
+    }
+
+    @ViewBuilder
+    func NativeTimerCompactActivity() -> some View {
+        if let model = compactTimerLiveModel {
+            TimelineView(.animation(minimumInterval: 0.2)) { _ in
+                HStack(spacing: 0) {
+                    compactTimerLeadingVisual(for: model)
+
+                    Rectangle()
+                        .fill(.black)
+                        .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(compactTimerPrimaryText(for: model))
+                            .font(.headline.weight(.bold))
+                            .monospacedDigit()
+                            .foregroundStyle(compactTimerAccentColor(for: model))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .frame(width: nativeTimerTimeWidth, height: displayClosedNotchHeight, alignment: .trailing)
+                    .padding(.trailing, 4)
+                }
+                .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        }
     }
 
     @ViewBuilder
@@ -867,7 +911,7 @@ struct ContentView: View {
 
     private var allowsHoverDuringSneakPeek: Bool {
         switch coordinator.sneakPeekState(for: vm.screenUUID).type {
-        case .timer, .systemMonitor, .colorPicker, .accessoryBattery:
+        case .colorPicker:
             return true
         default:
             return false
@@ -1038,6 +1082,97 @@ struct ContentView: View {
         return model
     }
 
+    private var compactTimerLiveModel: TimerWidgetModel? {
+        guard let model = compactTimerModel else { return nil }
+
+        guard model.mode == .timer else { return nil }
+
+        switch model.countdownState.phase {
+        case .running, .paused, .finished:
+            return model
+        case .idle:
+            return nil
+        }
+    }
+
+    private var showsCompactMusicArtwork: Bool {
+        coordinator.musicLiveActivityEnabled
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && !vm.hideOnClosed
+    }
+
+    private func compactTimerLeadingVisual(for model: TimerWidgetModel) -> some View {
+        Group {
+            if showsCompactMusicArtwork {
+                compactClosedAlbumArt
+            } else {
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.16), lineWidth: 2)
+
+                    Circle()
+                        .trim(from: 0, to: compactTimerRingProgress(for: model))
+                        .stroke(
+                            compactTimerAccentColor(for: model),
+                            style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                }
+                .frame(width: compactTimerBadgeSize, height: compactTimerBadgeSize)
+            }
+        }
+        .frame(width: nativeTimerVisualSize + 6, height: displayClosedNotchHeight, alignment: .leading)
+        .padding(.leading, 4)
+    }
+
+    private var compactClosedAlbumArt: some View {
+        let baseArtSize = displayClosedNotchHeight - 12
+        let scaledArtSize: CGFloat = {
+            if let scale = cornerRadiusScaleFactor {
+                return displayClosedNotchHeight - 12 * scale
+            }
+            return baseArtSize
+        }()
+
+        let closedCornerRadius: CGFloat = {
+            let base = MusicPlayerImageSizes.cornerRadiusInset.closed
+            if let scale = cornerRadiusScaleFactor {
+                return max(0, base * scale)
+            }
+            return base
+        }()
+
+        return Image(nsImage: musicManager.albumArt)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .clipShape(
+                RoundedRectangle(
+                    cornerRadius: closedCornerRadius)
+            )
+            .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            .frame(
+                width: scaledArtSize,
+                height: scaledArtSize
+            )
+    }
+
+    private func compactTimerRingProgress(for model: TimerWidgetModel) -> CGFloat {
+        let progress = max(0.02, 1 - model.countdownState.progress)
+        return CGFloat(min(max(progress, 0.02), 1))
+    }
+
+    private func compactTimerIconName(for model: TimerWidgetModel) -> String {
+        model.countdownState.phase == .finished ? "bell.fill" : "timer"
+    }
+
+    private func compactTimerPrimaryText(for model: TimerWidgetModel) -> String {
+        return model.displayTime
+    }
+
+    private func compactTimerAccentColor(for model: TimerWidgetModel) -> Color {
+        timerWidgetOrange
+    }
+
     private var compactSystemMonitorWidget: Widget? {
         widgetEngine.widgets.first(where: { $0.id == "system-monitor" })
     }
@@ -1056,13 +1191,8 @@ struct ContentView: View {
     }
 
     private func syncSystemMonitorSneakPeek() {
-        guard compactSystemMonitorWidget != nil, systemMonitorSneakPeekEnabled else {
-            coordinator.toggleSneakPeek(status: false, type: .systemMonitor, targetScreenUUID: vm.screenUUID)
-            return
-        }
-
         coordinator.toggleSneakPeek(
-            status: vm.notchState == .closed,
+            status: false,
             type: .systemMonitor,
             duration: 0,
             targetScreenUUID: vm.screenUUID
@@ -1070,13 +1200,8 @@ struct ContentView: View {
     }
 
     private func syncAccessoryBatterySneakPeek() {
-        guard compactAccessoryBatteryPrimaryDevice != nil, accessoryBatterySneakPeekEnabled else {
-            coordinator.toggleSneakPeek(status: false, type: .accessoryBattery, targetScreenUUID: vm.screenUUID)
-            return
-        }
-
         coordinator.toggleSneakPeek(
-            status: vm.notchState == .closed,
+            status: false,
             type: .accessoryBattery,
             duration: 0,
             targetScreenUUID: vm.screenUUID
@@ -1092,9 +1217,8 @@ private struct CalendarTabPageView: View {
             HStack {
                 let expandedCalendarWidth = max(CGFloat(215), geometry.size.width - 24)
 
-                CalendarView(expandsToFill: true)
+                FullTabCalendarView()
                     .frame(width: expandedCalendarWidth, alignment: .topLeading)
-                    .frame(maxHeight: .infinity, alignment: .topLeading)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
@@ -1102,7 +1226,7 @@ private struct CalendarTabPageView: View {
 
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(.leading, 12)
             .padding(.trailing, 12)
             .padding(.top, 2)

@@ -25,6 +25,12 @@ enum TimerWidgetPhase: String, Equatable, Sendable {
     case finished
 }
 
+/// Which mode the widget is showing.
+enum TimerWidgetMode: String, Equatable, Sendable {
+    case timer
+    case stopwatch
+}
+
 struct TimerPreset: Equatable, Hashable, Identifiable, Sendable {
     let minutes: Int
 
@@ -117,6 +123,43 @@ struct TimerCountdownState: Equatable, Sendable {
     }
 }
 
+/// Minimal count-up state for the stopwatch mode.
+struct StopwatchState: Equatable, Sendable {
+    var elapsed: TimeInterval
+    var phase: TimerWidgetPhase          // reuses idle/running/paused
+    var startedAt: Date?
+
+    init(elapsed: TimeInterval = 0, phase: TimerWidgetPhase = .idle, startedAt: Date? = nil) {
+        self.elapsed = max(0, elapsed)
+        self.phase = phase
+        self.startedAt = startedAt
+    }
+
+    mutating func start(now: Date) {
+        guard phase != .running else { return }
+        phase = .running
+        startedAt = now.addingTimeInterval(-elapsed)
+    }
+
+    mutating func pause(now: Date) {
+        guard phase == .running else { return }
+        tick(now: now)
+        phase = .paused
+        startedAt = nil
+    }
+
+    mutating func reset() {
+        elapsed = 0
+        phase = .idle
+        startedAt = nil
+    }
+
+    mutating func tick(now: Date) {
+        guard phase == .running, let startedAt else { return }
+        elapsed = max(0, now.timeIntervalSince(startedAt))
+    }
+}
+
 @MainActor
 protocol TimerSneakPeekControlling {
     func showTimer(progress: CGFloat, duration: TimeInterval)
@@ -151,6 +194,8 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     let widgetID: String
 
     @Published private(set) var countdownState: TimerCountdownState
+    @Published private(set) var stopwatchState: StopwatchState = StopwatchState()
+    @Published private(set) var mode: TimerWidgetMode = .timer
 
     private let now: @Sendable () -> Date
     private let sneakPeekController: any TimerSneakPeekControlling
@@ -179,17 +224,29 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         Self.presets.first { Int($0.duration) == Int(countdownState.duration) }
     }
 
+    /// Duration in whole minutes — used by the scrolling ruler.
+    var durationMinutes: Int {
+        max(0, Int((countdownState.duration / 60).rounded()))
+    }
+
     var displayTime: String {
-        let totalSeconds = max(0, Int(countdownState.remaining.rounded(.up)))
+        let totalSeconds: Int
+        switch mode {
+        case .timer:
+            totalSeconds = max(0, Int(countdownState.remaining.rounded(.up)))
+        case .stopwatch:
+            totalSeconds = max(0, Int(stopwatchState.elapsed.rounded(.down)))
+        }
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
     var phaseTitle: String {
-        switch countdownState.phase {
+        let phase = mode == .timer ? countdownState.phase : stopwatchState.phase
+        switch phase {
         case .idle:
-            return "Ready"
+            return mode == .timer ? "Ready" : "Stopwatch"
         case .running:
             return "Running"
         case .paused:
@@ -200,7 +257,23 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     }
 
     var accessibilitySummary: String {
-        "\(phaseTitle), \(displayTime) remaining"
+        mode == .timer
+            ? "\(phaseTitle), \(displayTime) remaining"
+            : "\(phaseTitle), \(displayTime) elapsed"
+    }
+
+    /// True when the active mode is currently counting.
+    var isRunning: Bool {
+        mode == .timer
+            ? countdownState.phase == .running
+            : stopwatchState.phase == .running
+    }
+
+    func setMode(_ newMode: TimerWidgetMode) {
+        guard newMode != mode else { return }
+        mode = newMode
+        syncTicker()
+        publishSneakPeek()
     }
 
     func selectPreset(_ preset: TimerPreset) {
@@ -209,12 +282,29 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         publishSneakPeek()
     }
 
+    func setDuration(minutes: Int) {
+        let duration = TimeInterval(max(1, minutes) * 60)
+        countdownState = TimerCountdownState(duration: duration)
+        syncTicker()
+        publishSneakPeek()
+    }
+
     func toggleStartPause() {
-        switch countdownState.phase {
-        case .idle, .paused, .finished:
-            countdownState.start(now: now())
-        case .running:
-            countdownState.pause(now: now())
+        switch mode {
+        case .timer:
+            switch countdownState.phase {
+            case .idle, .paused, .finished:
+                countdownState.start(now: now())
+            case .running:
+                countdownState.pause(now: now())
+            }
+        case .stopwatch:
+            switch stopwatchState.phase {
+            case .running:
+                stopwatchState.pause(now: now())
+            default:
+                stopwatchState.start(now: now())
+            }
         }
 
         syncTicker()
@@ -222,21 +312,31 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     }
 
     func reset() {
-        countdownState.reset()
+        switch mode {
+        case .timer:
+            countdownState.reset()
+        case .stopwatch:
+            stopwatchState.reset()
+        }
         syncTicker()
         publishSneakPeek()
     }
 
     func refresh() {
-        let previousPhase = countdownState.phase
-        countdownState.tick(now: now())
+        switch mode {
+        case .timer:
+            let previousPhase = countdownState.phase
+            countdownState.tick(now: now())
 
-        if previousPhase != .finished && countdownState.phase == .finished {
-            tickerTask?.cancel()
-            tickerTask = nil
-            publishCompletionSneakPeek()
-        } else {
-            publishSneakPeek()
+            if previousPhase != .finished && countdownState.phase == .finished {
+                tickerTask?.cancel()
+                tickerTask = nil
+                publishCompletionSneakPeek()
+            } else {
+                publishSneakPeek()
+            }
+        case .stopwatch:
+            stopwatchState.tick(now: now())
         }
     }
 
@@ -244,7 +344,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         tickerTask?.cancel()
         tickerTask = nil
 
-        guard countdownState.phase == .running else { return }
+        guard isRunning else { return }
 
         tickerTask = Task { [weak self] in
             guard let self else { return }
@@ -260,6 +360,10 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     }
 
     private func publishSneakPeek() {
+        guard mode == .timer else {
+            sneakPeekController.hideTimer()
+            return
+        }
         switch countdownState.phase {
         case .running, .paused:
             sneakPeekController.showTimer(

@@ -122,6 +122,7 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         let type: Kind
 
         enum Kind: String, Codable, Sendable {
+            case calendar
             case colorPicker = "color-picker"
             case timer
             case clipboardHistory = "clipboard-history"

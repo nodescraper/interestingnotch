@@ -251,7 +251,6 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let enabledDisplayUUIDs = Key<[String]>("enabledDisplayUUIDs", default: [])
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
-    static let showCalendarAsSeparateTab = Key<Bool>("showCalendarAsSeparateTab", default: false)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
@@ -372,8 +371,6 @@ extension Defaults.Keys {
     static let hideAllDayEvents = Key<Bool>("hideAllDayEvents", default: false)
     static let showFullEventTitles = Key<Bool>("showFullEventTitles", default: false)
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
-    static let calendarWeekView = Key<Bool>("calendarWeekView", default: false)
-    static let weekStartDay = Key<WeekStartDay>("weekStartDay", default: .system)
     
     // MARK: Fullscreen Media Detection
     static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)

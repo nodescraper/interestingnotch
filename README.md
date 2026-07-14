@@ -42,6 +42,20 @@ Release downloads are published on the [BoringNotch SE releases page](https://gi
 
 ---
 
+## Release 0.1
+
+The first BoringNotch SE release packages the widget-platform foundation and the current notch UI work:
+
+- widget library, manifests, pinning, and Workshop browsing
+- Timer, Clipboard History, System Monitor, Accessory Battery, Color Picker, and Calendar widgets
+- full-tab calendar experience with calendar data/model support
+- improved tab transitions and compact timer/music notch states
+- refined notch, shelf, onboarding, settings, and widget-page behavior
+
+This release is focused on establishing the SE architecture and making the expanded widget workflow usable as a daily desktop surface.
+
+---
+
 ## What This Fork Adds
 
 This is not just a rename or packaging fork. The SE branch adds substantial product and engineering work on top of upstream, including:

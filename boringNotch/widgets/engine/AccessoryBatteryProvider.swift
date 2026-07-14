@@ -429,52 +429,114 @@ protocol AccessoryBatteryDeviceSourcing: Sendable {
 }
 
 struct SystemAccessoryBatteryDeviceSource: AccessoryBatteryDeviceSourcing {
+    /// Reads battery via `ioreg -a -r -k BatteryPercent` (plist output). This is
+    /// the reliable public path for Apple/HID Bluetooth devices (Magic Mouse,
+    /// Magic Keyboard, Magic Trackpad, AirPods) while they are connected. Generic
+    /// third-party Bluetooth devices do not publish battery to any App-accessible
+    /// API, so they cannot appear here.
     func pairedDevices() -> [AccessoryBatteryReading] {
-        ((IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []).map { device in
-            AccessoryBatteryReading(
-                id: device.addressString,
-                name: device.nameOrAddress ?? device.addressString,
-                classOfDevice: device.classOfDevice,
-                isConnected: device.isConnected(),
-                isCharging: Self.boolValue(forAnyOf: [
-                    "isCharging",
-                    "batteryIsCharging",
-                    "leftCharging",
-                    "rightCharging",
-                    "caseCharging",
-                ], on: device),
-                supportsMultiBattery: Self.boolValue(for: "isMultiBatteryDevice", on: device),
-                singlePercent: Self.integerValue(for: "batteryPercentSingle", on: device),
-                combinedPercent: Self.integerValue(for: "batteryPercentCombined", on: device),
-                leftPercent: Self.integerValue(for: "batteryPercentLeft", on: device),
-                rightPercent: Self.integerValue(for: "batteryPercentRight", on: device),
-                casePercent: Self.integerValue(for: "batteryPercentCase", on: device),
-                headsetLevel: Self.integerValue(for: "headsetBattery", on: device)
+        guard let plist = runIOReg() else { return [] }
+        return Self.parse(plist: plist)
+    }
+
+    // MARK: - Run ioreg
+
+    private func runIOReg() -> Data? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/ioreg")
+        // -a = archive (plist), -r = rooted at matching, -k = only nodes with key,
+        // -l = include properties. Match any node exposing BatteryPercent.
+        process.arguments = ["-a", "-r", "-l", "-k", "BatteryPercent"]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+
+        do { try process.run() } catch { return nil }
+
+        let watchdog = DispatchWorkItem {
+            if process.isRunning { process.terminate() }
+        }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 6, execute: watchdog)
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        watchdog.cancel()
+
+        return data.isEmpty ? nil : data
+    }
+
+    // MARK: - Parse
+
+    /// `ioreg -a` emits a plist whose root is an array of matched node dicts.
+    static func parse(plist: Data) -> [AccessoryBatteryReading] {
+        guard let root = try? PropertyListSerialization.propertyList(from: plist, format: nil) else {
+            return []
+        }
+
+        var nodes: [[String: Any]] = []
+        collectNodes(root, into: &nodes)
+
+        var seen = Set<String>()
+        return nodes.compactMap { node -> AccessoryBatteryReading? in
+            guard node["BatteryPercent"] != nil else { return nil }
+
+            let name = (node["Product"] as? String)
+                ?? (node["BatteryName"] as? String)
+                ?? "Bluetooth Device"
+            let address = (node["DeviceAddress"] as? String)
+                ?? (node["SerialNumber"] as? String)
+                ?? name
+            guard seen.insert(address).inserted else { return nil }
+
+            let main = intValue(node["BatteryPercent"])
+            let left = intValue(node["BatteryPercentLeft"])
+            let right = intValue(node["BatteryPercentRight"])
+            let casePercent = intValue(node["BatteryPercentCase"])
+
+            return AccessoryBatteryReading(
+                id: address,
+                name: name,
+                classOfDevice: 0,   // deviceKind() falls back to name heuristics
+                isConnected: true,  // ioreg only lists active/connected HID nodes
+                isCharging: isCharging(node),
+                supportsMultiBattery: left != nil || right != nil || casePercent != nil,
+                singlePercent: (left == nil && right == nil && casePercent == nil) ? main : nil,
+                combinedPercent: nil,
+                leftPercent: left,
+                rightPercent: right,
+                casePercent: casePercent,
+                headsetLevel: nil
             )
         }
     }
 
-    private static func integerValue(for key: String, on device: IOBluetoothDevice) -> Int? {
-        guard device.responds(to: Selector(key)),
-              let number = device.value(forKey: key) as? NSNumber else {
-            return nil
+    /// Walk the plist tree; ioreg nests children under "IORegistryEntryChildren".
+    private static func collectNodes(_ object: Any, into nodes: inout [[String: Any]]) {
+        if let dict = object as? [String: Any] {
+            nodes.append(dict)
+            if let children = dict["IORegistryEntryChildren"] as? [Any] {
+                for child in children { collectNodes(child, into: &nodes) }
+            }
+        } else if let array = object as? [Any] {
+            for element in array { collectNodes(element, into: &nodes) }
         }
-
-        return number.intValue
     }
 
-    private static func boolValue(for key: String, on device: IOBluetoothDevice) -> Bool {
-        guard device.responds(to: Selector(key)) else { return false }
+    private static func intValue(_ value: Any?) -> Int? {
+        if let i = value as? Int { return (0...100).contains(i) ? i : nil }
+        if let n = value as? NSNumber { let i = n.intValue; return (0...100).contains(i) ? i : nil }
+        if let s = value as? String { let d = s.filter(\.isNumber); if let i = Int(d), (0...100).contains(i) { return i } }
+        return nil
+    }
 
-        if let number = device.value(forKey: key) as? NSNumber {
-            return number.boolValue
+    private static func isCharging(_ node: [String: Any]) -> Bool {
+        for key in ["BatteryIsCharging", "AppleRawExternalConnected", "ExternalConnected"] {
+            if let b = node[key] as? Bool, b { return true }
+            if let n = node[key] as? NSNumber, n.boolValue { return true }
         }
-
+        if let t = node["Transport"] as? String, t == "USB" { return true }
         return false
-    }
-
-    private static func boolValue(forAnyOf keys: [String], on device: IOBluetoothDevice) -> Bool {
-        keys.contains { boolValue(for: $0, on: device) }
     }
 }
 

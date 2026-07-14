@@ -239,295 +239,26 @@ struct WheelPicker: View {
     }
 }
 
-/// Optional week-aligned strip: shows one week at a time, starting on the user's chosen
-/// first weekday. The wheel and the ‹ › chevrons page a whole week.
-struct WeekStripPicker: View {
-    @Binding var selectedDate: Date
-    @Default(.weekStartDay) private var weekStartDay
-    @State private var displayedWeekStart: Date = Date()
-    @State private var slideForward: Bool = true
-    @State private var haptics: Bool = false
-    @State private var scrollAccumulator: CGFloat = 0
-    @State private var isHovering: Bool = false
-    @State private var scrollMonitor: Any?
-    @Namespace private var selectionNamespace
-
-    private let scrollThreshold: CGFloat = 2.0
-
-    /// Calendar honoring the user's chosen first weekday.
-    private var calendar: Calendar {
-        var calendar = Calendar.current
-        calendar.firstWeekday = weekStartDay.firstWeekday
-        return calendar
-    }
-
-    /// The seven days of the currently displayed week. Decoupled from `selectedDate` so the
-    /// highlight can walk across a fixed week before the week itself shifts.
-    private var weekDays: [Date] {
-        (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: displayedWeekStart) }
-    }
-
-    var body: some View {
-        HStack(spacing: 2) {
-            chevron(systemName: "chevron.left", direction: -1)
-            weekRow
-                .frame(maxWidth: .infinity)
-                .clipped()
-            chevron(systemName: "chevron.right", direction: 1)
-        }
-        .frame(height: 50)
-        .clipped()  // keep the week-flip slide inside the calendar column (no bleed into music)
-        .padding(.horizontal, 2)
-        .sensoryFeedback(.alignment, trigger: haptics)
-        .onContinuousHover { phase in
-            switch phase {
-            case .active:
-                isHovering = true
-            case .ended:
-                isHovering = false
-            }
-        }
-        .onAppear {
-            displayedWeekStart = startOfWeek(for: selectedDate)
-            // Local monitor so the scroll wheel steps the selection while hovering the calendar.
-            if scrollMonitor == nil {
-                scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-                    guard isHovering else { return event }
-                    if abs(event.deltaY) > abs(event.deltaX) && abs(event.deltaY) > 0.1 {
-                        navigateByScrollWheel(deltaY: event.deltaY)
-                    }
-                    return event
-                }
-            }
-        }
-        .onDisappear {
-            if let monitor = scrollMonitor {
-                NSEvent.removeMonitor(monitor)
-                scrollMonitor = nil
-            }
-        }
-        .onChange(of: selectedDate) { _, newValue in
-            // Re-anchor the visible week only when the selection lands outside it (e.g. the notch
-            // reopening resets the date to today). Snap with no slide so it isn't jarring.
-            let windowEnd = calendar.date(byAdding: .day, value: 7, to: displayedWeekStart) ?? displayedWeekStart
-            let selDay = calendar.startOfDay(for: newValue)
-            if selDay < displayedWeekStart || selDay >= windowEnd {
-                withTransaction(Transaction(animation: nil)) {
-                    displayedWeekStart = startOfWeek(for: newValue)
-                }
-            }
-        }
-        .onChange(of: weekStartDay) { _, _ in
-            withTransaction(Transaction(animation: nil)) {
-                displayedWeekStart = startOfWeek(for: selectedDate)
-            }
-        }
-    }
-
-    /// The seven-day row. Re-keyed by the displayed week so a week change slides in
-    /// directionally; within a week the selection pill glides between days.
-    private var weekRow: some View {
-        HStack(spacing: 0) {
-            ForEach(weekDays, id: \.self) { date in
-                dateButton(date: date)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .id(displayedWeekStart)
-        .transition(.push(from: slideForward ? .trailing : .leading))
-    }
-
-    // MARK: - Navigation
-
-    /// Step the selection one day per accumulated scroll threshold.
-    private func navigateByScrollWheel(deltaY: CGFloat) {
-        scrollAccumulator += deltaY
-
-        // Use a threshold to avoid overly sensitive scrolling.
-        if abs(scrollAccumulator) >= scrollThreshold {
-            let direction = scrollAccumulator > 0 ? -1 : 1  // Scroll up = back, scroll down = forward
-            scrollAccumulator = 0
-            stepSelection(by: direction)
-        }
-    }
-
-    /// Move the selection by one day; if it leaves the visible week, slide the week to follow.
-    /// Uses the same `withAnimation { }` the day dial uses — no bespoke animation.
-    private func stepSelection(by direction: Int) {
-        guard let newDate = calendar.date(byAdding: .day, value: direction, to: selectedDate) else { return }
-        let windowEnd = calendar.date(byAdding: .day, value: 7, to: displayedWeekStart) ?? displayedWeekStart
-        let selDay = calendar.startOfDay(for: newDate)
-        let crossesForward = selDay >= windowEnd
-        let crossesBackward = selDay < displayedWeekStart
-
-        withAnimation {
-            if crossesForward || crossesBackward {
-                slideForward = crossesForward
-                displayedWeekStart = calendar.date(
-                    byAdding: .day, value: crossesForward ? 7 : -7, to: displayedWeekStart
-                ) ?? displayedWeekStart
-            }
-            selectedDate = newDate
-        }
-        if Defaults[.enableHaptics] {
-            haptics.toggle()
-        }
-    }
-
-    /// Chevrons page the visible week and carry the selection along (same weekday column).
-    private func pageWeek(by direction: Int) {
-        slideForward = direction > 0
-        let newStart = calendar.date(byAdding: .day, value: direction * 7, to: displayedWeekStart) ?? displayedWeekStart
-        let newSelection = calendar.date(byAdding: .day, value: direction * 7, to: selectedDate) ?? selectedDate
-        withAnimation {
-            displayedWeekStart = newStart
-            selectedDate = newSelection
-        }
-        if Defaults[.enableHaptics] {
-            haptics.toggle()
-        }
-    }
-
-    private func selectDate(_ date: Date) {
-        withAnimation {
-            selectedDate = date
-        }
-        if Defaults[.enableHaptics] {
-            haptics.toggle()
-        }
-    }
-
-    private func startOfWeek(for date: Date) -> Date {
-        calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
-    }
-
-    // MARK: - Cells
-
-    private func chevron(systemName: String, direction: Int) -> some View {
-        Button {
-            pageWeek(by: direction)
-        } label: {
-            Image(systemName: systemName)
-                .font(.caption.weight(.semibold))
-                .foregroundColor(Color(white: 0.65))
-                .frame(width: 14, height: 32)
-                .contentShape(.rect)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    private func dateButton(date: Date) -> some View {
-        let isSelected = calendar.isDate(date, inSameDayAs: selectedDate)
-        let isToday = calendar.isDateInToday(date)
-        return Button {
-            selectDate(date)
-        } label: {
-            VStack(spacing: 6) {
-                Text(dayText(for: date))
-                    .font(.caption)
-                    .foregroundColor(isSelected ? .white : Color(white: 0.65))
-                dateCircle(date: date, isToday: isToday, isSelected: isSelected)
-            }
-            .padding(.vertical, 4)
-            .frame(maxWidth: .infinity)
-            .background {
-                // Single highlight that glides between days within a week (matchedGeometry).
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.effectiveAccentBackground)
-                        .matchedGeometryEffect(id: "weekSelection-\(displayedWeekStart)", in: selectionNamespace)
-                }
-            }
-            .contentShape(.rect)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
-        ZStack {
-            Circle()
-                .fill(isToday ? Color.effectiveAccent : .clear)
-                .frame(width: 20, height: 20)
-            Text("\(date.date)")
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : Color(white: isToday ? 0.9 : 0.65))
-        }
-    }
-
-    /// Localized very-short weekday symbol for a date (e.g. "M", "T").
-    private func dayText(for date: Date) -> String {
-        let symbols = calendar.veryShortWeekdaySymbols  // localized, always Sunday-first
-        guard !symbols.isEmpty else { return "" }
-        let index = calendar.component(.weekday, from: date) - 1  // 0…6, Sunday-based
-        return symbols[(index % symbols.count + symbols.count) % symbols.count]
-    }
-}
-
 struct CalendarView: View {
     @EnvironmentObject var vm: BoringViewModel
     @ObservedObject private var calendarManager = CalendarManager.shared
     @State private var selectedDate = Date()
-    @Default(.calendarWeekView) private var calendarWeekView
-    let expandsToFill: Bool
-
-    private var expandedMonthRailWidth: CGFloat { 72 }
-    private var expandedHeaderSpacing: CGFloat { 12 }
-    private var expandedStripFadeWidth: CGFloat { 10 }
-    private var expandedDialConfig: Config {
-        var config = Config()
-        config.offset = 1
-        return config
-    }
-
-    init(expandsToFill: Bool = false) {
-        self.expandsToFill = expandsToFill
-    }
 
     var body: some View {
         VStack(spacing: 0) {
-            if calendarWeekView {
-                weekHeader
-            } else {
-                dialHeader
-            }
+            dialHeader
 
             let filteredEvents = EventListView.filteredEvents(
                 events: calendarManager.events
             )
             if filteredEvents.isEmpty {
-                if expandsToFill {
-                    HStack(alignment: .top, spacing: 18) {
-                        Color.clear
-                            .frame(width: expandedMonthRailWidth)
-
-                        EmptyEventsView(selectedDate: selectedDate)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .top)
-                            .offset(y: -22)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                } else {
-                    EmptyEventsView(selectedDate: selectedDate)
-                        .frame(maxHeight: .infinity, alignment: .center)
-                }
+                EmptyEventsView(selectedDate: selectedDate)
+                    .frame(maxHeight: .infinity, alignment: .center)
             } else {
-                if expandsToFill {
-                    HStack(alignment: .top, spacing: 18) {
-                        Color.clear
-                            .frame(width: expandedMonthRailWidth)
-
-                        EventListView(events: calendarManager.events)
-                            .padding(.leading, 25)
-                            .frame(maxWidth: .infinity, alignment: .topLeading)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                } else {
-                    EventListView(events: calendarManager.events)
-                }
+                EventListView(events: calendarManager.events)
             }
         }
-        .frame(maxWidth: expandsToFill ? .infinity : nil, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: nil, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: selectedDate) {
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
@@ -547,77 +278,127 @@ struct CalendarView: View {
         }
     }
 
-    /// Week-aligned layout: a month/year header above a fixed, full-width week strip.
-    private var weekHeader: some View {
-        VStack(spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                Text(selectedDate.formatted(.dateTime.year()))
-                    .font(.title3)
-                    .fontWeight(.light)
-                    .foregroundColor(Color(white: 0.65))
-                Spacer()
-            }
-            .padding(.horizontal, 4)
+    /// Original scrolling day-dial layout: month/year on the left, dial on the right.
+    private var dialHeader: some View {
+        HStack(alignment: .center, spacing: 8) {
+            monthYearHeader(compact: true)
 
-            WeekStripPicker(selectedDate: $selectedDate)
+            ZStack(alignment: .top) {
+                WheelPicker(selectedDate: $selectedDate, config: Config())
+                HStack(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 20)
+                    Spacer()
+                    LinearGradient(
+                        colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 20)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Original scrolling day-dial layout: month/year on the left, dial on the right.
-    private var dialHeader: some View {
-        Group {
-            if expandsToFill {
-                HStack(alignment: .center, spacing: expandedHeaderSpacing) {
-                    monthYearHeader(compact: false)
-                        .frame(width: expandedMonthRailWidth, alignment: .leading)
-                        .padding(.leading, 15)
-                        .padding(.top, 30)
+    private func monthYearHeader(compact: Bool) -> some View {
+        VStack(alignment: .leading) {
+            Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                .font(compact ? .title3 : .system(size: 28, weight: .bold, design: .rounded))
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            Text(selectedDate.formatted(.dateTime.year()))
+                .font(compact ? .title3 : .system(size: 18, weight: .medium, design: .rounded))
+                .foregroundColor(Color(white: 0.65))
+        }
+        .frame(maxHeight: .infinity, alignment: .center)
+    }
+}
 
-                    ZStack(alignment: .top) {
-                        WheelPicker(selectedDate: $selectedDate, config: expandedDialConfig)
-                        HStack(alignment: .top) {
-                            LinearGradient(
-                                colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                            )
-                            .frame(width: expandedStripFadeWidth)
-                            Spacer()
-                            LinearGradient(
-                                colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                            )
-                            .frame(width: expandedStripFadeWidth)
-                        }
+struct FullTabCalendarView: View {
+    @EnvironmentObject var vm: BoringViewModel
+    @ObservedObject private var calendarManager = CalendarManager.shared
+    @State private var selectedDate = Date()
+
+    private var monthRailWidth: CGFloat { 72 }
+    private var headerSpacing: CGFloat { 12 }
+    private var stripFadeWidth: CGFloat { 10 }
+    private var dialConfig: Config {
+        var config = Config()
+        config.offset = 1
+        return config
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: headerSpacing) {
+                monthYearHeader(compact: false)
+                    .frame(width: monthRailWidth, alignment: .leading)
+                    .padding(.leading, 15)
+                    .padding(.top, 30)
+
+                ZStack(alignment: .top) {
+                    WheelPicker(selectedDate: $selectedDate, config: dialConfig)
+                    HStack(alignment: .top) {
+                        LinearGradient(
+                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(width: stripFadeWidth)
+                        Spacer()
+                        LinearGradient(
+                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(width: stripFadeWidth)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            let filteredEvents = EventListView.filteredEvents(
+                events: calendarManager.events
+            )
+            if filteredEvents.isEmpty {
+                HStack(alignment: .top, spacing: 18) {
+                    Color.clear
+                        .frame(width: monthRailWidth)
+
+                    EmptyEventsView(selectedDate: selectedDate)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .top)
+                        .offset(y: -22)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             } else {
-                HStack(alignment: .center, spacing: 8) {
-                    monthYearHeader(compact: true)
+                HStack(alignment: .top, spacing: 18) {
+                    Color.clear
+                        .frame(width: monthRailWidth)
 
-                    ZStack(alignment: .top) {
-                        WheelPicker(selectedDate: $selectedDate, config: Config())
-                        HStack(alignment: .top) {
-                            LinearGradient(
-                                colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
-                            )
-                            .frame(width: 20)
-                            Spacer()
-                            LinearGradient(
-                                colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
-                            )
-                            .frame(width: 20)
-                        }
-                    }
+                    EventListView(events: calendarManager.events)
+                        .padding(.leading, 25)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .onChange(of: selectedDate) {
+            Task {
+                await calendarManager.updateCurrentDate(selectedDate)
+            }
+        }
+        .onChange(of: vm.notchState) { _, _ in
+            Task {
+                await calendarManager.updateCurrentDate(Date.now)
+                selectedDate = Date.now
+            }
+        }
+        .onAppear {
+            Task {
+                await calendarManager.updateCurrentDate(Date.now)
+                selectedDate = Date.now
+            }
+        }
     }
 
     private func monthYearHeader(compact: Bool) -> some View {
