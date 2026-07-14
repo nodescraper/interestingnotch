@@ -12,6 +12,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
     case installed
     case shelf
     case calendar
+    case media
 
     var id: Self { self }
 
@@ -21,6 +22,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         case .installed: "Installed"
         case .shelf: "Shelf"
         case .calendar: "Calendar"
+        case .media: "Media"
         }
     }
 
@@ -30,6 +32,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         case .installed: "checklist"
         case .shelf: "books.vertical"
         case .calendar: "calendar"
+        case .media: "play.laptopcomputer"
         }
     }
 }
@@ -48,6 +51,7 @@ struct WorkshopWindow: View {
                 Section("Built-in Widgets") {
                     workshopSidebarItem(.shelf)
                     workshopSidebarItem(.calendar)
+                    workshopSidebarItem(.media)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -65,6 +69,8 @@ struct WorkshopWindow: View {
                     Shelf()
                 case .calendar:
                     CalendarSettings()
+                case .media:
+                    Media()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

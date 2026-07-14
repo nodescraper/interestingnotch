@@ -507,6 +507,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .clipboardHistoryPanel) { [weak self] in
+            Task { @MainActor in
+                guard
+                    let self,
+                    Defaults[.pinnedWidgetIDs].contains("clipboard-history"),
+                    WidgetEngine.shared.widgets.contains(where: { $0.id == "clipboard-history" })
+                else {
+                    return
+                }
+
+                _ = self.vm.open()
+                self.coordinator.currentView = .widget(id: "clipboard-history")
+            }
+        }
+
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
         

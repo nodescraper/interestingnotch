@@ -137,8 +137,29 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         }
     }
 
+    private func ensureAnimationState() {
+        guard isPlaying else {
+            stopRandomAnimating()
+            return
+        }
+
+        if useRealtime {
+            stopRandomAnimating()
+            return
+        }
+
+        let hasRandomAnimation = barLayers.contains { $0.animation(forKey: Self.animationKey) != nil }
+        guard !hasRandomAnimation else { return }
+
+        expandBars(animated: false)
+        startRandomAnimating()
+    }
+
     func setPlaying(_ playing: Bool) {
-        guard isPlaying != playing else { return }
+        guard isPlaying != playing else {
+            ensureAnimationState()
+            return
+        }
         isPlaying = playing
         if playing {
             expandBars(animated: true)
@@ -179,6 +200,7 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
     func syncCurrentLevels(from manager: AudioCaptureManager) {
         guard attachedManager === manager,
               let values = manager.latestLevelsSnapshot() else { return }
+        ensureAnimationState()
         applyLevels(values)
     }
 
@@ -211,6 +233,7 @@ class AudioSpectrum: NSView, AudioCaptureLevelsConsumer {
         tintColor = color
         let colors = [color.withAlphaComponent(0.6).cgColor, color.cgColor]
         barLayers.forEach { $0.colors = colors }
+        ensureAnimationState()
     }
 
     private func applyFrame(to barLayer: CALayer, at index: Int, height: CGFloat) {

@@ -12,7 +12,6 @@ import SwiftUIIntrospect
 private enum SettingsTab: String, CaseIterable, Identifiable {
     case general
     case appearance
-    case media
     case osd
     case battery
     case mirror
@@ -26,7 +25,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general: "General"
         case .appearance: "Appearance"
-        case .media: "Media"
         case .osd: "OSD"
         case .battery: "Battery"
         case .mirror: "Mirror"
@@ -40,7 +38,6 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         switch self {
         case .general: "gear"
         case .appearance: "eye"
-        case .media: "play.laptopcomputer"
         case .osd: "dial.medium.fill"
         case .battery: "battery.100.bolt"
         case .mirror: "camera"
@@ -80,8 +77,6 @@ struct SettingsView: View {
                     GeneralSettings()
                 case .appearance:
                     Appearance()
-                case .media:
-                    Media()
                 case .osd:
                     OSDSettings()
                 case .battery:

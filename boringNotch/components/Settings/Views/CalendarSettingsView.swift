@@ -16,6 +16,7 @@ struct CalendarSettings: View {
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
     @Default(.calendarWeekView) var calendarWeekView
+    @Default(.showCalendarAsSeparateTab) var showCalendarAsSeparateTab
     @Default(.weekStartDay) var weekStartDay
 
     var body: some View {
@@ -23,6 +24,10 @@ struct CalendarSettings: View {
             Defaults.Toggle(key: .showCalendar) {
                 Text("Show calendar")
             }
+            Defaults.Toggle(key: .showCalendarAsSeparateTab) {
+                Text("Show calendar as separate tab")
+            }
+            .disabled(!showCalendar)
             Defaults.Toggle(key: .hideCompletedReminders) {
                 Text("Hide completed reminders")
             }

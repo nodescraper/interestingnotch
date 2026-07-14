@@ -20,6 +20,7 @@ public enum NotchState {
 
 public enum NotchViews: Equatable, Hashable, Sendable {
     case home
+    case calendar
     case shelf
     case widget(id: String)
 
@@ -27,6 +28,8 @@ public enum NotchViews: Equatable, Hashable, Sendable {
         switch self {
         case .home:
             return "home"
+        case .calendar:
+            return "calendar"
         case .shelf:
             return "shelf"
         case .widget(let id):

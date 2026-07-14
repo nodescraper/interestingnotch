@@ -90,6 +90,8 @@ struct DefaultFrameworkProviderFactory: FrameworkProviderFactorying {
         switch api {
         case SystemMonitorProvider.api:
             return SystemMonitorProvider()
+        case AccessoryBatteryProvider.api:
+            return AccessoryBatteryProvider()
         default:
             throw ChannelExecutorError.unsupportedFrameworkAPI(api)
         }

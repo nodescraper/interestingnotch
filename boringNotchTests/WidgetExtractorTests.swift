@@ -12,6 +12,9 @@ import XCTest
 @testable import boringNotch
 
 final class WidgetExtractorTests: XCTestCase {
+    private let audioDeviceClass: UInt32 = 0x04 << 8
+    private let peripheralDeviceClass: UInt32 = 0x05 << 8
+
     @MainActor
     private func makeWidgetManifest(
         id: String = "git-status",
@@ -80,6 +83,11 @@ final class WidgetExtractorTests: XCTestCase {
             icon = "timer"
             label = "Countdown timer"
             permissions = nil
+        case .clipboardHistory:
+            name = "Clipboard History"
+            icon = "document.on.clipboard"
+            label = "Recent clips"
+            permissions = ["clipboard"]
         }
 
         return WidgetManifest(
@@ -107,14 +115,17 @@ final class WidgetExtractorTests: XCTestCase {
     @MainActor
     private func makeFrameworkManifest(
         id: String = "system-monitor",
+        name: String = "System Monitor",
         api: String = SystemMonitorProvider.api,
+        icon: String = "waveform.path.ecg",
+        label: String = "System Monitor",
         interval: TimeInterval = 3
     ) -> WidgetManifest {
         WidgetManifest(
             schema: 1,
             kind: .data,
             id: id,
-            name: "System Monitor",
+            name: name,
             author: "NodeScraper",
             source: .init(
                 type: .framework,
@@ -137,8 +148,8 @@ final class WidgetExtractorTests: XCTestCase {
             render: .init(
                 template: .text,
                 slots: [
-                    "icon": .string("waveform.path.ecg"),
-                    "label": .string("System Monitor"),
+                    "icon": .string(icon),
+                    "label": .string(label),
                     "color": .string("accent"),
                 ]
             ),
@@ -612,9 +623,15 @@ final class WidgetExtractorTests: XCTestCase {
         var isDirectory: ObjCBool = false
         XCTAssertTrue(FileManager.default.fileExists(atPath: missingDirectory.path, isDirectory: &isDirectory))
         XCTAssertTrue(isDirectory.boolValue)
-        XCTAssertEqual(Set(result.widgets.map(\.id)), ["color-picker", "timer", "system-monitor"])
+        XCTAssertEqual(
+            Set(result.widgets.map(\.id)),
+            ["color-picker", "timer", "clipboard-history", "system-monitor", "accessory-battery"]
+        )
         XCTAssertTrue(result.failures.isEmpty)
-        XCTAssertEqual(Set(engine.loadedWidgetIDs), ["color-picker", "timer", "system-monitor"])
+        XCTAssertEqual(
+            Set(engine.loadedWidgetIDs),
+            ["color-picker", "timer", "clipboard-history", "system-monitor", "accessory-battery"]
+        )
     }
 
     @MainActor
@@ -687,6 +704,115 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(ColorPickerHistoryStore.restore(base.serializedHistoryValue), base)
     }
 
+    func testClipboardHistoryStoreCapsUnpinnedItemsAndPreservesPinnedOnes() {
+        let pinned = ClipboardHistoryItem(
+            id: "pinned",
+            kind: .text,
+            content: "Pinned",
+            fingerprint: "pinned",
+            pinned: true
+        )
+        let filler = (0..<ClipboardHistoryStore.limit).map { index in
+            ClipboardHistoryItem(
+                id: "item-\(index)",
+                kind: .text,
+                content: "Item \(index)",
+                fingerprint: "fingerprint-\(index)"
+            )
+        }
+
+        let result = ClipboardHistoryStore.adding(
+            ClipboardHistoryItem(
+                id: "newest",
+                kind: .text,
+                content: "Newest",
+                fingerprint: "newest"
+            ),
+            to: [pinned] + filler
+        )
+
+        XCTAssertTrue(result.contains(where: { $0.id == "pinned" && $0.pinned }))
+        XCTAssertTrue(result.contains(where: { $0.id == "newest" }))
+        XCTAssertEqual(result.count, ClipboardHistoryStore.limit)
+        XCTAssertEqual(result.filter { !$0.pinned }.count, ClipboardHistoryStore.limit - 1)
+    }
+
+    func testClipboardHistoryStoreDedupesConsecutiveDuplicates() {
+        let first = ClipboardHistoryItem(
+            kind: .text,
+            content: "Hello",
+            fingerprint: "same"
+        )
+        let duplicate = ClipboardHistoryItem(
+            kind: .text,
+            content: "Hello",
+            fingerprint: "same"
+        )
+
+        let result = ClipboardHistoryStore.adding(duplicate, to: [first])
+
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.fingerprint, "same")
+    }
+
+    func testClipboardHistoryStorePromotesExistingItemToFront() {
+        let first = ClipboardHistoryItem(
+            id: "first",
+            kind: .text,
+            content: "One",
+            fingerprint: "one"
+        )
+        let second = ClipboardHistoryItem(
+            id: "second",
+            kind: .text,
+            content: "Two",
+            fingerprint: "two"
+        )
+        let third = ClipboardHistoryItem(
+            id: "third",
+            kind: .text,
+            content: "Three",
+            fingerprint: "three"
+        )
+
+        let result = ClipboardHistoryStore.promotingItem(withFingerprint: "three", in: [first, second, third])
+
+        XCTAssertEqual(result.map(\.fingerprint), ["three", "one", "two"])
+    }
+
+    func testClipboardPrivacyFilterSkipsConcealedPasteboardTypes() {
+        XCTAssertFalse(
+            ClipboardHistoryPrivacyFilter.shouldCapture(
+                typeIdentifiers: ["public.utf8-plain-text", "org.nspasteboard.ConcealedType"]
+            )
+        )
+        XCTAssertTrue(
+            ClipboardHistoryPrivacyFilter.shouldCapture(
+                typeIdentifiers: ["public.utf8-plain-text"]
+            )
+        )
+    }
+
+    func testClipboardCaptureResolverDetectsLinksWithinText() {
+        let decision = ClipboardCaptureResolver.decision(
+            from: ClipboardPasteboardSnapshot(
+                changeCount: 1,
+                typeIdentifiers: ["public.utf8-plain-text"],
+                string: "https://openai.com/docs",
+                url: nil,
+                image: nil
+            ),
+            existingItems: []
+        )
+
+        guard case .capture(let item) = decision else {
+            return XCTFail("Expected capture decision.")
+        }
+
+        XCTAssertEqual(item.kind, .link)
+        XCTAssertEqual(item.content, "https://openai.com/docs")
+    }
+
     func testTimerCountdownStateCountsDownToFinished() {
         let start = Date(timeIntervalSince1970: 1_000)
         var state = TimerCountdownState(duration: 10, remaining: 10)
@@ -737,13 +863,97 @@ final class WidgetExtractorTests: XCTestCase {
         let previous = SystemMonitorCPUCounters(user: 100, system: 50, idle: 300, nice: 0)
         let current = SystemMonitorCPUCounters(user: 140, system: 70, idle: 310, nice: 0)
 
-        XCTAssertEqual(current.usagePercent(since: previous), 83.3333, accuracy: 0.01)
+        XCTAssertEqual(current.usagePercent(since: previous), 85.7143, accuracy: 0.01)
     }
 
     func testSystemMonitorMemorySampleComputesUsedPercent() {
         let sample = SystemMonitorMemorySample(usedBytes: 6_000, totalBytes: 8_000)
 
         XCTAssertEqual(sample.percentUsed, 75, accuracy: 0.001)
+    }
+
+    func testAccessoryBatterySnapshotBuilderUsesAirPodsCellsAndPrimarySelection() {
+        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
+            AccessoryBatteryReading(
+                id: "airpods",
+                name: "Balazs's AirPods Pro",
+                classOfDevice: audioDeviceClass,
+                isConnected: true,
+                isCharging: false,
+                supportsMultiBattery: true,
+                singlePercent: nil,
+                combinedPercent: nil,
+                leftPercent: 82,
+                rightPercent: 18,
+                casePercent: 100,
+                headsetLevel: nil
+            ),
+            AccessoryBatteryReading(
+                id: "mouse",
+                name: "Magic Mouse",
+                classOfDevice: peripheralDeviceClass,
+                isConnected: true,
+                isCharging: false,
+                supportsMultiBattery: false,
+                singlePercent: 46,
+                combinedPercent: nil,
+                leftPercent: nil,
+                rightPercent: nil,
+                casePercent: nil,
+                headsetLevel: nil
+            ),
+        ])
+
+        XCTAssertEqual(snapshot.devices.count, 2)
+        XCTAssertEqual(snapshot.reportingDevices.count, 2)
+        XCTAssertEqual(snapshot.primaryDevice(preferredID: nil)?.id, "airpods")
+        XCTAssertEqual(snapshot.primaryDevice(preferredID: nil)?.primaryPercent, 18)
+        XCTAssertEqual(snapshot.primaryDevice(preferredID: "mouse")?.id, "mouse")
+    }
+
+    func testAccessoryBatterySnapshotBuilderTreatsAllZeroReadingsAsNoBatteryInfo() {
+        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
+            AccessoryBatteryReading(
+                id: "speaker",
+                name: "Bedroom Speaker",
+                classOfDevice: audioDeviceClass,
+                isConnected: true,
+                isCharging: false,
+                supportsMultiBattery: false,
+                singlePercent: 0,
+                combinedPercent: 0,
+                leftPercent: 0,
+                rightPercent: 0,
+                casePercent: 0,
+                headsetLevel: 0
+            )
+        ])
+
+        XCTAssertEqual(snapshot.devices.count, 1)
+        XCTAssertFalse(snapshot.devices[0].hasBatteryInfo)
+        XCTAssertEqual(snapshot.devices[0].primaryDisplay, "no battery info")
+    }
+
+    func testAccessoryBatterySnapshotBuilderMarksCriticalBatteryUnderFifteenPercent() {
+        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
+            AccessoryBatteryReading(
+                id: "buds",
+                name: "Low Buds",
+                classOfDevice: audioDeviceClass,
+                isConnected: true,
+                isCharging: false,
+                supportsMultiBattery: false,
+                singlePercent: 14,
+                combinedPercent: nil,
+                leftPercent: nil,
+                rightPercent: nil,
+                casePercent: nil,
+                headsetLevel: nil
+            )
+        ])
+
+        XCTAssertEqual(snapshot.devices.first?.primaryPercent, 14)
+        XCTAssertEqual(snapshot.devices.first?.isCritical, true)
     }
 
     func testSystemMonitorSnapshotParsesWidgetValueObject() {
@@ -760,17 +970,44 @@ final class WidgetExtractorTests: XCTestCase {
                 "percent": .double(81.1),
                 "display": .string("81%"),
             ]),
+            "temperature": .object([
+                "celsius": .double(54.0),
+                "display": .string("54°"),
+            ]),
             "uptime": .string("Uptime 1h 5m"),
             "loadAverage": .string("Load 1.23 0.98 0.77"),
         ]))
 
-        XCTAssertEqual(snapshot?.cpuPercent, 24.2, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.cpuDisplay, "24%")
-        XCTAssertEqual(snapshot?.memoryPercent, 68.4, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.memoryDisplay, "68%")
-        XCTAssertEqual(snapshot?.diskPercent, 81.1, accuracy: 0.001)
-        XCTAssertEqual(snapshot?.uptimeText, "Uptime 1h 5m")
-        XCTAssertEqual(snapshot?.loadAverageText, "Load 1.23 0.98 0.77")
+        let resolved = try? XCTUnwrap(snapshot)
+        XCTAssertNotNil(resolved)
+        let diskPercent = try? XCTUnwrap(resolved?.diskPercent)
+        let temperature = try? XCTUnwrap(resolved?.temperatureCelsius)
+
+        XCTAssertEqual(resolved!.cpuPercent, 24.2, accuracy: 0.001)
+        XCTAssertEqual(resolved!.cpuDisplay, "24%")
+        XCTAssertEqual(resolved!.memoryPercent, 68.4, accuracy: 0.001)
+        XCTAssertEqual(resolved!.memoryDisplay, "68%")
+        XCTAssertEqual(diskPercent!, 81.1, accuracy: 0.001)
+        XCTAssertEqual(temperature!, 54.0, accuracy: 0.001)
+        XCTAssertEqual(resolved!.temperatureDisplay, "54°")
+        XCTAssertEqual(resolved!.uptimeText, "Uptime 1h 5m")
+        XCTAssertEqual(resolved!.loadAverageText, "Load 1.23 0.98 0.77")
+    }
+
+    func testSystemMonitorSnapshotResolvesConfiguredSneakPeekMetricDisplays() {
+        let snapshot = SystemMonitorSnapshot(
+            cpuPercent: 24.2,
+            memoryPercent: 68.4,
+            diskPercent: 81.1,
+            temperatureCelsius: 54.0,
+            uptimeText: "Uptime 1h 5m",
+            loadAverageText: "Load 1.23 0.98 0.77"
+        )
+
+        XCTAssertEqual(snapshot.displayValue(for: .cpu), "24%")
+        XCTAssertEqual(snapshot.displayValue(for: .memory), "68%")
+        XCTAssertEqual(snapshot.displayValue(for: .disk), "81%")
+        XCTAssertEqual(snapshot.displayValue(for: .temperature), "54°")
     }
 
     @MainActor
@@ -850,6 +1087,25 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
     }
 
+    func testSystemMonitorSneakPeekSettingsPersistInDefaults() {
+        let originalEnabled = Defaults[.systemMonitorSneakPeekEnabled]
+        let originalLeft = Defaults[.systemMonitorSneakPeekLeftMetric]
+        let originalRight = Defaults[.systemMonitorSneakPeekRightMetric]
+        defer {
+            Defaults[.systemMonitorSneakPeekEnabled] = originalEnabled
+            Defaults[.systemMonitorSneakPeekLeftMetric] = originalLeft
+            Defaults[.systemMonitorSneakPeekRightMetric] = originalRight
+        }
+
+        Defaults[.systemMonitorSneakPeekEnabled] = false
+        Defaults[.systemMonitorSneakPeekLeftMetric] = .disk
+        Defaults[.systemMonitorSneakPeekRightMetric] = .cpu
+
+        XCTAssertFalse(Defaults[.systemMonitorSneakPeekEnabled])
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekLeftMetric], .disk)
+        XCTAssertEqual(Defaults[.systemMonitorSneakPeekRightMetric], .cpu)
+    }
+
     func testWidgetPinStorePinsAndUnpinsWithoutDuplicates() {
         let pinned = WidgetPinStore.pin("weather", in: [])
         XCTAssertEqual(pinned, ["weather"])
@@ -912,6 +1168,25 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testClipboardHistoryWidgetBuildsRuntimeAndTabPage() throws {
+        let widget = try Widget(
+            manifest: makeInteractiveManifest(
+                id: "clipboard-history",
+                kind: .clipboardHistory
+            )
+        )
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["clipboard-history"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["clipboard-history"])
+        XCTAssertTrue(widget.interactiveRuntime is ClipboardHistoryWidgetModel)
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .clipboardHistory)
+    }
+
+    @MainActor
     func testSystemMonitorWidgetLoadsAndResolvesToSystemMonitorTabPage() throws {
         let widget = try Widget(manifest: makeFrameworkManifest())
         let sources = WidgetTabResolver.sources(from: [widget])
@@ -922,6 +1197,28 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTAssertEqual(tabs.map(\.id), ["system-monitor"])
         XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .systemMonitor)
+    }
+
+    @MainActor
+    func testAccessoryBatteryWidgetLoadsAndResolvesToAccessoryBatteryTabPage() throws {
+        let widget = try Widget(
+            manifest: makeFrameworkManifest(
+                id: "accessory-battery",
+                name: "Accessory Battery",
+                api: AccessoryBatteryProvider.api,
+                icon: "airpodspro",
+                label: "Accessory Battery",
+                interval: 30
+            )
+        )
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["accessory-battery"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["accessory-battery"])
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .accessoryBattery)
     }
 
     @MainActor

@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [colorPickerManifest, timerManifest, systemMonitorManifest]
+        [colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest, accessoryBatteryManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -74,6 +74,29 @@ enum WidgetLibrary {
         )
     }
 
+    private static var clipboardHistoryManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "clipboard-history",
+            name: "Clipboard History",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("document.on.clipboard"),
+                    "label": .string("Recent clips"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["clipboard"],
+            interactive: .init(type: .clipboardHistory)
+        )
+    }
+
     private static var systemMonitorManifest: WidgetManifest {
         WidgetManifest(
             schema: 1,
@@ -109,6 +132,45 @@ enum WidgetLibrary {
             ),
             onTap: nil,
             permissions: nil,
+            interactive: nil
+        )
+    }
+
+    private static var accessoryBatteryManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .data,
+            id: "accessory-battery",
+            name: "Accessory Battery",
+            author: "NodeScraper",
+            source: .init(
+                type: .framework,
+                run: nil,
+                url: nil,
+                method: nil,
+                headers: nil,
+                api: AccessoryBatteryProvider.api,
+                interval: 30,
+                timeout: nil,
+                cwd: nil,
+                env: nil
+            ),
+            extract: .init(
+                method: .jsonPath,
+                pattern: nil,
+                path: "$",
+                table: nil
+            ),
+            render: .init(
+                template: .text,
+                slots: [
+                    "icon": .string("airpodspro"),
+                    "label": .string("Accessory Battery"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["bluetooth"],
             interactive: nil
         )
     }

@@ -204,6 +204,46 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
+enum SystemMonitorSneakPeekMetric: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case none
+    case cpu
+    case memory
+    case disk
+    case temperature
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .none:
+            return "None"
+        case .cpu:
+            return "CPU"
+        case .memory:
+            return "RAM"
+        case .disk:
+            return "Disk"
+        case .temperature:
+            return "Temp"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .none:
+            return "minus"
+        case .cpu:
+            return "cpu"
+        case .memory:
+            return "memorychip"
+        case .disk:
+            return "internaldrive"
+        case .temperature:
+            return "thermometer.medium"
+        }
+    }
+}
+
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -211,9 +251,17 @@ extension Defaults.Keys {
     static let showOnAllDisplays = Key<Bool>("showOnAllDisplays", default: false)
     static let enabledDisplayUUIDs = Key<[String]>("enabledDisplayUUIDs", default: [])
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
+    static let showCalendarAsSeparateTab = Key<Bool>("showCalendarAsSeparateTab", default: false)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
+    static let clipboardHistoryStoreData = Key<Data?>("clipboardHistoryStoreData", default: nil)
+    static let clipboardHistoryMaxItems = Key<Int>("clipboardHistoryMaxItems", default: 50)
+    static let systemMonitorSneakPeekEnabled = Key<Bool>("systemMonitorSneakPeekEnabled", default: true)
+    static let systemMonitorSneakPeekLeftMetric = Key<SystemMonitorSneakPeekMetric>("systemMonitorSneakPeekLeftMetric", default: .none)
+    static let systemMonitorSneakPeekRightMetric = Key<SystemMonitorSneakPeekMetric>("systemMonitorSneakPeekRightMetric", default: .memory)
+    static let accessoryBatterySneakPeekEnabled = Key<Bool>("accessoryBatterySneakPeekEnabled", default: true)
+    static let accessoryBatteryPrimaryDeviceID = Key<String?>("accessoryBatteryPrimaryDeviceID", default: nil)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)
@@ -221,6 +269,8 @@ extension Defaults.Keys {
     static let animationSpeedMultiplier = Key<Double>("animationSpeedMultiplier", default: 1.0)
     static let enableHaptics = Key<Bool>("enableHaptics", default: true)
     static let openNotchOnHover = Key<Bool>("openNotchOnHover", default: true)
+    static let showPinButton = Key<Bool>("showPinButton", default: false)
+    static let pinNotchOpen = Key<Bool>("pinNotchOpen", default: false)
     static let extendHoverArea = Key<Bool>("extendHoverArea", default: false)
     static let notchHeightMode = Key<WindowHeightMode>(
         "notchHeightMode",

@@ -208,6 +208,10 @@ class BoringViewModel: NSObject, ObservableObject {
     }
 
     func close() {
+        if Defaults[.pinNotchOpen] {
+            return
+        }
+
         // Do not close while a share picker or sharing service is active
         if SharingStateManager.shared.preventNotchClose {
             return

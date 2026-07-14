@@ -124,6 +124,7 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         enum Kind: String, Codable, Sendable {
             case colorPicker = "color-picker"
             case timer
+            case clipboardHistory = "clipboard-history"
         }
     }
 }

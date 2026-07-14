@@ -10,101 +10,101 @@ import SwiftUI
 struct SystemMonitorWidgetPageView: View {
     @ObservedObject var widget: Widget
 
+    private struct MetricDescriptor: Identifiable {
+        let id: String
+        let title: String
+        let symbol: String
+        let value: Double?
+        let tint: Color?
+    }
+
     private var snapshot: SystemMonitorSnapshot? {
         SystemMonitorSnapshot(widgetValue: widget.lastValue)
     }
 
+    private var metrics: [MetricDescriptor] {
+        var items: [MetricDescriptor] = [
+            MetricDescriptor(id: "cpu", title: "CPU", symbol: "cpu", value: snapshot?.cpuPercent, tint: nil),
+            MetricDescriptor(id: "ram", title: "RAM", symbol: "memorychip", value: snapshot?.memoryPercent, tint: nil),
+        ]
+
+        if let diskPercent = snapshot?.diskPercent {
+            items.append(
+                MetricDescriptor(id: "disk", title: "Disk", symbol: "internaldrive", value: diskPercent, tint: nil)
+            )
+        }
+
+        if let temperatureCelsius = snapshot?.temperatureCelsius {
+            items.append(
+                MetricDescriptor(
+                    id: "temp",
+                    title: "Temp",
+                    symbol: "thermometer.medium",
+                    value: temperatureCelsius,
+                    tint: Color.orange.opacity(0.9)
+                )
+            )
+        }
+
+        return items
+    }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            statusTile
-                .padding(.all, 5)
-
-            detailsColumn
-
-            Spacer(minLength: 0)
+        GeometryReader { geometry in
+            detailsColumn(availableHeight: geometry.size.height)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private var statusTile: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color.white.opacity(0.08))
-            .overlay {
-                VStack(alignment: .leading, spacing: 10) {
-                    Image(systemName: "cpu")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(.white)
-
-                    Spacer(minLength: 0)
-
-                    tileMetric(symbol: "cpu", label: "CPU", value: snapshot?.cpuDisplay ?? "--%")
-                    tileMetric(symbol: "memorychip", label: "RAM", value: snapshot?.memoryDisplay ?? "--%")
-
-                    if let diskDisplay = snapshot?.diskDisplay {
-                        tileMetric(symbol: "internaldrive", label: "Disk", value: diskDisplay)
-                    }
-                }
-                .padding(14)
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: 144)
-    }
-
-    private var detailsColumn: some View {
+    private func detailsColumn(availableHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                header
-                metricsBlock
-            }
-            .padding(.top, 10)
-            .padding(.leading, 5)
-
-            Spacer(minLength: 0)
+            metricsBlock
+                .frame(maxHeight: .infinity, alignment: .top)
+                .padding(.top, 8)
+                .padding(.horizontal, 4)
 
             Divider()
                 .overlay(Color.white.opacity(0.10))
-                .padding(.vertical, 8)
+                .padding(.top, max(8, availableHeight * 0.05))
+                .padding(.bottom, 8)
 
             footer
         }
+        .padding(.horizontal, 10)
+        .padding(.top, 4)
+        .padding(.bottom, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(widget.manifest.name)
-                .font(.headline.weight(.bold))
-                .foregroundStyle(.white)
-
-            Text("Live CPU, memory, and disk vitals.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
     private var metricsBlock: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            metricRow(title: "CPU", symbol: "cpu", value: snapshot?.cpuPercent)
-            metricRow(title: "RAM", symbol: "memorychip", value: snapshot?.memoryPercent)
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(metrics.enumerated()), id: \.element.id) { index, metric in
+                metricRow(
+                    title: metric.title,
+                    symbol: metric.symbol,
+                    value: metric.value,
+                    tint: metric.tint
+                )
 
-            if let diskPercent = snapshot?.diskPercent {
-                metricRow(title: "Disk", symbol: "internaldrive", value: diskPercent)
+                if index < metrics.count - 1 {
+                    Spacer(minLength: 8)
+                }
             }
         }
     }
 
-    private func metricRow(title: String, symbol: String, value: Double?) -> some View {
-        HStack(spacing: 8) {
+    private func metricRow(title: String, symbol: String, value: Double?, tint: Color?) -> some View {
+        HStack(spacing: 10) {
             Image(systemName: symbol)
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 14)
+                .frame(width: 12)
 
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-                .frame(width: 34, alignment: .leading)
+                .frame(width: 28, alignment: .leading)
 
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -112,59 +112,59 @@ struct SystemMonitorWidgetPageView: View {
                         .fill(Color.white.opacity(0.12))
 
                     Capsule()
-                        .fill(barColor(for: value))
+                        .fill(barColor(for: value, tint: tint))
                         .frame(width: geometry.size.width * CGFloat(min(max((value ?? 0) / 100, 0), 1)))
                 }
             }
-            .frame(height: 5)
+            .frame(height: 6)
 
-            Text(value.map(SystemMonitorFormatting.percentString) ?? "--")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
+            Text(formattedValue(for: title, value: value))
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(valueColor(for: value, tint: tint))
                 .monospacedDigit()
-                .frame(width: 34, alignment: .trailing)
+                .frame(width: 40, alignment: .trailing)
         }
-        .frame(height: 14)
+        .frame(height: 16)
     }
 
     private var footer: some View {
         HStack(spacing: 12) {
             Text("Uptime \(snapshot?.uptimeText ?? "--")")
-                .font(.caption2)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundStyle(.secondary)
-                .monospacedDigit()
+
+            Spacer(minLength: 0)
 
             Text("Load \(snapshot?.loadAverageText ?? "--")")
-                .font(.caption2)
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundStyle(.secondary)
-                .monospacedDigit()
         }
-        .padding(.leading, 5)
     }
 
-    private func barColor(for value: Double?) -> Color {
+    private func formattedValue(for title: String, value: Double?) -> String {
+        guard let value else { return "--" }
+        if title == "Temp" {
+            return SystemMonitorFormatting.temperatureString(value)
+        }
+        return SystemMonitorFormatting.percentString(value)
+    }
+
+    private func barColor(for value: Double?, tint: Color?) -> Color {
+        if let tint {
+            return tint
+        }
+
         guard let value else { return Color.white.opacity(0.32) }
         return value >= 90 ? .red : .white
     }
 
-    private func tileMetric(symbol: String, label: String, value: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: symbol)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.72))
-                .frame(width: 12)
-
-            Text(label)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.56))
-
-            Spacer(minLength: 0)
-
-            Text(value)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
-                .monospacedDigit()
+    private func valueColor(for value: Double?, tint: Color?) -> Color {
+        if let tint {
+            return tint
         }
+
+        guard let value else { return .white.opacity(0.42) }
+        return value >= 90 ? .red : .white
     }
 }
 
@@ -219,6 +219,7 @@ private struct SystemMonitorWidgetPreviewHost: View {
                 cpuPercent: 27,
                 memoryPercent: 61,
                 diskPercent: 44,
+                temperatureCelsius: 56,
                 uptimeText: "3h 42m",
                 loadAverageText: "1.02 0.96 0.88"
             ).widgetValue,

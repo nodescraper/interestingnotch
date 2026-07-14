@@ -424,6 +424,7 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
+    @Default(.showCalendarAsSeparateTab) private var showCalendarAsSeparateTab
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -434,19 +435,23 @@ struct NotchHomeView: View {
             .transition(.opacity)
     }
 
+    private var shouldShowInlineCalendar: Bool {
+        Defaults[.showCalendar] && !showCalendarAsSeparateTab
+    }
+
     private var shouldShowCamera: Bool {
         Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
     }
 
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: (shouldShowCamera && shouldShowInlineCalendar) ? 10 : 15) {
             MusicPlayerView(
                 albumArtNamespace: albumArtNamespace,
                 horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
                 isHoveringMusicArea: $isHoveringMusicArea
             )
 
-            if Defaults[.showCalendar] {
+            if shouldShowInlineCalendar {
                 CalendarView()
                     .frame(width: shouldShowCamera ? 170 : 215)
                     .onHover { isHovering in
