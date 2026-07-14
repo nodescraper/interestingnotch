@@ -1,150 +1,182 @@
-<!-- ───────────────────────────  HERO  ─────────────────────────── -->
-<div align="center">
+<h1 align="center">
+  <br>
+  <a href="https://github.com/nodescraper/boringnotch-se"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="BoringNotch SE" width="150"></a>
+  <br>
+  BoringNotch SE
+  <br>
+</h1>
 
-# BoringNotch SE
+<p align="center">
+  A major fork of <a href="https://github.com/TheBoredTeam/boring.notch">TheBoredTeam/boring.notch</a> focused on expanding the notch into a richer widget surface.
+</p>
 
-### A playful macOS notch companion packed with widgets, media controls, and live utilities.
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&logoColor=white" alt="macOS 14+" />
+  <img src="https://img.shields.io/badge/Swift-SwiftUI-F97316?logo=swift&logoColor=white" alt="SwiftUI" />
+  <img src="https://img.shields.io/badge/fork-major%20product%20fork-0F766E" alt="Major fork" />
+  <img src="https://img.shields.io/badge/widgets-expanded-1D4ED8" alt="Expanded widgets" />
+  <img src="https://img.shields.io/badge/license-MIT-334155" alt="MIT License" />
+</p>
 
-Turn the MacBook notch into a useful little control surface for music, shelf tools, calendar, webcam, widgets, and system feedback.
-
-![macOS](https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&logoColor=white)
-![Swift](https://img.shields.io/badge/Swift-6-ready-F97316?logo=swift&logoColor=white)
-![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0F766E)
-![Sparkle](https://img.shields.io/badge/updates-Sparkle-1D4ED8)
-![License: MIT](https://img.shields.io/badge/license-MIT-334155)
-
-</div>
-
-> [!NOTE]
-> BoringNotch SE is a showcase-style macOS utility focused on turning the notch into something expressive and actually useful. It combines media controls, widgets, a shelf, calendar access, webcam utilities, and system overlays in one compact surface.
-
----
-
-## Contents
-
-- [What it is](#what-it-is)
-- [Features](#features)
-- [Built with](#built-with)
-- [Requirements](#requirements)
-- [Download](#download)
-- [Build from source](#build-from-source)
-- [Run in development](#run-in-development)
-- [Project layout](#project-layout)
-- [License](#license)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="BoringNotch demo" />
+</p>
 
 ---
 
-## What it is
+## BoringNotch SE
 
-BoringNotch SE is a macOS notch utility by `NodeScraper`. It treats the notch like a lightweight command surface instead of dead screen space, giving you quick access to ongoing activity, small tools, and glanceable system information without opening full apps.
+**BoringNotch SE** is a fork of the original **Boring Notch** project by **TheBoredTeam**.
 
-The project is built as a native SwiftUI desktop app and includes both user-facing notch interactions and lower-level macOS integrations for media, drag-and-drop shelf behavior, webcam access, system overlays, and background helper functionality.
+This repo keeps the spirit of the original app, but pushes much harder on the notch-as-a-widget-platform idea: dynamic widget tabs, a bundled widget library, a Workshop flow, and several new built-in utilities that make the notch feel more like a real desktop surface than a single-purpose overlay.
 
----
+If you are looking for the original project, go here:
 
-## Features
+- [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch)
 
-- **Widget tabs in the notch** for compact tools and quick interactions
-- **Workshop browser** for discovering, pinning, and managing widgets
-- **Shelf mode** for drag-and-drop temporary file holding and quick sharing
-- **Media controls** for playback, artwork, progress, and music-focused interactions
-- **Calendar integration** with inline and tab-based viewing modes
-- **System monitor widgets** for live hardware and system status
-- **Clipboard history widget** for quick paste workflows
-- **Accessory battery widget** for connected device visibility
-- **Color picker widget** built directly into the notch workflow
-- **Timer widget** for lightweight time tracking
-- **Custom OSD and live activity surfaces** for system feedback beyond the default macOS overlays
-- **Webcam and sharing integrations** for richer utility-style interactions
-- **Built-in updater support** with Sparkle and DMG packaging infrastructure
+If you want the fork with the expanded widget work and SE-specific changes, you are in the right place.
 
 ---
 
-## Built with
+## What This Fork Adds
 
-- **SwiftUI** for the main app interface and settings experience
-- **AppKit + native macOS APIs** for windowing, status behaviors, media hooks, and system interactions
-- **Sparkle** for app update delivery
-- **XPC helper services** for privileged or isolated macOS functionality
-- **Custom DMG tooling** for distribution-ready macOS releases
+This is not just a rename or packaging fork. The SE branch adds substantial product and engineering work on top of upstream, including:
 
----
+- **Dynamic widget-tab navigation** so the notch can host multiple utility surfaces cleanly
+- **Workshop browsing and pinning** to install, manage, and surface widgets inside the notch
+- **Bundled widget manifests and seeding** for built-in utilities
+- **Timer widget** for quick countdown workflows
+- **Clipboard history widget** for recent copy/paste access
+- **System monitor widget** for live CPU and system-state visibility
+- **Accessory battery widget** for connected-device battery reporting
+- **Color picker widget polish** with a more focused interaction model
+- **Paged tab behavior** for handling multiple pinned widgets without collapsing the UI
+- **Onboarding, settings, calendar, and notch-flow changes** to support the new widget model
+- **Widget extraction and rendering test coverage** expanded alongside the new functionality
 
-## Requirements
-
-- macOS 14 or later
-- Xcode 26 or later for development
-
-Some features may additionally rely on macOS permissions such as media access, calendar access, webcam access, or automation depending on which modules you use.
-
----
-
-## Download
-
-If you are publishing releases for the project, the repository already includes:
-
-- **Sparkle appcast support** under `updater/appcast.xml`
-- **DMG creation scripts** under `Configuration/dmg/`
-- **Updater settings UI** inside the app
-
-That means the project is structured to support polished downloadable `.dmg` releases instead of source-only distribution.
+In short: the original project made the notch fun. This fork pushes it toward a more modular and extensible productivity surface.
 
 ---
 
-## Build from source
+## SE Feature Highlights
+
+### Widget-first notch workflow
+
+The biggest shift in BoringNotch SE is that the notch is no longer just a media or shelf surface. It becomes a compact host for multiple pinned tools that you can swap between directly from the notch UI.
+
+### Built-in widgets included in this fork
+
+- **Color Picker**
+- **Timer**
+- **Clipboard History**
+- **System Monitor**
+- **Accessory Battery**
+
+### Workshop flow
+
+SE introduces a **Workshop** experience for browsing and pinning widgets, making the widget system feel like a real feature rather than a hardcoded experiment.
+
+### Better notch navigation
+
+Once multiple widgets are pinned, SE uses paging-aware notch tabs so the interface stays usable instead of turning into a cramped strip of icons.
+
+---
+
+## Upstream Features Preserved
+
+BoringNotch SE builds on top of the original project's strong base, including:
+
+- music controls and visualizer
+- calendar integration
+- shelf functionality
+- webcam and mirror-style utilities
+- system HUD replacements
+- menu bar settings and onboarding flows
+
+The goal here is not to erase upstream. It is to extend it.
+
+---
+
+## Why This Fork Exists
+
+The original project already had a strong personality and a fun UX direction. This fork exists to explore what happens when the notch becomes more composable, more widget-driven, and more useful day to day.
+
+That means the emphasis here is on:
+
+- more utility packed into the notch
+- cleaner switching between notch surfaces
+- more built-in tools
+- a stronger foundation for future widget-like expansion
+
+---
+
+## Building From Source
+
+### Requirements
+
+- macOS **14 Sonoma** or later
+- **Xcode 26** or later
+
+### Clone
 
 ```bash
 git clone https://github.com/nodescraper/boringnotch-se.git
 cd boringnotch-se
+```
+
+### Open in Xcode
+
+```bash
 open boringNotch.xcodeproj
 ```
 
-Terminal build:
+### Build from Terminal
 
 ```bash
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -destination 'generic/platform=macOS' build
 ```
 
----
-
-## Run in development
-
-Run from Xcode with `Cmd + R`, or open the built app bundle from Derived Data after a successful build.
-
-If an older instance is already running, relaunch the freshly built app explicitly:
+### Run a fresh development build
 
 ```bash
 pkill -x boringNotch
 open -n .derivedData/Build/Products/Debug/boringNotch.app
 ```
 
-To package a distributable DMG once the app has been built:
+---
 
-```bash
-./Configuration/dmg/create_dmg.sh /path/to/boringNotch.app boringNotch.dmg "BoringNotch SE"
-```
+## Project Areas Touched By SE
+
+The fork meaningfully expands work across the app, especially in:
+
+- `boringNotch/widgets/engine/`
+- `boringNotch/widgets/model/`
+- `boringNotch/widgets/ui/`
+- `boringNotch/widgets/ui/workshop/`
+- `boringNotch/components/Tabs/`
+- `boringNotch/components/Onboarding/`
+- `boringNotch/components/Calendar/`
+- `boringNotch/components/Notch/`
+- `boringNotchTests/`
+
+These changes are where most of the fork's added widget functionality, UI behavior, and integration work live.
 
 ---
 
-## Project layout
+## Credits
 
-```text
-boringNotch/
-├── components/         # Notch UI, settings, OSD, shelf, onboarding, music, webcam
-├── widgets/            # Widget engine, models, providers, UI, and workshop flows
-├── managers/           # Calendar, webcam, audio capture, music, notch-space coordination
-├── helpers/            # App utilities, media checks, AppleScript helpers, relaunch helpers
-├── observers/          # Media, drag, and fullscreen observation logic
-├── menu/               # Status/menu bar integration
-└── XPCHelperClient/    # Client side communication for helper functionality
+### Original project
 
-Configuration/dmg/
-├── create_dmg.sh       # Release DMG wrapper
-└── dmgbuild_settings.py
+Huge credit to **TheBoredTeam** for the original **Boring Notch** project and the foundation this fork builds on.
 
-updater/
-└── appcast.xml         # Sparkle update feed
-```
+- [Original repository](https://github.com/TheBoredTeam/boring.notch)
+
+### Notable upstream/open-source acknowledgments
+
+- **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** for enabling modern macOS now-playing integration
+- **[NotchDrop](https://github.com/Lakr233/NotchDrop)** for ideas that helped shape early shelf functionality
+
+For the full attribution set, see [THIRD_PARTY_LICENSES](./THIRD_PARTY_LICENSES).
 
 ---
 
