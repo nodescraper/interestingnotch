@@ -8,6 +8,7 @@
 import SwiftUI
 
 enum WidgetTabPageKind: Equatable {
+    case calendar
     case colorPicker
     case timer
     case clipboardHistory
@@ -18,6 +19,10 @@ enum WidgetTabPageKind: Equatable {
 
 enum WidgetTabPageResolver {
     static func pageKind(for widget: Widget) -> WidgetTabPageKind {
+        if widget.id == "calendar" {
+            return .calendar
+        }
+
         if widget.id == "system-monitor" {
             return .systemMonitor
         }
@@ -28,6 +33,8 @@ enum WidgetTabPageResolver {
 
         if widget.manifest.kind == .interactive {
             switch widget.manifest.interactive?.type {
+            case .calendar:
+                return .calendar
             case .colorPicker:
                 return .colorPicker
             case .timer:
@@ -53,6 +60,12 @@ struct WidgetTabPageView: View {
         Group {
             if let widget = engine.widgets.first(where: { $0.id == widgetID }) {
                 switch WidgetTabPageResolver.pageKind(for: widget) {
+                case .calendar:
+                    if let model = widget.interactiveRuntime as? CalendarWidgetModel {
+                        CalendarWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
                 case .colorPicker:
                     if let model = widget.interactiveRuntime as? ColorPickerWidgetModel {
                         ColorPickerWidgetPageView(widget: widget, model: model)

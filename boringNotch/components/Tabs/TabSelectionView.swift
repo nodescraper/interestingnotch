@@ -38,8 +38,6 @@ struct TabSelectionView: View {
     @ObservedObject var widgetEngine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) var pinnedWidgetIDs
     @Default(.boringShelf) var boringShelf
-    @Default(.showCalendar) var showCalendar
-    @Default(.showCalendarAsSeparateTab) var showCalendarAsSeparateTab
     @State private var widgetPageIndex = 0
     @Namespace var animation
 
@@ -56,10 +54,6 @@ struct TabSelectionView: View {
 
         if boringShelf {
             tabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
-        }
-
-        if showCalendar && showCalendarAsSeparateTab {
-            tabs.append(TabModel(label: "Calendar", icon: "calendar", view: .calendar))
         }
 
         let widgetTabs = WidgetTabResolver

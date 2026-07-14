@@ -131,6 +131,8 @@ private enum WidgetRuntimeResolver {
         }
 
         switch interactive.type {
+        case .calendar:
+            return CalendarWidgetModel(widgetID: manifest.id)
         case .colorPicker:
             return ColorPickerWidgetModel(widgetID: manifest.id)
         case .timer:

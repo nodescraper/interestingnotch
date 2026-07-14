@@ -39,6 +39,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
 
 struct WorkshopWindow: View {
     @State private var selectedSection: WorkshopSection = .browse
+    @State private var widgetsLoaded = false
 
     var body: some View {
         NavigationSplitView {
@@ -88,6 +89,11 @@ struct WorkshopWindow: View {
         .frame(width: 760, height: 560)
         .background(Color(NSColor.windowBackgroundColor))
         .tint(.effectiveAccent)
+        .task {
+            guard !widgetsLoaded else { return }
+            widgetsLoaded = true
+            WidgetLaunchLoader().loadWidgets()
+        }
     }
 
     @ViewBuilder

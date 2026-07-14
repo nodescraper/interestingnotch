@@ -15,19 +15,12 @@ struct CalendarSettings: View {
     @Default(.hideCompletedReminders) var hideCompletedReminders
     @Default(.hideAllDayEvents) var hideAllDayEvents
     @Default(.autoScrollToNextEvent) var autoScrollToNextEvent
-    @Default(.calendarWeekView) var calendarWeekView
-    @Default(.showCalendarAsSeparateTab) var showCalendarAsSeparateTab
-    @Default(.weekStartDay) var weekStartDay
 
     var body: some View {
         Form {
             Defaults.Toggle(key: .showCalendar) {
                 Text("Show calendar")
             }
-            Defaults.Toggle(key: .showCalendarAsSeparateTab) {
-                Text("Show calendar as separate tab")
-            }
-            .disabled(!showCalendar)
             Defaults.Toggle(key: .hideCompletedReminders) {
                 Text("Hide completed reminders")
             }
@@ -39,16 +32,6 @@ struct CalendarSettings: View {
             }
             Defaults.Toggle(key: .showFullEventTitles) {
                 Text("Always show full event titles")
-            }
-            Defaults.Toggle(key: .calendarWeekView) {
-                Text("Weekly view")
-            }
-            if calendarWeekView {
-                Picker("Week starts on", selection: $weekStartDay) {
-                    ForEach(WeekStartDay.allCases) { day in
-                        Text(day.localizedString).tag(day)
-                    }
-                }
             }
             Section(header: Text("Calendars")) {
                 if calendarManager.calendarAuthorizationStatus != .fullAccess {

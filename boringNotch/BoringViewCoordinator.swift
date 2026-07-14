@@ -235,10 +235,50 @@ class BoringViewCoordinator: ObservableObject {
     // Default duration
     private var defaultSneakPeekDuration: TimeInterval = 1.5
 
+    private func isDisabledWidgetSneakPeek(_ type: SneakContentType) -> Bool {
+        switch type {
+        case .timer, .systemMonitor, .accessoryBattery:
+            return true
+        default:
+            return false
+        }
+    }
+
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
         icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
     ) {
+        if isDisabledWidgetSneakPeek(type) {
+            Task { @MainActor in
+                @MainActor
+                func hideState(for uuid: String) {
+                    var state = self.sneakPeekStates[uuid] ?? sneakPeek(targetScreenUUID: uuid)
+                    withAnimation(.smooth) {
+                        state.show = false
+                        state.type = type
+                        state.targetScreenUUID = uuid
+                        self.sneakPeekStates[uuid] = state
+                    }
+                    self.sneakPeekTasks[uuid]?.cancel()
+                    self.sneakPeekTasks[uuid] = nil
+                }
+
+                if let targetUUID = targetScreenUUID {
+                    hideState(for: targetUUID)
+                } else {
+                    let screens = NSScreen.screens.compactMap { $0.displayUUID }
+                    if screens.isEmpty, let mainUUID = NSScreen.main?.displayUUID {
+                        hideState(for: mainUUID)
+                    } else {
+                        for uuid in screens {
+                            hideState(for: uuid)
+                        }
+                    }
+                }
+            }
+            return
+        }
+
         if type != .music {
             // close()
             if !Defaults[.osdReplacement] {

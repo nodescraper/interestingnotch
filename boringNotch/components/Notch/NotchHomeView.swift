@@ -424,7 +424,6 @@ struct NotchHomeView: View {
     @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
-    @Default(.showCalendarAsSeparateTab) private var showCalendarAsSeparateTab
     let albumArtNamespace: Namespace.ID
     let horizontalMediaGestureFeedback: CGFloat
     @Binding var isHoveringMusicArea: Bool
@@ -436,7 +435,7 @@ struct NotchHomeView: View {
     }
 
     private var shouldShowInlineCalendar: Bool {
-        Defaults[.showCalendar] && !showCalendarAsSeparateTab
+        Defaults[.showCalendar]
     }
 
     private var shouldShowCamera: Bool {
@@ -469,7 +468,6 @@ struct NotchHomeView: View {
                     .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
-        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))
         .blur(radius: vm.notchState == .closed ? 30 : 0)
     }
 }

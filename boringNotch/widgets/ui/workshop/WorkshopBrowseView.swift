@@ -79,6 +79,8 @@ struct WorkshopBrowseView: View {
 enum WorkshopWidgetCatalog {
     static func description(for widget: Widget) -> String {
         switch widget.id {
+        case "calendar":
+            return "Pin the full calendar as its own notch tab while keeping the compact inline calendar separate."
         case "color-picker":
             return "Pick colors anywhere on screen, copy values, and keep a quick recent history."
         case "timer":

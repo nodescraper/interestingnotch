@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-  A major fork of <a href="https://github.com/TheBoredTeam/boring.notch">TheBoredTeam/boring.notch</a> focused on expanding the notch into a richer widget surface.
+  A major fork of <a href="https://github.com/TheBoredTeam/boring.notch">TheBoredTeam/boring.notch</a>, maintained by <a href="https://github.com/nodescraper">nodescraper</a> and focused on expanding the notch into a richer widget surface.
 </p>
 
 <p align="center">
@@ -26,7 +26,9 @@
 
 ## BoringNotch SE
 
-**BoringNotch SE** is a fork of the original **Boring Notch** project by **TheBoredTeam**.
+**BoringNotch SE** is the nodescraper-maintained release fork of the original **Boring Notch** project by **TheBoredTeam**.
+
+The first stable SE release is **v2.8.0**. It brings the expanded widget system, Workshop flow, and the SE onboarding and navigation work together in one release line.
 
 This repo keeps the spirit of the original app, but pushes much harder on the notch-as-a-widget-platform idea: dynamic widget tabs, a bundled widget library, a Workshop flow, and several new built-in utilities that make the notch feel more like a real desktop surface than a single-purpose overlay.
 
@@ -35,6 +37,22 @@ If you are looking for the original project, go here:
 - [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch)
 
 If you want the fork with the expanded widget work and SE-specific changes, you are in the right place.
+
+Release downloads are published on the [BoringNotch SE releases page](https://github.com/nodescraper/boringnotch-se/releases).
+
+---
+
+## Release 0.1
+
+The first BoringNotch SE release packages the widget-platform foundation and the current notch UI work:
+
+- widget library, manifests, pinning, and Workshop browsing
+- Timer, Clipboard History, System Monitor, Accessory Battery, Color Picker, and Calendar widgets
+- full-tab calendar experience with calendar data/model support
+- improved tab transitions and compact timer/music notch states
+- refined notch, shelf, onboarding, settings, and widget-page behavior
+
+This release is focused on establishing the SE architecture and making the expanded widget workflow usable as a daily desktop surface.
 
 ---
 
@@ -136,6 +154,15 @@ open boringNotch.xcodeproj
 xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -destination 'generic/platform=macOS' build
 ```
 
+### Release build
+
+The stable release line is maintained on `main`. The `dev` branch is used for ongoing work before it is promoted into a release.
+
+```bash
+git checkout main
+xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Release -destination 'generic/platform=macOS' build
+```
+
 ### Run a fresh development build
 
 ```bash
@@ -164,6 +191,10 @@ These changes are where most of the fork's added widget functionality, UI behavi
 ---
 
 ## Credits
+
+### Fork maintainer
+
+**nodescraper** maintains BoringNotch SE and the expanded widget release line.
 
 ### Original project
 

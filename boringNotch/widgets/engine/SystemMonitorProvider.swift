@@ -61,6 +61,10 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
     let temperatureCelsius: Double?
     let uptimeText: String
     let loadAverageText: String
+    /// Combined network throughput (download + upload) in bytes/sec.
+    let networkBytesPerSec: Double
+    /// Rolling peak used to scale the network ring.
+    let networkPeakBytesPerSec: Double
 
     var cpuDisplay: String {
         SystemMonitorFormatting.percentString(cpuPercent)
@@ -76,6 +80,11 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
 
     var temperatureDisplay: String? {
         temperatureCelsius.map(SystemMonitorFormatting.temperatureString)
+    }
+
+    /// Human network rate, e.g. "1.2 MB/s".
+    var networkDisplay: String {
+        SystemMonitorFormatting.rateString(networkBytesPerSec)
     }
 
     func displayValue(for metric: SystemMonitorSneakPeekMetric) -> String {
@@ -105,6 +114,11 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
             ]),
             "uptime": .string(uptimeText),
             "loadAverage": .string(loadAverageText),
+            "network": .object([
+                "bytesPerSec": .double(networkBytesPerSec),
+                "peakBytesPerSec": .double(networkPeakBytesPerSec),
+                "display": .string(networkDisplay),
+            ]),
         ]
 
         if let diskPercent {
@@ -130,7 +144,9 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         diskPercent: Double?,
         temperatureCelsius: Double? = nil,
         uptimeText: String,
-        loadAverageText: String
+        loadAverageText: String,
+        networkBytesPerSec: Double = 0,
+        networkPeakBytesPerSec: Double = 1
     ) {
         self.cpuPercent = cpuPercent
         self.memoryPercent = memoryPercent
@@ -138,6 +154,8 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         self.temperatureCelsius = temperatureCelsius
         self.uptimeText = uptimeText
         self.loadAverageText = loadAverageText
+        self.networkBytesPerSec = networkBytesPerSec
+        self.networkPeakBytesPerSec = networkPeakBytesPerSec
     }
 
     init?(widgetValue: WidgetValue?) {
@@ -157,6 +175,22 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         self.temperatureCelsius = Self.temperature(in: root)
         self.uptimeText = uptime
         self.loadAverageText = loadAverage
+
+        if case .object(let net)? = root["network"] {
+            self.networkBytesPerSec = Self.double(net["bytesPerSec"]) ?? 0
+            self.networkPeakBytesPerSec = Self.double(net["peakBytesPerSec"]) ?? 1
+        } else {
+            self.networkBytesPerSec = 0
+            self.networkPeakBytesPerSec = 1
+        }
+    }
+
+    private static func double(_ value: WidgetValue?) -> Double? {
+        switch value {
+        case .double(let v): return v
+        case .integer(let v): return Double(v)
+        default: return nil
+        }
     }
 
     private static func percent(for key: String, in root: [String: WidgetValue]) -> Double? {
@@ -207,6 +241,24 @@ enum SystemMonitorFormatting {
     static func loadAverageString(_ values: [Double]) -> String {
         values.map { String(format: "%.2f", $0) }.joined(separator: " ")
     }
+
+    /// Human speed, e.g. "1.2 MB/s".
+    static func rateString(_ bytesPerSec: Double) -> String {
+        byteString(UInt64(max(bytesPerSec, 0))) + "/s"
+    }
+
+    /// Human byte size, e.g. "3.4 GB".
+    static func byteString(_ bytes: UInt64) -> String {
+        let units = ["B", "KB", "MB", "GB", "TB"]
+        var value = Double(bytes)
+        var unit = 0
+        while value >= 1024 && unit < units.count - 1 {
+            value /= 1024
+            unit += 1
+        }
+        if unit == 0 { return "\(Int(value)) \(units[unit])" }
+        return String(format: "%.1f %@", value, units[unit])
+    }
 }
 
 actor SystemMonitorProvider: FrameworkDataProviding {
@@ -216,6 +268,11 @@ actor SystemMonitorProvider: FrameworkDataProviding {
 
     private var previousCPUSample: SystemMonitorCPUCounters?
 
+    // Network sampling state.
+    private var previousNetSample: (received: UInt64, sent: UInt64, timestamp: TimeInterval)?
+    private var networkRollingPeak: Double = 1
+    private let networkPeakDecay: Double = 0.9
+
     func fetch() async throws -> WidgetValue {
         let cpuCounters = try readCPUCounters()
         let memory = try readMemorySample()
@@ -223,16 +280,66 @@ actor SystemMonitorProvider: FrameworkDataProviding {
         let cpuPercent = min(max(cpuCounters.usagePercent(since: previousCPUSample), 0), 100)
         previousCPUSample = cpuCounters
 
+        let netRate = readNetworkRate()
+
         let snapshot = SystemMonitorSnapshot(
             cpuPercent: cpuPercent,
             memoryPercent: min(max(memory.percentUsed, 0), 100),
             diskPercent: disk.map { min(max($0.percentUsed, 0), 100) },
             temperatureCelsius: readTemperatureCelsius(),
             uptimeText: SystemMonitorFormatting.uptimeString(from: ProcessInfo.processInfo.systemUptime),
-            loadAverageText: SystemMonitorFormatting.loadAverageString(readLoadAverages())
+            loadAverageText: SystemMonitorFormatting.loadAverageString(readLoadAverages()),
+            networkBytesPerSec: netRate,
+            networkPeakBytesPerSec: networkRollingPeak
         )
 
         return snapshot.widgetValue
+    }
+
+    /// Combined down+up bytes/sec across active non-loopback interfaces, plus
+    /// updates the rolling peak used to scale the ring.
+    private func readNetworkRate() -> Double {
+        guard let counters = readNetworkCounters() else { return 0 }
+        let now = ProcessInfo.processInfo.systemUptime
+
+        defer {
+            previousNetSample = (counters.received, counters.sent, now)
+        }
+
+        guard let previous = previousNetSample else { return 0 }
+        let dt = max(now - previous.timestamp, 0.001)
+        let down = Double(counters.received &- previous.received) / dt
+        let up = Double(counters.sent &- previous.sent) / dt
+        let combined = max(down, 0) + max(up, 0)
+
+        networkRollingPeak = max(networkRollingPeak * networkPeakDecay, combined, 1)
+        return combined
+    }
+
+    private func readNetworkCounters() -> (received: UInt64, sent: UInt64)? {
+        var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return nil }
+        defer { freeifaddrs(ifaddrPtr) }
+
+        var totalReceived: UInt64 = 0
+        var totalSent: UInt64 = 0
+
+        var ptr: UnsafeMutablePointer<ifaddrs>? = first
+        while let current = ptr {
+            defer { ptr = current.pointee.ifa_next }
+            let flags = Int32(current.pointee.ifa_flags)
+            guard (flags & IFF_UP) == IFF_UP,
+                  (flags & IFF_RUNNING) == IFF_RUNNING,
+                  (flags & IFF_LOOPBACK) == 0 else { continue }
+            guard let addr = current.pointee.ifa_addr,
+                  addr.pointee.sa_family == UInt8(AF_LINK),
+                  let dataPtr = current.pointee.ifa_data else { continue }
+            let networkData = dataPtr.assumingMemoryBound(to: if_data.self)
+            totalReceived += UInt64(networkData.pointee.ifi_ibytes)
+            totalSent += UInt64(networkData.pointee.ifi_obytes)
+        }
+
+        return (totalReceived, totalSent)
     }
 
     private func readCPUCounters() throws -> SystemMonitorCPUCounters {

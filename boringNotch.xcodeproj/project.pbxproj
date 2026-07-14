@@ -64,40 +64,42 @@
 		11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0013A00000100000001 /* WidgetManifest.swift */; };
 		11A0D0053A00000100000001 /* WidgetValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0023A00000100000001 /* WidgetValue.swift */; };
 		11A0D0063A00000100000001 /* ColorToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0033A00000100000001 /* ColorToken.swift */; };
-		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
-		11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0513A00000100000001 /* TimerWidgetModel.swift */; };
-		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
-		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
-		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
-		11A0D0803A00000100000001 /* AccessoryBatteryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */; };
-		11A0D0823A00000100000001 /* AccessoryBatteryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */; };
-		11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */; };
 		11A0D00A3A00000100000001 /* Extractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0093A00000100000001 /* Extractor.swift */; };
+		11A0D00F3A00000100000001 /* WidgetExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */; };
+		11A0D0113A00000100000001 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A0D0103A00000100000001 /* XCTest.framework */; };
 		11A0D01D3A00000100000001 /* ChannelExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01C3A00000100000001 /* ChannelExecutor.swift */; };
 		11A0D01F3A00000100000001 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D01E3A00000100000001 /* Widget.swift */; };
 		11A0D0213A00000100000001 /* WidgetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0203A00000100000001 /* WidgetEngine.swift */; };
 		11A0D0233A00000100000001 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0223A00000100000001 /* WidgetStore.swift */; };
-		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
-		11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0383A00000100000001 /* WidgetGridView.swift */; };
+		11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */; };
+		11A0D02A3A00000100000001 /* WidgetTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0293A00000100000001 /* WidgetTemplateCard.swift */; };
+		11A0D02C3A00000100000001 /* IconLabelTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02B3A00000100000001 /* IconLabelTemplate.swift */; };
+		11A0D02E3A00000100000001 /* ProgressTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02D3A00000100000001 /* ProgressTemplate.swift */; };
 		11A0D0313A00000100000001 /* WidgetCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0303A00000100000001 /* WidgetCardView.swift */; };
-		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
-		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
-		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
-		11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */; };
 		11A0D0333A00000100000001 /* WidgetsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0323A00000100000001 /* WidgetsPageView.swift */; };
 		11A0D0353A00000100000001 /* WidgetTabResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0343A00000100000001 /* WidgetTabResolver.swift */; };
 		11A0D0373A00000100000001 /* WidgetTabPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0363A00000100000001 /* WidgetTabPageView.swift */; };
+		11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0383A00000100000001 /* WidgetGridView.swift */; };
 		11A0D03E3A00000100000001 /* WorkshopWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D03D3A00000100000001 /* WorkshopWindow.swift */; };
 		11A0D0403A00000100000001 /* WorkshopWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D03F3A00000100000001 /* WorkshopWindowController.swift */; };
 		11A0D0423A00000100000001 /* WorkshopBrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0413A00000100000001 /* WorkshopBrowseView.swift */; };
 		11A0D0443A00000100000001 /* WidgetPinStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0433A00000100000001 /* WidgetPinStore.swift */; };
 		11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */; };
+		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
+		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
+		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
+		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0503A00000100000001 /* WorkshopInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */; };
-		11A0D02A3A00000100000001 /* WidgetTemplateCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0293A00000100000001 /* WidgetTemplateCard.swift */; };
-		11A0D02C3A00000100000001 /* IconLabelTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02B3A00000100000001 /* IconLabelTemplate.swift */; };
-		11A0D02E3A00000100000001 /* ProgressTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D02D3A00000100000001 /* ProgressTemplate.swift */; };
-		11A0D00F3A00000100000001 /* WidgetExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */; };
-		11A0D0113A00000100000001 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A0D0103A00000100000001 /* XCTest.framework */; };
+		11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0513A00000100000001 /* TimerWidgetModel.swift */; };
+		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
+		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
+		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
+		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
+		11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */; };
+		11A0D0803A00000100000001 /* AccessoryBatteryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */; };
+		11A0D0823A00000100000001 /* AccessoryBatteryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */; };
+		11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */; };
+		11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0853A00000100000001 /* CalendarWidgetModel.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
@@ -165,6 +167,7 @@
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
 		59D8C23C2E589FAA00147B33 /* VolumeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D8C23B2E589FAA00147B33 /* VolumeManager.swift */; };
 		64FA50FB2F4D6F9E00008A28 /* WebcamSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */; };
+		768D37C2300682F800175C3F /* NetworkMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768D37C1300682F800175C3F /* NetworkMonitorProvider.swift */; };
 		9A0887322C7A693000C160EA /* TabButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887312C7A693000C160EA /* TabButton.swift */; };
 		9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */; };
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
@@ -198,19 +201,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		11F748592EC9AABA00F841DB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 14CEF40A2C5CAED200855D72 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 11F7484E2EC9AABA00F841DB;
-			remoteInfo = BoringNotchXPCHelper;
-		};
 		11A0D0193A00000100000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 14CEF40A2C5CAED200855D72 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 14CEF4112C5CAED300855D72;
 			remoteInfo = boringNotch;
+		};
+		11F748592EC9AABA00F841DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 14CEF40A2C5CAED200855D72 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 11F7484E2EC9AABA00F841DB;
+			remoteInfo = BoringNotchXPCHelper;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -291,41 +294,43 @@
 		11A0D0013A00000100000001 /* WidgetManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetManifest.swift; sourceTree = "<group>"; };
 		11A0D0023A00000100000001 /* WidgetValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetValue.swift; sourceTree = "<group>"; };
 		11A0D0033A00000100000001 /* ColorToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorToken.swift; sourceTree = "<group>"; };
-		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
-		11A0D0513A00000100000001 /* TimerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetModel.swift; sourceTree = "<group>"; };
-		11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetModel.swift; sourceTree = "<group>"; };
-		11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSlotRenderer.swift; sourceTree = "<group>"; };
 		11A0D0093A00000100000001 /* Extractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extractor.swift; sourceTree = "<group>"; };
+		11A0D00D3A00000100000001 /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetExtractorTests.swift; sourceTree = "<group>"; };
+		11A0D0103A00000100000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		11A0D01C3A00000100000001 /* ChannelExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelExecutor.swift; sourceTree = "<group>"; };
 		11A0D01E3A00000100000001 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
 		11A0D0203A00000100000001 /* WidgetEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetEngine.swift; sourceTree = "<group>"; };
 		11A0D0223A00000100000001 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
-		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
-		11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorProvider.swift; sourceTree = "<group>"; };
-		11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryProvider.swift; sourceTree = "<group>"; };
-		11A0D0383A00000100000001 /* WidgetGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridView.swift; sourceTree = "<group>"; };
+		11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSlotRenderer.swift; sourceTree = "<group>"; };
+		11A0D0293A00000100000001 /* WidgetTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTemplateCard.swift; sourceTree = "<group>"; };
+		11A0D02B3A00000100000001 /* IconLabelTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconLabelTemplate.swift; sourceTree = "<group>"; };
+		11A0D02D3A00000100000001 /* ProgressTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressTemplate.swift; sourceTree = "<group>"; };
 		11A0D0303A00000100000001 /* WidgetCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetCardView.swift; sourceTree = "<group>"; };
-		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
-		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
-		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
-		11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetPageView.swift; sourceTree = "<group>"; };
-		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
-		11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0323A00000100000001 /* WidgetsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetsPageView.swift; sourceTree = "<group>"; };
 		11A0D0343A00000100000001 /* WidgetTabResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabResolver.swift; sourceTree = "<group>"; };
 		11A0D0363A00000100000001 /* WidgetTabPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTabPageView.swift; sourceTree = "<group>"; };
+		11A0D0383A00000100000001 /* WidgetGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetGridView.swift; sourceTree = "<group>"; };
 		11A0D03D3A00000100000001 /* WorkshopWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopWindow.swift; sourceTree = "<group>"; };
 		11A0D03F3A00000100000001 /* WorkshopWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopWindowController.swift; sourceTree = "<group>"; };
 		11A0D0413A00000100000001 /* WorkshopBrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopBrowseView.swift; sourceTree = "<group>"; };
 		11A0D0433A00000100000001 /* WidgetPinStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetPinStore.swift; sourceTree = "<group>"; };
 		11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLaunchLoader.swift; sourceTree = "<group>"; };
+		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
+		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
+		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
+		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopInstalledView.swift; sourceTree = "<group>"; };
-		11A0D0293A00000100000001 /* WidgetTemplateCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTemplateCard.swift; sourceTree = "<group>"; };
-		11A0D02B3A00000100000001 /* IconLabelTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconLabelTemplate.swift; sourceTree = "<group>"; };
-		11A0D02D3A00000100000001 /* ProgressTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressTemplate.swift; sourceTree = "<group>"; };
-		11A0D00D3A00000100000001 /* boringNotchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = boringNotchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetExtractorTests.swift; sourceTree = "<group>"; };
-		11A0D0103A00000100000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		11A0D0513A00000100000001 /* TimerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetModel.swift; sourceTree = "<group>"; };
+		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorProvider.swift; sourceTree = "<group>"; };
+		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetModel.swift; sourceTree = "<group>"; };
+		11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryProvider.swift; sourceTree = "<group>"; };
+		11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryBatteryWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D0853A00000100000001 /* CalendarWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetModel.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -394,6 +399,7 @@
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
 		64FA50FA2F4D6F9E00008A28 /* WebcamSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamSettingsView.swift; sourceTree = "<group>"; };
+		768D37C1300682F800175C3F /* NetworkMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorProvider.swift; sourceTree = "<group>"; };
 		9A0887312C7A693000C160EA /* TabButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabButton.swift; sourceTree = "<group>"; };
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
@@ -612,6 +618,99 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		11A0D0073A00000100000001 /* widgets */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0083A00000100000001 /* model */,
+				11A0D00B3A00000100000001 /* engine */,
+				11A0D0263A00000100000001 /* ui */,
+			);
+			path = widgets;
+			sourceTree = "<group>";
+		};
+		11A0D0083A00000100000001 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0013A00000100000001 /* WidgetManifest.swift */,
+				11A0D0023A00000100000001 /* WidgetValue.swift */,
+				11A0D0033A00000100000001 /* ColorToken.swift */,
+				11A0D0853A00000100000001 /* CalendarWidgetModel.swift */,
+				11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */,
+				11A0D0513A00000100000001 /* TimerWidgetModel.swift */,
+				11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		11A0D00B3A00000100000001 /* engine */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */,
+				11A0D01C3A00000100000001 /* ChannelExecutor.swift */,
+				11A0D0093A00000100000001 /* Extractor.swift */,
+				11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */,
+				11A0D01E3A00000100000001 /* Widget.swift */,
+				11A0D0203A00000100000001 /* WidgetEngine.swift */,
+				11A0D0493A00000100000001 /* WidgetLibrary.swift */,
+				11A0D0223A00000100000001 /* WidgetStore.swift */,
+				768D37C1300682F800175C3F /* NetworkMonitorProvider.swift */,
+			);
+			path = engine;
+			sourceTree = "<group>";
+		};
+		11A0D00C3A00000100000001 /* boringNotchTests */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */,
+			);
+			path = boringNotchTests;
+			sourceTree = "<group>";
+		};
+		11A0D0263A00000100000001 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */,
+				11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */,
+				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
+				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
+				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
+				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
+				11A0D04B3A00000100000001 /* ScreenColorPicker.swift */,
+				11A0D0383A00000100000001 /* WidgetGridView.swift */,
+				11A0D0303A00000100000001 /* WidgetCardView.swift */,
+				11A0D0363A00000100000001 /* WidgetTabPageView.swift */,
+				11A0D0343A00000100000001 /* WidgetTabResolver.swift */,
+				11A0D0323A00000100000001 /* WidgetsPageView.swift */,
+				11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */,
+				11A0D0273A00000100000001 /* templates */,
+				11A0D03A3A00000100000001 /* workshop */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+		11A0D0273A00000100000001 /* templates */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D02B3A00000100000001 /* IconLabelTemplate.swift */,
+				11A0D02D3A00000100000001 /* ProgressTemplate.swift */,
+				11A0D0293A00000100000001 /* WidgetTemplateCard.swift */,
+			);
+			path = templates;
+			sourceTree = "<group>";
+		};
+		11A0D03A3A00000100000001 /* workshop */ = {
+			isa = PBXGroup;
+			children = (
+				11A0D0413A00000100000001 /* WorkshopBrowseView.swift */,
+				11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */,
+				11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */,
+				11A0D0433A00000100000001 /* WidgetPinStore.swift */,
+				11A0D03D3A00000100000001 /* WorkshopWindow.swift */,
+				11A0D03F3A00000100000001 /* WorkshopWindowController.swift */,
+			);
+			path = workshop;
+			sourceTree = "<group>";
+		};
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -826,96 +925,6 @@
 				1153BD902D986DB300979FB0 /* PlaybackState.swift */,
 			);
 			path = models;
-			sourceTree = "<group>";
-		};
-		11A0D0073A00000100000001 /* widgets */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D0083A00000100000001 /* model */,
-				11A0D00B3A00000100000001 /* engine */,
-				11A0D0263A00000100000001 /* ui */,
-			);
-			path = widgets;
-			sourceTree = "<group>";
-		};
-		11A0D0083A00000100000001 /* model */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D0013A00000100000001 /* WidgetManifest.swift */,
-				11A0D0023A00000100000001 /* WidgetValue.swift */,
-				11A0D0033A00000100000001 /* ColorToken.swift */,
-				11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */,
-				11A0D0513A00000100000001 /* TimerWidgetModel.swift */,
-				11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */,
-			);
-			path = model;
-			sourceTree = "<group>";
-		};
-		11A0D00B3A00000100000001 /* engine */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D07F3A00000100000001 /* AccessoryBatteryProvider.swift */,
-				11A0D01C3A00000100000001 /* ChannelExecutor.swift */,
-				11A0D0093A00000100000001 /* Extractor.swift */,
-				11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */,
-				11A0D01E3A00000100000001 /* Widget.swift */,
-				11A0D0203A00000100000001 /* WidgetEngine.swift */,
-				11A0D0493A00000100000001 /* WidgetLibrary.swift */,
-				11A0D0223A00000100000001 /* WidgetStore.swift */,
-			);
-			path = engine;
-			sourceTree = "<group>";
-		};
-		11A0D0263A00000100000001 /* ui */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D0813A00000100000001 /* AccessoryBatteryWidgetPageView.swift */,
-				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
-				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
-				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
-				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
-				11A0D04B3A00000100000001 /* ScreenColorPicker.swift */,
-				11A0D0383A00000100000001 /* WidgetGridView.swift */,
-				11A0D0303A00000100000001 /* WidgetCardView.swift */,
-				11A0D0363A00000100000001 /* WidgetTabPageView.swift */,
-				11A0D0343A00000100000001 /* WidgetTabResolver.swift */,
-				11A0D0323A00000100000001 /* WidgetsPageView.swift */,
-				11A0D0243A00000100000001 /* WidgetSlotRenderer.swift */,
-				11A0D0273A00000100000001 /* templates */,
-				11A0D03A3A00000100000001 /* workshop */,
-			);
-			path = ui;
-			sourceTree = "<group>";
-		};
-		11A0D03A3A00000100000001 /* workshop */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D0413A00000100000001 /* WorkshopBrowseView.swift */,
-				11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */,
-				11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */,
-				11A0D0433A00000100000001 /* WidgetPinStore.swift */,
-				11A0D03D3A00000100000001 /* WorkshopWindow.swift */,
-				11A0D03F3A00000100000001 /* WorkshopWindowController.swift */,
-			);
-			path = workshop;
-			sourceTree = "<group>";
-		};
-		11A0D0273A00000100000001 /* templates */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D02B3A00000100000001 /* IconLabelTemplate.swift */,
-				11A0D02D3A00000100000001 /* ProgressTemplate.swift */,
-				11A0D0293A00000100000001 /* WidgetTemplateCard.swift */,
-			);
-			path = templates;
-			sourceTree = "<group>";
-		};
-		11A0D00C3A00000100000001 /* boringNotchTests */ = {
-			isa = PBXGroup;
-			children = (
-				11A0D00E3A00000100000001 /* WidgetExtractorTests.swift */,
-			);
-			path = boringNotchTests;
 			sourceTree = "<group>";
 		};
 		9A0887332C7AFF7E00C160EA /* Tabs */ = {
@@ -1322,6 +1331,7 @@
 				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
 				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
+				11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */,
 				11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */,
 				11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */,
 				11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */,
@@ -1336,8 +1346,10 @@
 				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
 				11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */,
 				11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */,
+				768D37C2300682F800175C3F /* NetworkMonitorProvider.swift in Sources */,
 				11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */,
 				11A0D0823A00000100000001 /* AccessoryBatteryWidgetPageView.swift in Sources */,
+				11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */,
 				11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */,
 				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,
 				11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */,
@@ -1461,14 +1473,14 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 272;
+				CURRENT_PROJECT_VERSION = 280;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "BoringNotch SE Helper";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = "2.8-beta.0";
+				MARKETING_VERSION = "0.1";
 				PRODUCT_BUNDLE_IDENTIFIER = com.nodescraper.boringnotchse.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1486,14 +1498,14 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 272;
+				CURRENT_PROJECT_VERSION = 280;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BoringNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "BoringNotch SE Helper";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = "2.8-beta.0";
+				MARKETING_VERSION = "0.1";
 				PRODUCT_BUNDLE_IDENTIFIER = com.nodescraper.boringnotchse.BoringNotchXPCHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -1641,7 +1653,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 272;
+				CURRENT_PROJECT_VERSION = 280;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1674,7 +1686,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = "2.8-beta.0";
+				MARKETING_VERSION = "0.1";
 				PRODUCT_BUNDLE_IDENTIFIER = com.nodescraper.boringnotchse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1708,7 +1720,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 272;
+				CURRENT_PROJECT_VERSION = 280;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"boringNotch/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -1740,7 +1752,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = "2.8-beta.0";
+				MARKETING_VERSION = "0.1";
 				PRODUCT_BUNDLE_IDENTIFIER = com.nodescraper.boringnotchse;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
