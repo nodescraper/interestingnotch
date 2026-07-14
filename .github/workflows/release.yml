@@ -9,6 +9,7 @@ concurrency:
 
 env:
   PROJECT_NAME: boringNotch
+  RELEASE_REPOSITORY: nodescraper/boringnotch-se
   BETA_CHANNEL_NAME: beta
   RELEASE_COMMAND: /release
   CODE_SIGN_IDENTITY: "Apple Development"
@@ -348,8 +349,8 @@ jobs:
           fi
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
             --ed-key-file - \
-            --link "https://github.com/TheBoredTeam/boring.notch/releases" \
-            --download-url-prefix "https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/" \
+            --link "https://github.com/${{ env.RELEASE_REPOSITORY }}/releases" \
+            --download-url-prefix "https://github.com/${{ env.RELEASE_REPOSITORY }}/releases/download/v${VERSION}/" \
             --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
             -o updater/appcast.xml \
@@ -401,7 +402,7 @@ jobs:
       - name: Generate cask files
         run: |
           set -euo pipefail
-          DMG_URL="https://github.com/TheBoredTeam/boring.notch/releases/download/v${VERSION}/boringNotch.dmg"
+          DMG_URL="https://github.com/${{ env.RELEASE_REPOSITORY }}/releases/download/v${VERSION}/boringNotch.dmg"
 
           # Retry SHA calculation (release may need a moment to propagate)
           for attempt in 1 2 3; do
@@ -419,7 +420,7 @@ jobs:
             url "${DMG_URL}"
             name "${DISPLAY_NAME}"
             desc "${DESC}"
-            homepage "https://github.com/TheBoredTeam/boring.notch"
+            homepage "https://github.com/${{ env.RELEASE_REPOSITORY }}"
             livecheck do
               url :url
               strategy :github_latest
@@ -434,11 +435,11 @@ jobs:
               system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", app_path]
             end
 
-            uninstall quit: "theboringteam.boringnotch"
+            uninstall quit: "com.nodescraper.boringnotchse"
 
             zap trash: [
-              "~/Library/Application Scripts/theboringteam.boringnotch/",
-              "~/Library/Containers/theboringteam.boringnotch/",
+              "~/Library/Application Scripts/com.nodescraper.boringnotchse/",
+              "~/Library/Containers/com.nodescraper.boringnotchse/",
             ]
           end
           CASK
