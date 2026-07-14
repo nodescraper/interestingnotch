@@ -1,8 +1,8 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/nodescraper/boringnotch-se"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="BoringNotch SE" width="150"></a>
+  <a href="https://github.com/nodescraper/interestingnotch"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="InterestingNotch" width="150"></a>
   <br>
-  BoringNotch SE
+  InterestingNotch
   <br>
 </h1>
 
@@ -19,14 +19,14 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="BoringNotch demo" />
+  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="InterestingNotch demo" />
 </p>
 
 ---
 
-## BoringNotch SE
+## InterestingNotch
 
-**BoringNotch SE** is the nodescraper-maintained release fork of the original **Boring Notch** project by **TheBoredTeam**.
+**InterestingNotch** is the nodescraper-maintained release fork of the original **Interesting Notch** project by **TheBoredTeam**.
 
 The first stable SE release is **v2.8.0**. It brings the expanded widget system, Workshop flow, and the SE onboarding and navigation work together in one release line.
 
@@ -38,13 +38,13 @@ If you are looking for the original project, go here:
 
 If you want the fork with the expanded widget work and SE-specific changes, you are in the right place.
 
-Release downloads are published on the [BoringNotch SE releases page](https://github.com/nodescraper/boringnotch-se/releases).
+Release downloads are published on the [InterestingNotch releases page](https://github.com/nodescraper/interestingnotch/releases).
 
 ---
 
 ## Release 0.1
 
-The first BoringNotch SE release packages the widget-platform foundation and the current notch UI work:
+The first InterestingNotch release packages the widget-platform foundation and the current notch UI work:
 
 - widget library, manifests, pinning, and Workshop browsing
 - Timer, Clipboard History, System Monitor, Accessory Battery, Color Picker, and Calendar widgets
@@ -80,7 +80,7 @@ In short: the original project made the notch fun. This fork pushes it toward a 
 
 ### Widget-first notch workflow
 
-The biggest shift in BoringNotch SE is that the notch is no longer just a media or shelf surface. It becomes a compact host for multiple pinned tools that you can swap between directly from the notch UI.
+The biggest shift in InterestingNotch is that the notch is no longer just a media or shelf surface. It becomes a compact host for multiple pinned tools that you can swap between directly from the notch UI.
 
 ### Built-in widgets included in this fork
 
@@ -102,7 +102,7 @@ Once multiple widgets are pinned, SE uses paging-aware notch tabs so the interfa
 
 ## Upstream Features Preserved
 
-BoringNotch SE builds on top of the original project's strong base, including:
+InterestingNotch builds on top of the original project's strong base, including:
 
 - music controls and visualizer
 - calendar integration
@@ -138,20 +138,20 @@ That means the emphasis here is on:
 ### Clone
 
 ```bash
-git clone https://github.com/nodescraper/boringnotch-se.git
-cd boringnotch-se
+git clone https://github.com/nodescraper/interestingnotch.git
+cd interestingnotch
 ```
 
 ### Open in Xcode
 
 ```bash
-open boringNotch.xcodeproj
+open InterestingNotch.xcodeproj
 ```
 
 ### Build from Terminal
 
 ```bash
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -destination 'generic/platform=macOS' build
+xcodebuild -project InterestingNotch.xcodeproj -scheme InterestingNotch -destination 'generic/platform=macOS' build
 ```
 
 ### Release build
@@ -160,14 +160,14 @@ The stable release line is maintained on `main`. The `dev` branch is used for on
 
 ```bash
 git checkout main
-xcodebuild -project boringNotch.xcodeproj -scheme boringNotch -configuration Release -destination 'generic/platform=macOS' build
+xcodebuild -project InterestingNotch.xcodeproj -scheme InterestingNotch -configuration Release -destination 'generic/platform=macOS' build
 ```
 
 ### Run a fresh development build
 
 ```bash
-pkill -x boringNotch
-open -n .derivedData/Build/Products/Debug/boringNotch.app
+pkill -x InterestingNotch
+open -n .derivedData/Build/Products/Debug/InterestingNotch.app
 ```
 
 ---
@@ -176,15 +176,15 @@ open -n .derivedData/Build/Products/Debug/boringNotch.app
 
 The fork meaningfully expands work across the app, especially in:
 
-- `boringNotch/widgets/engine/`
-- `boringNotch/widgets/model/`
-- `boringNotch/widgets/ui/`
-- `boringNotch/widgets/ui/workshop/`
-- `boringNotch/components/Tabs/`
-- `boringNotch/components/Onboarding/`
-- `boringNotch/components/Calendar/`
-- `boringNotch/components/Notch/`
-- `boringNotchTests/`
+- `InterestingNotch/widgets/engine/`
+- `InterestingNotch/widgets/model/`
+- `InterestingNotch/widgets/ui/`
+- `InterestingNotch/widgets/ui/workshop/`
+- `InterestingNotch/components/Tabs/`
+- `InterestingNotch/components/Onboarding/`
+- `InterestingNotch/components/Calendar/`
+- `InterestingNotch/components/Notch/`
+- `InterestingNotchTests/`
 
 These changes are where most of the fork's added widget functionality, UI behavior, and integration work live.
 
@@ -194,11 +194,11 @@ These changes are where most of the fork's added widget functionality, UI behavi
 
 ### Fork maintainer
 
-**nodescraper** maintains BoringNotch SE and the expanded widget release line.
+**nodescraper** maintains InterestingNotch and the expanded widget release line.
 
 ### Original project
 
-Huge credit to **TheBoredTeam** for the original **Boring Notch** project and the foundation this fork builds on.
+Huge credit to **TheBoredTeam** for the original **Interesting Notch** project and the foundation this fork builds on.
 
 - [Original repository](https://github.com/TheBoredTeam/boring.notch)
 

@@ -26,6 +26,8 @@ Carthage/Build/
 # Derived data
 DerivedData/
 .derivedData/
+.releaseDerivedData/
+.dmg-venv/
 
 # Build output
 build/
