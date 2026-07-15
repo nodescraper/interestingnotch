@@ -17,7 +17,9 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 <!-- ─────────────────────────── DEMO ─────────────────────────── -->
 <div align="center">
 
-https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8
+<video src="assets/demo.mp4" controls muted playsinline width="900">
+  <a href="assets/demo.mp4">Watch the InterestingNotch demo</a>
+</video>
 
 </div>
 
