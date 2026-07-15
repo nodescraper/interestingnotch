@@ -25,6 +25,7 @@ final class CaffeineManager: ObservableObject {
     @Published private(set) var isActive = false
     @Published var remaining: TimeInterval?
     @Published private(set) var compactPeekVisible = false
+    @Published private(set) var compactPeekMessage: String?
     private(set) var mode: Mode = .displayAwake
 
     private var assertionID: IOPMAssertionID = 0
@@ -77,9 +78,6 @@ final class CaffeineManager: ObservableObject {
         timerTask?.cancel()
         timerTask = nil
         showCompactPeek()
-        if showConfirmation {
-            showPeek(message: "Caffeine on")
-        }
     }
 
     func activate(for seconds: TimeInterval, mode: Mode = .displayAwake) {
@@ -141,32 +139,25 @@ final class CaffeineManager: ObservableObject {
         endDate = nil
         timerTask?.cancel()
         timerTask = nil
-        compactPeekTask?.cancel()
-        compactPeekTask = nil
-        compactPeekVisible = false
         if showEndedPeek {
-            showPeek(message: "Caffeine ended")
+            showCompactPeek(message: "Caffeine ended", duration: 2)
+        } else {
+            compactPeekTask?.cancel()
+            compactPeekTask = nil
+            compactPeekVisible = false
+            compactPeekMessage = nil
         }
     }
 
-    private func showPeek(message: String) {
-        InterestingViewCoordinator.shared.toggleSneakPeek(
-            status: true,
-            type: .caffeine,
-            duration: 2.0,
-            icon: "cup.and.saucer.fill",
-            accent: .effectiveAccent,
-            message: message
-        )
-    }
-
-    private func showCompactPeek() {
+    private func showCompactPeek(message: String? = nil, duration: TimeInterval = 5) {
         compactPeekTask?.cancel()
+        compactPeekMessage = message
         compactPeekVisible = true
         compactPeekTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
             self?.compactPeekVisible = false
+            self?.compactPeekMessage = nil
         }
     }
 

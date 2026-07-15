@@ -353,8 +353,11 @@ jobs:
             --download-url-prefix "https://github.com/${{ env.RELEASE_REPOSITORY }}/releases/download/v${VERSION}/" \
             --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
-            -o updater/appcast.xml \
+            -o appcast.xml \
             Release/
+
+          mkdir -p updater
+          cp appcast.xml updater/appcast.xml
 
       - name: Commit appcast
         run: |
@@ -362,15 +365,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [[ "${IS_BETA}" == "false" ]]; then
+            git add appcast.xml
             git add updater/appcast.xml
             git commit -m "Update version to v${VERSION} and appcast" || true
             git push origin "HEAD:${HEAD_REF}" || true
           else
             # Save generated appcast, switch to main, apply and push
-            cp updater/appcast.xml "$RUNNER_TEMP/appcast.xml"
+            cp appcast.xml "$RUNNER_TEMP/appcast.xml"
             git fetch origin main
             git checkout main
+            cp "$RUNNER_TEMP/appcast.xml" appcast.xml
             cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
+            git add appcast.xml
             git add updater/appcast.xml
             git commit -m "Update appcast with beta release for v${VERSION}" || true
             git push origin main

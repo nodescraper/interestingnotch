@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>InterestingNotch Updates</title>
+        <link>https://github.com/nodescraper/interestingnotch/releases</link>
+        <description>Release feed for InterestingNotch.</description>
+        <language>en</language>
+    </channel>
+</rss>

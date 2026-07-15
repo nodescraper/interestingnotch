@@ -339,7 +339,14 @@ struct ContentView: View {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
             + 34
-            + 72
+            + caffeineCompactLabelWidth
+    }
+
+    private var caffeineCompactLabelWidth: CGFloat {
+        if let message = caffeineManager.compactPeekMessage {
+            return min(140, max(86, CGFloat(message.count * 7 + 12)))
+        }
+        return 72
     }
 
     private var musicCompactArtworkSize: CGFloat {
@@ -943,12 +950,12 @@ struct ContentView: View {
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
 
-            Text(caffeineCompactTimeLabel)
+            Text(caffeineManager.compactPeekMessage ?? caffeineCompactTimeLabel)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.9))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
-                .frame(width: 72, height: displayClosedNotchHeight, alignment: .trailing)
+                .frame(width: caffeineCompactLabelWidth, height: displayClosedNotchHeight, alignment: .trailing)
                 .padding(.trailing, 5)
         }
     }
