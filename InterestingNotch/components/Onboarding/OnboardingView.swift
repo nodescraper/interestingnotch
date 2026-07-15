@@ -230,7 +230,9 @@ struct OnboardingView: View {
     }
 
     func requestMicrophonePermission() async {
-        await AVCaptureDevice.requestAccess(for: .audio)
+        // Use the macOS audio-recording permission API so the app is correctly
+        // registered under System Settings > Privacy & Security > Microphone.
+        _ = await AVAudioApplication.requestRecordPermission()
     }
 
     func openBluetoothSettings() {
