@@ -27,21 +27,20 @@ struct ContentView: View {
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
-
     @State private var gestureProgress: CGFloat = .zero
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var currentAccentColor: Color = .effectiveAccent
 
     @State private var haptics: Bool = false
 
     @Namespace var albumArtNamespace
     @Namespace private var widgetNamespace
-    private let timerWidgetOrange = Color(red: 0.96, green: 0.58, blue: 0.24)
+    private var widgetAccent: Color { currentAccentColor }
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.systemMonitorSneakPeekEnabled) private var systemMonitorSneakPeekEnabled
-    @Default(.accessoryBatterySneakPeekEnabled) private var accessoryBatterySneakPeekEnabled
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -97,11 +96,9 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if compactTimerLiveModel != nil
-            && vm.notchState == .closed
-            && !vm.hideOnClosed
-            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-        {
+        } else if shouldShowCompactRecorderActivity {
+            chinWidth += nativeRecorderCompactExtraWidth
+        } else if shouldShowCompactTimerActivity {
             chinWidth += nativeTimerCompactExtraWidth
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
@@ -172,10 +169,48 @@ struct ContentView: View {
         nativeTimerVisualSize + nativeTimerTimeWidth + 10
     }
 
+    private var nativeRecorderTimeWidth: CGFloat {
+        vm.hasNotch ? 58 : 54
+    }
+
+    private var nativeRecorderCompactExtraWidth: CGFloat {
+        nativeTimerVisualSize + nativeRecorderTimeWidth + 10
+    }
+
+    private var nativeRecorderCompactWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + nativeRecorderCompactExtraWidth
+    }
+
     private var nativeTimerCompactWidth: CGFloat {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
             + nativeTimerCompactExtraWidth
+    }
+
+    private var hasCompactTimerActivity: Bool {
+        compactTimerLiveModel != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+    }
+
+    private var hasCompactRecorderActivity: Bool {
+        compactRecorderLiveModel != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+    }
+
+    private var shouldShowCompactTimerActivity: Bool {
+        vm.notchState == .closed
+            && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
+            && hasCompactTimerActivity
+    }
+
+    private var shouldShowCompactRecorderActivity: Bool {
+        vm.notchState == .closed
+            && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
+            && hasCompactRecorderActivity
     }
 
     private var systemMonitorCompactMetricWidth: CGFloat {
@@ -186,21 +221,6 @@ struct ContentView: View {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
             + (systemMonitorCompactMetricCount * systemMonitorCompactMetricWidth)
-    }
-
-    private var accessoryBatteryCompactNameWidth: CGFloat {
-        vm.hasNotch ? 112 : 96
-    }
-
-    private var accessoryBatteryCompactValueWidth: CGFloat {
-        vm.hasNotch ? 60 : 52
-    }
-
-    private var compactAccessoryBatteryWidth: CGFloat {
-        vm.closedNotchSize.width - 4
-            + (2 * liveActivityEdgeMargin)
-            + accessoryBatteryCompactNameWidth
-            + accessoryBatteryCompactValueWidth
     }
 
     private var tabSwitchTransition: AnyTransition {
@@ -287,13 +307,13 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive && !coordinator.shouldKeepNotchOpenWithoutHover {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.coordinator.shouldKeepNotchOpenWithoutHover {
                                         self.vm.close()
                                     }
                                 }
@@ -307,17 +327,17 @@ struct ContentView: View {
                             }
                         }
 
+                        syncCompactSneakPeekLifecycle()
                         syncSystemMonitorSneakPeek()
-                        syncAccessoryBatterySneakPeek()
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !coordinator.shouldKeepNotchOpenWithoutHover {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.coordinator.shouldKeepNotchOpenWithoutHover {
                                         self.vm.close()
                                     }
                                 }
@@ -326,25 +346,31 @@ struct ContentView: View {
                     }
                     .onChange(of: coordinator.currentView) { _, _ in
                         syncSystemMonitorSneakPeek()
-                        syncAccessoryBatterySneakPeek()
                     }
                     .onChange(of: systemMonitorSneakPeekEnabled) { _, _ in
                         syncSystemMonitorSneakPeek()
                     }
-                    .onChange(of: accessoryBatterySneakPeekEnabled) { _, _ in
-                        syncAccessoryBatterySneakPeek()
+                    .onChange(of: coordinator.temporaryOpenContext) { _, context in
+                        guard context != nil else { return }
+                        doOpen()
                     }
                     .onChange(of: widgetEngine.widgets.count) { _, _ in
                         syncSystemMonitorSneakPeek()
-                        syncAccessoryBatterySneakPeek()
                     }
                     .onReceive(widgetEngine.objectWillChange) { _ in
+                        syncCompactSneakPeekLifecycle()
                         syncSystemMonitorSneakPeek()
-                        syncAccessoryBatterySneakPeek()
                     }
                     .onAppear {
+                        currentAccentColor = .effectiveAccent
+                        syncCompactSneakPeekLifecycle()
                         syncSystemMonitorSneakPeek()
-                        syncAccessoryBatterySneakPeek()
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
+                        currentAccentColor = .effectiveAccent
+                    }
+                    .onReceive(Defaults.publisher(.useCustomAccentColor)) { _ in
+                        currentAccentColor = .effectiveAccent
                     }
                     .sensoryFeedback(.alignment, trigger: haptics)
                     .contextMenu {
@@ -451,7 +477,7 @@ struct ContentView: View {
                             .frame(width: 76, alignment: .trailing)
                         }
                         .frame(height: displayClosedNotchHeight, alignment: .center)
-                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && vm.notchState == .closed {
+                      } else if coordinator.shouldShowSneakPeek(on: vm.screenUUID) && Defaults[.inlineOSD] && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && vm.notchState == .closed {
                           InlineOSD(
                               type: coordinator.binding(for: vm.screenUUID).type,
                               value: coordinator.binding(for: vm.screenUUID).value,
@@ -461,7 +487,10 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if compactTimerLiveModel != nil && vm.notchState == .closed && !vm.hideOnClosed && (!coordinator.expandingView.show || coordinator.expandingView.type == .music) {
+                      } else if shouldShowCompactRecorderActivity {
+                          NativeRecorderCompactActivity()
+                              .frame(width: nativeRecorderCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if shouldShowCompactTimerActivity {
                           NativeTimerCompactActivity()
                               .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
@@ -480,7 +509,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -517,7 +546,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .accessoryBattery) && (vm.notchState == .closed))) { view in
+              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (vm.notchState == .closed))) { view in
                   view
                       .fixedSize()
               }
@@ -678,6 +707,14 @@ struct ContentView: View {
         )
     }
 
+    private func syncCompactSneakPeekLifecycle() {
+        coordinator.updateCompactSneakPeekLifecycle(
+            on: vm.screenUUID,
+            notchState: vm.notchState,
+            isActive: hasCompactTimerActivity || hasCompactRecorderActivity
+        )
+    }
+
     @ViewBuilder
     func NativeTimerCompactActivity() -> some View {
         if let model = compactTimerLiveModel {
@@ -691,7 +728,7 @@ struct ContentView: View {
 
                     HStack(alignment: .center, spacing: 0) {
                         Text(compactTimerPrimaryText(for: model))
-                            .font(.headline.weight(.bold))
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
                             .monospacedDigit()
                             .foregroundStyle(compactTimerAccentColor(for: model))
                             .lineLimit(1)
@@ -702,6 +739,42 @@ struct ContentView: View {
                     .padding(.trailing, 4)
                 }
                 .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func NativeRecorderCompactActivity() -> some View {
+        if let model = compactRecorderLiveModel {
+            TimelineView(.animation(minimumInterval: 0.08)) { _ in
+                HStack(spacing: 0) {
+                    if showsCompactMusicArtwork {
+                        compactClosedAlbumArt
+                    } else {
+                        CompactRecorderWaveformView(
+                            levels: model.levels,
+                            color: .red
+                        )
+                        .frame(width: nativeTimerVisualSize, height: displayClosedNotchHeight)
+                    }
+
+                    Rectangle()
+                        .fill(.black)
+                        .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(model.displayTime)
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.red)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .allowsTightening(true)
+                    }
+                    .frame(width: nativeRecorderTimeWidth, height: displayClosedNotchHeight, alignment: .trailing)
+                    .padding(.trailing, 4)
+                }
+                .frame(width: nativeRecorderCompactWidth, height: displayClosedNotchHeight, alignment: .center)
             }
         }
     }
@@ -792,48 +865,6 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func AccessoryBatteryLiveActivity() -> some View {
-        if let device = compactAccessoryBatteryPrimaryDevice {
-            HStack(spacing: 0) {
-                HStack(spacing: 6) {
-                    Image(systemName: device.symbolName)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(device.isCritical ? .red : .white.opacity(0.78))
-
-                    Text(device.name)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                }
-                .frame(width: accessoryBatteryCompactNameWidth, height: displayClosedNotchHeight, alignment: .leading)
-
-                Rectangle()
-                    .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
-
-                HStack(spacing: 4) {
-                    if device.isCharging {
-                        Image(systemName: "bolt.fill")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.72))
-                    }
-
-                    Text(device.primaryDisplay)
-                        .font(.headline.weight(.bold))
-                        .monospacedDigit()
-                        .foregroundStyle(device.isCritical ? .red : .white)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
-                .frame(width: accessoryBatteryCompactValueWidth, height: displayClosedNotchHeight, alignment: .trailing)
-                .padding(.trailing, 4)
-            }
-            .frame(width: compactAccessoryBatteryWidth, height: displayClosedNotchHeight, alignment: .center)
-        }
-    }
-
-    @ViewBuilder
     var dragDetector: some View {
         if Defaults[.interestingShelf] && vm.notchState == .closed {
             Color.clear
@@ -899,10 +930,9 @@ struct ContentView: View {
                         self.isHovering = false
                     }
                     
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.coordinator.shouldKeepNotchOpenWithoutHover {
                         self.vm.close()
                         self.syncSystemMonitorSneakPeek()
-                        self.syncAccessoryBatterySneakPeek()
                     }
                 }
             }
@@ -1088,11 +1118,25 @@ struct ContentView: View {
         guard model.mode == .timer else { return nil }
 
         switch model.countdownState.phase {
-        case .running, .paused, .finished:
+        case .running, .paused:
             return model
-        case .idle:
+        case .idle, .finished:
             return nil
         }
+    }
+
+    private var compactRecorderLiveModel: VoiceRecorderWidgetModel? {
+        guard
+            let widget = widgetEngine.widgets.first(where: {
+                $0.manifest.kind == .interactive && $0.manifest.interactive?.type == .voiceRecorder
+            }),
+            let model = widget.interactiveRuntime as? VoiceRecorderWidgetModel,
+            model.isRecording
+        else {
+            return nil
+        }
+
+        return model
     }
 
     private var showsCompactMusicArtwork: Bool {
@@ -1170,24 +1214,11 @@ struct ContentView: View {
     }
 
     private func compactTimerAccentColor(for model: TimerWidgetModel) -> Color {
-        timerWidgetOrange
+        widgetAccent
     }
 
     private var compactSystemMonitorWidget: Widget? {
         widgetEngine.widgets.first(where: { $0.id == "system-monitor" })
-    }
-
-    private var compactAccessoryBatteryWidget: Widget? {
-        widgetEngine.widgets.first(where: { $0.id == "accessory-battery" })
-    }
-
-    private var compactAccessoryBatteryPrimaryDevice: AccessoryBatteryDeviceSnapshot? {
-        guard let widget = compactAccessoryBatteryWidget,
-              let snapshot = AccessoryBatterySnapshot(widgetValue: widget.lastValue) else {
-            return nil
-        }
-
-        return snapshot.primaryDevice(preferredID: Defaults[.accessoryBatteryPrimaryDeviceID])
     }
 
     private func syncSystemMonitorSneakPeek() {
@@ -1199,14 +1230,6 @@ struct ContentView: View {
         )
     }
 
-    private func syncAccessoryBatterySneakPeek() {
-        coordinator.toggleSneakPeek(
-            status: false,
-            type: .accessoryBattery,
-            duration: 0,
-            targetScreenUUID: vm.screenUUID
-        )
-    }
 }
 
 private struct CalendarTabPageView: View {
@@ -1311,6 +1334,38 @@ private struct SystemMonitorLiveActivityView: View {
             }
         }
         .frame(width: totalWidth, height: height, alignment: .center)
+    }
+}
+
+private struct CompactRecorderWaveformView: View {
+    let levels: [Float]
+    let color: Color
+
+    var body: some View {
+        Canvas { context, size in
+            guard !levels.isEmpty else { return }
+
+            let spacing: CGFloat = 1
+            let barWidth = max(1, (size.width - spacing * CGFloat(levels.count - 1)) / CGFloat(levels.count))
+            let centerY = size.height / 2
+            let maxHeight = max(1, size.height * 0.42)
+
+            for (index, level) in levels.enumerated() {
+                let x = CGFloat(index) * (barWidth + spacing)
+                let height = max(1.5, CGFloat(level) * maxHeight)
+                let rect = CGRect(
+                    x: x,
+                    y: centerY - height,
+                    width: barWidth,
+                    height: height * 2
+                )
+                context.fill(
+                    Path(roundedRect: rect, cornerRadius: barWidth / 2),
+                    with: .color(color.opacity(0.35 + 0.65 * Double(index) / Double(max(levels.count - 1, 1))))
+                )
+            }
+        }
+        .drawingGroup()
     }
 }
 

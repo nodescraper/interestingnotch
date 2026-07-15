@@ -14,7 +14,7 @@ struct ColorPickerWidgetPageView: View {
 
     @ObservedObject var model: ColorPickerWidgetModel
 
-    private let orange = Color(red: 0.96, green: 0.58, blue: 0.24)
+    private let accent = Color.effectiveAccent
 
     @State private var copiedFormat: ColorPickerFormat?
 
@@ -98,7 +98,7 @@ struct ColorPickerWidgetPageView: View {
 
                 Image(systemName: copiedFormat == .hex ? "checkmark" : "doc.on.doc")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(copiedFormat == .hex ? orange : .white.opacity(0.4))
+                    .foregroundStyle(copiedFormat == .hex ? accent : .white.opacity(0.4))
                     .contentTransition(.symbolEffect(.replace))
 
                 Spacer(minLength: 0)
@@ -116,7 +116,7 @@ struct ColorPickerWidgetPageView: View {
             HStack(spacing: 8) {
                 Text(label)
                     .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(orange)
+                    .foregroundStyle(accent)
                     .tracking(0.8)
                     .frame(width: 28, alignment: .leading)
 
@@ -131,7 +131,7 @@ struct ColorPickerWidgetPageView: View {
 
                 Image(systemName: copiedFormat == format ? "checkmark" : "doc.on.doc")
                     .font(.system(size: 10.5, weight: .semibold))
-                    .foregroundStyle(copiedFormat == format ? orange : .white.opacity(0.3))
+                    .foregroundStyle(copiedFormat == format ? accent : .white.opacity(0.3))
                     .contentTransition(.symbolEffect(.replace))
             }
             .contentShape(Rectangle())

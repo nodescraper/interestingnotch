@@ -87,10 +87,10 @@ enum WorkshopWidgetCatalog {
             return "Run a focused countdown with presets in the notch and keep a live closed-notch glance."
         case "clipboard-history":
             return "Keep recent text, links, and images nearby, and recopy any clip with one click."
+        case "voice-recorder":
+            return "Record quick voice notes from the notch, track elapsed time live, and reveal the saved file right away."
         case "system-monitor":
             return "Watch live CPU and memory usage in the notch, with a compact closed-notch split view."
-        case "accessory-battery":
-            return "Track Bluetooth accessory battery levels with compact cards and a primary-device closed-notch glance."
         default:
             return "Pin this widget to add it as a tab in the notch."
         }

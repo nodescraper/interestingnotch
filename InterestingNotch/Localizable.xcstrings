@@ -437,6 +437,12 @@
         }
       }
     },
+    "00:00" : {
+
+    },
+    "A fork by nodescraper" : {
+
+    },
     "About" : {
       "localizations" : {
         "cs" : {
@@ -854,9 +860,6 @@
           }
         }
       }
-    },
-    "Accessory battery unavailable" : {
-
     },
     "Active widgets appear next to Home and Shelf in the notch." : {
 
@@ -3174,247 +3177,6 @@
         }
       }
     },
-    "Interesting Notch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch"
-          }
-        }
-      }
-    },
-    "Interesting Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
-      "comment" : "A description of the software update permission.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notch d'ancrage peut vérifier les mises à jour en arrière-plan. Vous pouvez toujours vérifier manuellement à partir de la barre de menus à tout moment."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch può controllare gli aggiornamenti in background. È comunque possibile controllare manualmente dalla barra dei menu in qualsiasi momento."
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch может проверить наличие обновлений в фоновом режиме. Вы все еще можете вручную проверить в строке меню в любое время."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch arka planda güncellemeleri denetleyebilir. Güncellemeleri menü çubuğundan istediğiniz zaman denetleyebilirsiniz."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting Notch 可以在后台检查更新。你也可以随时通过菜单栏手动检查。"
-          }
-        }
-      }
-    },
-    "interesting.notch" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "interesting.notch"
-          }
-        }
-      }
-    },
-    "InterestingNotch" : {
-
-    },
-    "InterestingNotch by NodeScraper" : {
-
-    },
-    "InterestingNotch can check for updates in the background. You can still check manually from the menu bar at any time." : {
-
-    },
     "Brightness" : {
       "localizations" : {
         "de" : {
@@ -3910,7 +3672,6 @@
       }
     },
     "Cancel" : {
-      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -6023,12 +5784,6 @@
         }
       }
     },
-    "Connect AirPods, a Magic accessory, or another reporting Bluetooth device to see it here." : {
-
-    },
-    "Connected" : {
-
-    },
     "Continue" : {
       "localizations" : {
         "cs" : {
@@ -6199,10 +5954,10 @@
         }
       }
     },
-    "Copied colors and eyedropper picks show up here." : {
+    "Copy %@" : {
 
     },
-    "Copy color" : {
+    "Copy HEX" : {
 
     },
     "Copy items on drag" : {
@@ -6310,9 +6065,6 @@
           }
         }
       }
-    },
-    "Copy something to start a history." : {
-
     },
     "Currently selected: %@" : {
       "localizations" : {
@@ -7473,6 +7225,9 @@
         }
       }
     },
+    "Dismiss" : {
+
+    },
     "Displays" : {
 
     },
@@ -8320,118 +8075,6 @@
         }
       }
     },
-    "Enable interesting mirror" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Povolit interesting zrcadlo"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spiegelfunktion aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable interesting mirror"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable interesting mirror"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Habilitar espejo interesting"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer le miroir ennuyeux"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "אפשר מראה \"משעממת\" (Interesting Mirror)"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unalmas tükör bekapcsolása"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abilita specchio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Interesting 거울 켜기"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saaie spiegel inschakelen"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Włącz interesting mirror"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ativar espelho"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включить зеркало"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sıkıcı aynayı aktifleştir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Увімкнути дзеркало"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用虚拟镜像"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "啟用單調鏡子"
-          }
-        }
-      }
-    },
     "Enable gestures" : {
       "localizations" : {
         "cs" : {
@@ -8821,6 +8464,118 @@
         }
       }
     },
+    "Enable interesting mirror" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povolit interesting zrcadlo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiegelfunktion aktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable interesting mirror"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable interesting mirror"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Habilitar espejo interesting"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer le miroir ennuyeux"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "אפשר מראה \"משעממת\" (Interesting Mirror)"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unalmas tükör bekapcsolása"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abilita specchio"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting 거울 켜기"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saaie spiegel inschakelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Włącz interesting mirror"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ativar espelho"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить зеркало"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıkıcı aynayı aktifleştir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкнути дзеркало"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用虚拟镜像"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用單調鏡子"
+          }
+        }
+      }
+    },
     "Enable shelf" : {
       "localizations" : {
         "cs" : {
@@ -9038,6 +8793,9 @@
           }
         }
       }
+    },
+    "Enjoy the open day." : {
+
     },
     "Enjoy your free time!" : {
       "localizations" : {
@@ -11580,6 +11338,9 @@
         }
       }
     },
+    "Image" : {
+
+    },
     "In progress" : {
       "localizations" : {
         "cs" : {
@@ -11967,6 +11728,250 @@
         }
       }
     },
+    "Interesting Notch" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch"
+          }
+        }
+      }
+    },
+    "Interesting Notch can check for updates in the background. You can still check manually from the menu bar at any time." : {
+      "comment" : "A description of the software update permission.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notch d'ancrage peut vérifier les mises à jour en arrière-plan. Vous pouvez toujours vérifier manuellement à partir de la barre de menus à tout moment."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch può controllare gli aggiornamenti in background. È comunque possibile controllare manualmente dalla barra dei menu in qualsiasi momento."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch kan op de achtergrond controleren of er updates beschikbaar zijn. Je kunt dit op elk moment ook handmatig controleren via de menubalk."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch может проверить наличие обновлений в фоновом режиме. Вы все еще можете вручную проверить в строке меню в любое время."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch arka planda güncellemeleri denetleyebilir. Güncellemeleri menü çubuğundan istediğiniz zaman denetleyebilirsiniz."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interesting Notch 可以在后台检查更新。你也可以随时通过菜单栏手动检查。"
+          }
+        }
+      }
+    },
+    "interesting.notch" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "interesting.notch"
+          }
+        }
+      }
+    },
+    "InterestingNotch" : {
+
+    },
+    "InterestingNotch by NodeScraper" : {
+
+    },
+    "InterestingNotch can check for updates in the background. You can still check manually from the menu bar at any time." : {
+
+    },
+    "Keep" : {
+
+    },
     "Keep Interesting Notch Updated" : {
       "comment" : "A title for a view that allows users to configure Interesting Notch's update preferences.",
       "extractionState" : "stale",
@@ -11998,9 +12003,6 @@
       }
     },
     "Keep InterestingNotch Updated" : {
-
-    },
-    "Keep item" : {
 
     },
     "Keep newer shelf items in front" : {
@@ -12335,16 +12337,7 @@
     "Left side" : {
 
     },
-    "Load %@" : {
-
-    },
-    "Loading accessory batteries…" : {
-
-    },
     "Loading available widgets..." : {
-
-    },
-    "Looking for connected Bluetooth devices that report battery levels." : {
 
     },
     "Low" : {
@@ -13248,6 +13241,9 @@
           }
         }
       }
+    },
+    "Max history items" : {
+
     },
     "Media" : {
       "localizations" : {
@@ -15022,12 +15018,6 @@
         }
       }
     },
-    "No accessories with battery info" : {
-
-    },
-    "no battery info" : {
-
-    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -15358,6 +15348,9 @@
           }
         }
       }
+    },
+    "No info" : {
+
     },
     "No widgets are pinned right now." : {
 
@@ -16081,6 +16074,12 @@
         }
       }
     },
+    "Nothing copied yet" : {
+
+    },
+    "Nothing scheduled" : {
+
+    },
     "Now Playing" : {
       "localizations" : {
         "cs" : {
@@ -16258,6 +16257,12 @@
       }
     },
     "Open clipboard shortcut" : {
+
+    },
+    "Open in Calendar" : {
+
+    },
+    "Open in Reminders" : {
 
     },
     "Open Notch" : {
@@ -17201,9 +17206,6 @@
     "Pause" : {
 
     },
-    "Pick a color" : {
-
-    },
     "Pick a Color" : {
       "localizations" : {
         "de" : {
@@ -17310,10 +17312,16 @@
         }
       }
     },
+    "Pick a color from screen" : {
+
+    },
     "Pick color shortcut" : {
 
     },
     "Pick which reporting accessory shows in the closed-notch sneak peek. Automatic prefers AirPods when available." : {
+
+    },
+    "Picks appear here" : {
 
     },
     "Pin" : {
@@ -18868,6 +18876,9 @@
     "Reset" : {
 
     },
+    "Reset timer" : {
+
+    },
     "Reset to Defaults" : {
       "localizations" : {
         "de" : {
@@ -19277,15 +19288,8 @@
         }
       }
     },
-    "rgb(%lld, %lld, %lld)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "rgb(%1$lld, %2$lld, %3$lld)"
-          }
-        }
-      }
+    "Resume" : {
+
     },
     "Right side" : {
 
@@ -19402,6 +19406,9 @@
           }
         }
       }
+    },
+    "SAVED" : {
+
     },
     "Scale corner radius for closed notch" : {
       "localizations" : {
@@ -23876,6 +23883,7 @@
     },
     "System Setting" : {
       "comment" : "Week starts on: follow the macOS system setting",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -23885,10 +23893,7 @@
         }
       }
     },
-    "Tap to copy image" : {
-
-    },
-    "Text, links, and images appear here. Concealed clipboard items are skipped automatically." : {
+    "Text, links, and images you copy show up here." : {
 
     },
     "This placeholder confirms dynamic notch-tab navigation is wired. The real full-page widget UI lands in the next tickets." : {
@@ -24127,6 +24132,9 @@
           }
         }
       }
+    },
+    "Today" : {
+
     },
     "Toggle Notch Open:" : {
       "localizations" : {
@@ -24780,9 +24788,6 @@
     "Unpin" : {
 
     },
-    "Unpin item" : {
-
-    },
     "Upgrade to Pro" : {
       "localizations" : {
         "cs" : {
@@ -24894,9 +24899,6 @@
           }
         }
       }
-    },
-    "Uptime %@" : {
-
     },
     "Use accent color" : {
       "localizations" : {
@@ -25038,7 +25040,7 @@
         }
       }
     },
-    "Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them." : {
+    "Use the shortcut to jump straight to the clipboard widget. Pinned clips stay in history until you clear or unpin them. Max history is capped at 100 items." : {
 
     },
     "Use the shortcut to open the system eyedropper and store the picked color in this widget’s recent history." : {
@@ -25666,6 +25668,9 @@
         }
       }
     },
+    "Voice Recorder" : {
+
+    },
     "Volume" : {
       "localizations" : {
         "de" : {
@@ -25784,6 +25789,7 @@
     },
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -25795,6 +25801,7 @@
     },
     "Weekly view" : {
       "comment" : "Calendar setting: show one week at a time instead of the scrolling day dial",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [calendarManifest, colorPickerManifest, timerManifest, clipboardHistoryManifest, systemMonitorManifest, accessoryBatteryManifest]
+        [calendarManifest, colorPickerManifest, timerManifest, clipboardHistoryManifest, voiceRecorderManifest, systemMonitorManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -120,6 +120,29 @@ enum WidgetLibrary {
         )
     }
 
+    private static var voiceRecorderManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "voice-recorder",
+            name: "Voice Recorder",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("mic.fill"),
+                    "label": .string("Record voice notes"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: ["microphone"],
+            interactive: .init(type: .voiceRecorder)
+        )
+    }
+
     private static var systemMonitorManifest: WidgetManifest {
         WidgetManifest(
             schema: 1,
@@ -159,42 +182,4 @@ enum WidgetLibrary {
         )
     }
 
-    private static var accessoryBatteryManifest: WidgetManifest {
-        WidgetManifest(
-            schema: 1,
-            kind: .data,
-            id: "accessory-battery",
-            name: "Accessory Battery",
-            author: "NodeScraper",
-            source: .init(
-                type: .framework,
-                run: nil,
-                url: nil,
-                method: nil,
-                headers: nil,
-                api: AccessoryBatteryProvider.api,
-                interval: 30,
-                timeout: nil,
-                cwd: nil,
-                env: nil
-            ),
-            extract: .init(
-                method: .jsonPath,
-                pattern: nil,
-                path: "$",
-                table: nil
-            ),
-            render: .init(
-                template: .text,
-                slots: [
-                    "icon": .string("airpodspro"),
-                    "label": .string("Accessory Battery"),
-                    "color": .string("accent"),
-                ]
-            ),
-            onTap: nil,
-            permissions: ["bluetooth"],
-            interactive: nil
-        )
-    }
 }

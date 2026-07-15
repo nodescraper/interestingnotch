@@ -12,8 +12,8 @@ enum WidgetTabPageKind: Equatable {
     case colorPicker
     case timer
     case clipboardHistory
+    case voiceRecorder
     case systemMonitor
-    case accessoryBattery
     case placeholder
 }
 
@@ -27,10 +27,6 @@ enum WidgetTabPageResolver {
             return .systemMonitor
         }
 
-        if widget.id == "accessory-battery" {
-            return .accessoryBattery
-        }
-
         if widget.manifest.kind == .interactive {
             switch widget.manifest.interactive?.type {
             case .calendar:
@@ -41,6 +37,8 @@ enum WidgetTabPageResolver {
                 return .timer
             case .clipboardHistory:
                 return .clipboardHistory
+            case .voiceRecorder:
+                return .voiceRecorder
             case .none:
                 break
             }
@@ -88,10 +86,14 @@ struct WidgetTabPageView: View {
                     } else {
                         unavailableState
                     }
+                case .voiceRecorder:
+                    if let model = widget.interactiveRuntime as? VoiceRecorderWidgetModel {
+                        VoiceRecorderWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
                 case .systemMonitor:
                     SystemMonitorWidgetPageView(widget: widget)
-                case .accessoryBattery:
-                    AccessoryBatteryWidgetPageView(widget: widget)
                 case .placeholder:
                     content(for: widget)
                 }

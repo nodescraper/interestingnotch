@@ -104,6 +104,11 @@ final class WidgetStore {
             do {
                 let data = try Data(contentsOf: fileURL)
                 let manifest = try JSONDecoder().decode(WidgetManifest.self, from: data)
+                if manifest.id == "accessory-battery" {
+                    // Removed bundled widget: clean up manifests created by older builds.
+                    try? fileManager.removeItem(at: fileURL)
+                    continue
+                }
                 try validate(manifest: manifest)
                 widgets.append(try Widget(manifest: manifest))
             } catch {

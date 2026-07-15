@@ -36,10 +36,17 @@ final class MediaKeyInterceptor {
         eventTap != nil && runLoopSource != nil
     }
 
-    // MARK: - Accessibility (via XPC)
+    // MARK: - Accessibility
 
     func requestAccessibilityAuthorization() {
         XPCHelperClient.shared.requestAccessibilityAuthorization()
+    }
+
+    /// Keep the authorization source aligned with the original working OSD
+    /// path. The embedded helper is the process macOS has trusted for this
+    /// ad-hoc/sandboxed build.
+    func isAccessibilityAuthorized() -> Bool {
+        AXIsProcessTrusted()
     }
 
     func ensureAccessibilityAuthorization(promptIfNeeded: Bool = false) async -> Bool {
@@ -144,13 +151,13 @@ final class MediaKeyInterceptor {
     private func handleEvent(_ cgEvent: CGEvent) -> Unmanaged<CGEvent>? {
         // Ensure the CGEvent has a valid type before converting to NSEvent
         guard cgEvent.type != .null else {
-            return Unmanaged.passUnretained(cgEvent)
+            return Unmanaged.passRetained(cgEvent)
         }
 
         guard let nsEvent = NSEvent(cgEvent: cgEvent),
               nsEvent.type == .systemDefined,
               nsEvent.subtype.rawValue == 8 else {
-            return Unmanaged.passUnretained(cgEvent)
+            return Unmanaged.passRetained(cgEvent)
         }
 
         let data1 = nsEvent.data1
@@ -160,7 +167,7 @@ final class MediaKeyInterceptor {
         // 0xA = key down, 0xB = key up. Only handle key down.
         guard stateByte == 0xA,
               let keyType = NXKeyType(rawValue: keyCode) else {
-            return Unmanaged.passUnretained(cgEvent)
+            return Unmanaged.passRetained(cgEvent)
         }
 
         // Determine which source is selected for this control (brightness/volume/keyboard)
@@ -187,14 +194,14 @@ final class MediaKeyInterceptor {
                 if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
                     break
                 }
-                return Unmanaged.passUnretained(cgEvent)
+                return Unmanaged.passRetained(cgEvent)
             }
         case .lunar:
             if LunarManager.shared.isLunarAvailable {
                 if (keyType == .brightnessUp || keyType == .brightnessDown) && command {
                     break
                 }
-                return Unmanaged.passUnretained(cgEvent)
+                return Unmanaged.passRetained(cgEvent)
             }
         case .builtin:
             break

@@ -17,7 +17,7 @@ struct CalendarWidgetPageView: View {
 
     @ObservedObject var model: CalendarWidgetModel
 
-    private let orange = Color(red: 0.96, green: 0.58, blue: 0.24)
+    private let accent = Color.effectiveAccent
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -98,9 +98,9 @@ struct CalendarWidgetPageView: View {
                         .monospacedDigit()
                         .foregroundStyle(dayColor(selected: selected, today: today, inMonth: inMonth))
                         .frame(width: 22, height: 22)
-                        .background(Circle().fill(selected ? orange : .clear))
+                        .background(Circle().fill(selected ? accent : .clear))
                         .overlay(
-                            Circle().strokeBorder(today && !selected ? orange.opacity(0.7) : .clear, lineWidth: 1.5)
+                            Circle().strokeBorder(today && !selected ? accent.opacity(0.7) : .clear, lineWidth: 1.5)
                         )
                         .contentShape(Rectangle())
                 }
@@ -115,7 +115,7 @@ struct CalendarWidgetPageView: View {
     private func dayColor(selected: Bool, today: Bool, inMonth: Bool) -> Color {
         if selected { return .white }
         if !inMonth { return .white.opacity(0.2) }
-        if today { return orange }
+        if today { return accent }
         return .white.opacity(0.85)
     }
 
@@ -130,9 +130,9 @@ struct CalendarWidgetPageView: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(orange)
+                .foregroundStyle(accent)
                 .frame(width: 22, height: 22)
-                .background(orange.opacity(0.14), in: Circle())
+                .background(accent.opacity(0.14), in: Circle())
         }
         .buttonStyle(.plain)
     }
@@ -154,10 +154,10 @@ struct CalendarWidgetPageView: View {
                     } label: {
                         Text("Today")
                             .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundStyle(orange)
+                            .foregroundStyle(accent)
                             .padding(.horizontal, 9)
                             .padding(.vertical, 4)
-                            .background(orange.opacity(0.14), in: Capsule())
+                            .background(accent.opacity(0.14), in: Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -198,7 +198,7 @@ struct CalendarWidgetPageView: View {
                 .foregroundStyle(.white.opacity(0.4))
             Text("\(count)")
                 .font(.system(size: 9.5, weight: .bold, design: .rounded))
-                .foregroundStyle(orange.opacity(0.8))
+                .foregroundStyle(accent.opacity(0.8))
             Spacer(minLength: 0)
         }
     }
@@ -207,7 +207,7 @@ struct CalendarWidgetPageView: View {
         HStack(spacing: 10) {
             Image(systemName: "calendar.badge.checkmark")
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(orange.opacity(0.8))
+                .foregroundStyle(accent.opacity(0.8))
             VStack(alignment: .leading, spacing: 2) {
                 Text("Nothing scheduled")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -263,7 +263,7 @@ struct CalendarWidgetPageView: View {
                 } label: {
                     Image(systemName: completed ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(completed ? orange : .white.opacity(0.4))
+                        .foregroundStyle(completed ? accent : .white.opacity(0.4))
                 }
                 .buttonStyle(.plain)
             }

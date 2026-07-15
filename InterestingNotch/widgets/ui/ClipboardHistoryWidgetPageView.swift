@@ -25,9 +25,9 @@ struct ClipboardHistoryWidgetPageView: View {
     // card (hex/URL parsing per card per frame was the main cost).
     @State private var detailCache: [String: ClipDetail] = [:]
 
-    private let orange = Color(red: 0.96, green: 0.58, blue: 0.24)
-    private let cardWidth: CGFloat = 120
-    private let cardHeight: CGFloat = 120
+    private let accent = Color.effectiveAccent
+    private let cardWidth: CGFloat = 115
+    private let cardHeight: CGFloat = 115
 
     /// Detail for an item, computed once and reused. Keyed by id (content is
     /// immutable per item, so id is a stable key).
@@ -69,7 +69,7 @@ struct ClipboardHistoryWidgetPageView: View {
                         historyCard(for: item)
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 10)
                 .frame(height: rowHeight, alignment: .leading)
                 .offset(x: -currentOffset(maxOffset: maxOffset))
                 .frame(width: viewportWidth, height: rowHeight, alignment: .leading)
@@ -121,7 +121,7 @@ struct ClipboardHistoryWidgetPageView: View {
         VStack(alignment: .leading, spacing: 6) {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(orange)
+                .foregroundStyle(accent)
                 .padding(.bottom, 2)
 
             Text("Nothing copied yet")
@@ -152,7 +152,7 @@ struct ClipboardHistoryWidgetPageView: View {
                 HStack(spacing: 6) {
                     Image(systemName: detail.symbol)
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(orange)
+                        .foregroundStyle(accent)
 
                     Text(detail.meta)
                         .font(.system(size: 9.5, weight: .semibold, design: .rounded))
@@ -286,7 +286,7 @@ struct ClipboardHistoryWidgetPageView: View {
         } label: {
             Image(systemName: item.pinned ? "pin.fill" : "pin")
                 .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(item.pinned ? orange : .white.opacity(0.5))
+                .foregroundStyle(item.pinned ? accent : .white.opacity(0.5))
                 .rotationEffect(.degrees(item.pinned ? 0 : 45))
         }
         .buttonStyle(.plain)

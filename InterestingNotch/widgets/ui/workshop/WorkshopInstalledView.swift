@@ -57,8 +57,6 @@ enum WorkshopInstalledSettingsRegistry {
             ClipboardHistoryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         case "system-monitor":
             SystemMonitorInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
-        case "accessory-battery":
-            AccessoryBatteryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         default:
             GenericInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         }
@@ -176,47 +174,6 @@ private struct SystemMonitorInstalledSettingsSection: View {
             Text(widget.manifest.name)
         } footer: {
             Text("Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics.")
-                .foregroundStyle(.secondary)
-                .font(.caption)
-        }
-    }
-}
-
-private struct AccessoryBatteryInstalledSettingsSection: View {
-    let widget: Widget
-    @Binding var pinnedWidgetIDs: [String]
-    @Default(.accessoryBatterySneakPeekEnabled) private var sneakPeekEnabled
-    @Default(.accessoryBatteryPrimaryDeviceID) private var primaryDeviceID
-
-    private var snapshot: AccessoryBatterySnapshot? {
-        AccessoryBatterySnapshot(widgetValue: widget.lastValue)
-    }
-
-    private var reportingDevices: [AccessoryBatteryDeviceSnapshot] {
-        snapshot?.reportingDevices ?? []
-    }
-
-    var body: some View {
-        Section {
-            Toggle("Show sneak peek when closed", isOn: $sneakPeekEnabled)
-
-            Picker("Primary device", selection: $primaryDeviceID) {
-                Text("Automatic")
-                    .tag(nil as String?)
-
-                ForEach(reportingDevices, id: \.id) { device in
-                    Label(device.name, systemImage: device.symbolName)
-                        .tag(Optional(device.id))
-                }
-            }
-
-            Button("Unpin", role: .destructive) {
-                pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)
-            }
-        } header: {
-            Text(widget.manifest.name)
-        } footer: {
-            Text("Pick which reporting accessory shows in the closed-notch sneak peek. Automatic prefers AirPods when available.")
                 .foregroundStyle(.secondary)
                 .font(.caption)
         }

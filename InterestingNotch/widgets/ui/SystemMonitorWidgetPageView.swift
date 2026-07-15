@@ -1,6 +1,6 @@
 //
 //  SystemMonitorWidgetPageView.swift
-//  InterestingNotch
+//  boringNotch
 //
 //  Created by Codex on 2026-07-13.
 //  Redesigned to match the Timer widget's Apple-like styling.
@@ -142,20 +142,15 @@ struct SystemMonitorWidgetPageView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Label(snapshot?.uptimeText ?? "--", systemImage: "clock")
+        HStack(spacing: 5) {
+            Image(systemName: "clock")
+                .font(.system(size: 10, weight: .medium))
+            Text(snapshot?.uptimeText ?? "--")
                 .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.42))
-                .labelStyle(.titleAndIcon)
-
-            Spacer(minLength: 0)
-
-            Label(snapshot?.loadAverageText ?? "--", systemImage: "gauge.with.dots.needle.33percent")
-                .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.42))
-                .labelStyle(.titleAndIcon)
                 .monospacedDigit()
         }
+        .foregroundStyle(.white.opacity(0.38))
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     // MARK: - Shared value logic

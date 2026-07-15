@@ -73,6 +73,11 @@ final class WidgetExtractorTests: XCTestCase {
         let permissions: [String]?
 
         switch kind {
+        case .calendar:
+            name = "Calendar"
+            icon = "calendar"
+            label = "Upcoming events"
+            permissions = ["calendar"]
         case .colorPicker:
             name = "Color Picker"
             icon = "eyedropper.halffull"
@@ -88,6 +93,11 @@ final class WidgetExtractorTests: XCTestCase {
             icon = "document.on.clipboard"
             label = "Recent clips"
             permissions = ["clipboard"]
+        case .voiceRecorder:
+            name = "Voice Recorder"
+            icon = "mic.fill"
+            label = "Record voice notes"
+            permissions = ["microphone"]
         }
 
         return WidgetManifest(
@@ -625,12 +635,12 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertTrue(isDirectory.boolValue)
         XCTAssertEqual(
             Set(result.widgets.map(\.id)),
-            ["color-picker", "timer", "clipboard-history", "system-monitor", "accessory-battery"]
+            ["color-picker", "timer", "clipboard-history", "voice-recorder", "system-monitor"]
         )
         XCTAssertTrue(result.failures.isEmpty)
         XCTAssertEqual(
             Set(engine.loadedWidgetIDs),
-            ["color-picker", "timer", "clipboard-history", "system-monitor", "accessory-battery"]
+            ["color-picker", "timer", "clipboard-history", "voice-recorder", "system-monitor"]
         )
     }
 
@@ -872,90 +882,6 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(sample.percentUsed, 75, accuracy: 0.001)
     }
 
-    func testAccessoryBatterySnapshotBuilderUsesAirPodsCellsAndPrimarySelection() {
-        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
-            AccessoryBatteryReading(
-                id: "airpods",
-                name: "Balazs's AirPods Pro",
-                classOfDevice: audioDeviceClass,
-                isConnected: true,
-                isCharging: false,
-                supportsMultiBattery: true,
-                singlePercent: nil,
-                combinedPercent: nil,
-                leftPercent: 82,
-                rightPercent: 18,
-                casePercent: 100,
-                headsetLevel: nil
-            ),
-            AccessoryBatteryReading(
-                id: "mouse",
-                name: "Magic Mouse",
-                classOfDevice: peripheralDeviceClass,
-                isConnected: true,
-                isCharging: false,
-                supportsMultiBattery: false,
-                singlePercent: 46,
-                combinedPercent: nil,
-                leftPercent: nil,
-                rightPercent: nil,
-                casePercent: nil,
-                headsetLevel: nil
-            ),
-        ])
-
-        XCTAssertEqual(snapshot.devices.count, 2)
-        XCTAssertEqual(snapshot.reportingDevices.count, 2)
-        XCTAssertEqual(snapshot.primaryDevice(preferredID: nil)?.id, "airpods")
-        XCTAssertEqual(snapshot.primaryDevice(preferredID: nil)?.primaryPercent, 18)
-        XCTAssertEqual(snapshot.primaryDevice(preferredID: "mouse")?.id, "mouse")
-    }
-
-    func testAccessoryBatterySnapshotBuilderTreatsAllZeroReadingsAsNoBatteryInfo() {
-        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
-            AccessoryBatteryReading(
-                id: "speaker",
-                name: "Bedroom Speaker",
-                classOfDevice: audioDeviceClass,
-                isConnected: true,
-                isCharging: false,
-                supportsMultiBattery: false,
-                singlePercent: 0,
-                combinedPercent: 0,
-                leftPercent: 0,
-                rightPercent: 0,
-                casePercent: 0,
-                headsetLevel: 0
-            )
-        ])
-
-        XCTAssertEqual(snapshot.devices.count, 1)
-        XCTAssertFalse(snapshot.devices[0].hasBatteryInfo)
-        XCTAssertEqual(snapshot.devices[0].primaryDisplay, "no battery info")
-    }
-
-    func testAccessoryBatterySnapshotBuilderMarksCriticalBatteryUnderFifteenPercent() {
-        let snapshot = AccessoryBatterySnapshotBuilder.makeSnapshot(from: [
-            AccessoryBatteryReading(
-                id: "buds",
-                name: "Low Buds",
-                classOfDevice: audioDeviceClass,
-                isConnected: true,
-                isCharging: false,
-                supportsMultiBattery: false,
-                singlePercent: 14,
-                combinedPercent: nil,
-                leftPercent: nil,
-                rightPercent: nil,
-                casePercent: nil,
-                headsetLevel: nil
-            )
-        ])
-
-        XCTAssertEqual(snapshot.devices.first?.primaryPercent, 14)
-        XCTAssertEqual(snapshot.devices.first?.isCritical, true)
-    }
-
     func testSystemMonitorSnapshotParsesWidgetValueObject() {
         let snapshot = SystemMonitorSnapshot(widgetValue: .object([
             "cpu": .object([
@@ -1036,6 +962,36 @@ final class WidgetExtractorTests: XCTestCase {
             .show(progress: 0.25, duration: 0),
             .hide,
         ])
+    }
+
+    @MainActor
+    func testTimerWidgetModelPresentsCompletionWhenCountdownFinishes() {
+        let controller = RecordingTimerSneakPeekController()
+        let presenter = RecordingTimerCompletionPresenter()
+        let dates = LockedDateSequence([
+            Date(timeIntervalSince1970: 100),
+            Date(timeIntervalSince1970: 112),
+        ])
+        let model = TimerWidgetModel(
+            widgetID: "timer",
+            initialPreset: .init(minutes: 5),
+            countdownState: TimerCountdownState(duration: 10, remaining: 10),
+            now: { dates.next() },
+            sneakPeekController: controller,
+            completionPresenter: presenter
+        )
+
+        model.toggleStartPause()
+        model.refresh()
+
+        XCTAssertEqual(presenter.presentedWidgetIDs, ["timer"])
+        XCTAssertEqual(
+            controller.events.suffix(2),
+            [
+                .show(progress: 0, duration: 0),
+                .show(progress: 1, duration: 2.8),
+            ]
+        )
     }
 
     func testWidgetSlotRendererResolvesValuePlaceholder() {
@@ -1187,6 +1143,25 @@ final class WidgetExtractorTests: XCTestCase {
     }
 
     @MainActor
+    func testVoiceRecorderWidgetBuildsRuntimeAndTabPage() throws {
+        let widget = try Widget(
+            manifest: makeInteractiveManifest(
+                id: "voice-recorder",
+                kind: .voiceRecorder
+            )
+        )
+        let sources = WidgetTabResolver.sources(from: [widget])
+        let tabs = WidgetTabResolver.descriptors(
+            pinnedWidgetIDs: ["voice-recorder"],
+            availableWidgets: sources
+        )
+
+        XCTAssertEqual(tabs.map(\.id), ["voice-recorder"])
+        XCTAssertTrue(widget.interactiveRuntime is VoiceRecorderWidgetModel)
+        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .voiceRecorder)
+    }
+
+    @MainActor
     func testSystemMonitorWidgetLoadsAndResolvesToSystemMonitorTabPage() throws {
         let widget = try Widget(manifest: makeFrameworkManifest())
         let sources = WidgetTabResolver.sources(from: [widget])
@@ -1197,28 +1172,6 @@ final class WidgetExtractorTests: XCTestCase {
 
         XCTAssertEqual(tabs.map(\.id), ["system-monitor"])
         XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .systemMonitor)
-    }
-
-    @MainActor
-    func testAccessoryBatteryWidgetLoadsAndResolvesToAccessoryBatteryTabPage() throws {
-        let widget = try Widget(
-            manifest: makeFrameworkManifest(
-                id: "accessory-battery",
-                name: "Accessory Battery",
-                api: AccessoryBatteryProvider.api,
-                icon: "airpodspro",
-                label: "Accessory Battery",
-                interval: 30
-            )
-        )
-        let sources = WidgetTabResolver.sources(from: [widget])
-        let tabs = WidgetTabResolver.descriptors(
-            pinnedWidgetIDs: ["accessory-battery"],
-            availableWidgets: sources
-        )
-
-        XCTAssertEqual(tabs.map(\.id), ["accessory-battery"])
-        XCTAssertEqual(WidgetTabPageResolver.pageKind(for: widget), .accessoryBattery)
     }
 
     @MainActor
@@ -1272,6 +1225,19 @@ private final class RecordingTimerSneakPeekController: TimerSneakPeekControlling
 
     func hideTimer() {
         events.append(.hide)
+    }
+}
+
+private final class RecordingTimerCompletionPresenter: TimerCompletionPresenting {
+    private(set) var presentedWidgetIDs: [String] = []
+    private(set) var dismissedWidgetIDs: [String] = []
+
+    func presentTimerCompletion(widgetID: String) {
+        presentedWidgetIDs.append(widgetID)
+    }
+
+    func dismissTimerCompletion(widgetID: String) {
+        dismissedWidgetIDs.append(widgetID)
     }
 }
 

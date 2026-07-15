@@ -18,7 +18,7 @@ enum SneakContentType {
     case colorPicker
     case timer
     case systemMonitor
-    case accessoryBattery
+    case voiceRecorder
     case mic
     case battery
     case download
@@ -52,12 +52,99 @@ struct ExpandedItem {
     var browser: BrowserType = .chromium
 }
 
+/// Shared lifecycle for compact widget activities.
+///
+/// Widgets only publish whether they are active. This engine owns the visual
+/// handoff: hide the activity while the notch opens, let the notch finish
+/// closing, then reveal it with the same animation timing for every widget.
+@MainActor
+final class CompactSneakPeekEngine {
+    private var lastInputs: [String: (NotchState, Bool)] = [:]
+    private var revealTasks: [String: Task<Void, Never>] = [:]
+    private(set) var revealedScreens: Set<String> = []
+    var onRevealStateChanged: (() -> Void)?
+
+    func update(screenUUID: String?, notchState: NotchState, isActive: Bool) {
+        guard let screenUUID else { return }
+
+        let previousInput = lastInputs[screenUUID]
+        let input = (notchState, isActive)
+        guard lastInputs[screenUUID]?.0 != input.0 || lastInputs[screenUUID]?.1 != input.1 else {
+            return
+        }
+        lastInputs[screenUUID] = input
+        revealTasks[screenUUID]?.cancel()
+
+        if !isActive {
+            setRevealed(false, for: screenUUID)
+            return
+        }
+
+        switch notchState {
+        case .open:
+            setRevealed(false, for: screenUUID)
+
+        case .closed:
+            // A widget becoming active while already closed can appear right away.
+            // A notch that has just closed gets the delayed handoff below.
+            if previousInput?.0 == .open {
+                setRevealed(false, for: screenUUID)
+            } else {
+                setRevealed(true, for: screenUUID)
+            }
+
+            let revealDelay = max(0.12, 0.45 / max(Defaults[.animationSpeedMultiplier], 0.1))
+            revealTasks[screenUUID] = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(revealDelay))
+                guard !Task.isCancelled, let self else { return }
+                guard self.lastInputs[screenUUID]?.0 == .closed,
+                      self.lastInputs[screenUUID]?.1 == true else { return }
+                self.setRevealed(true, for: screenUUID)
+            }
+        }
+    }
+
+    func shouldReveal(on screenUUID: String?) -> Bool {
+        guard let screenUUID else { return false }
+        return revealedScreens.contains(screenUUID)
+    }
+
+    private func setRevealed(_ revealed: Bool, for screenUUID: String) {
+        let changed: Bool
+        if revealed {
+            changed = revealedScreens.insert(screenUUID).inserted
+        } else {
+            changed = revealedScreens.remove(screenUUID) != nil
+        }
+        guard changed else { return }
+        withAnimation(StandardAnimations.close) {
+            onRevealStateChanged?()
+        }
+    }
+}
+
 @MainActor
 class InterestingViewCoordinator: ObservableObject {
     static let shared = InterestingViewCoordinator()
 
-    @Published var currentView: NotchViews = .home
+    enum TemporaryOpenContext: Equatable {
+        case timerCompletion(widgetID: String)
+    }
+
+    @Published var currentView: NotchViews = .home {
+        didSet {
+            guard let context = temporaryOpenContext else { return }
+
+            switch context {
+            case .timerCompletion(let widgetID):
+                if currentView != .widget(id: widgetID) {
+                    temporaryOpenContext = nil
+                }
+            }
+        }
+    }
     @Published var helloAnimationRunning: Bool = false
+    @Published private(set) var temporaryOpenContext: TemporaryOpenContext?
     private var sneakPeekDispatch: DispatchWorkItem?
     private var expandingViewDispatch: DispatchWorkItem?
     private var osdEnableTask: Task<Void, Never>?
@@ -154,7 +241,12 @@ class InterestingViewCoordinator: ObservableObject {
 
                     if change.newValue {
                         self.osdEnableTask = Task { @MainActor in
-                            await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                            let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                            guard !Task.isCancelled else { return }
+
+                            if granted {
+                                await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
+                            }
                         }
                     } else {
                         MediaKeyInterceptor.shared.stop()
@@ -191,6 +283,10 @@ class InterestingViewCoordinator: ObservableObject {
                 await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }
             self.applyOSDSources()
+        }
+
+        compactSneakPeekEngine.onRevealStateChanged = { [weak self] in
+            self?.objectWillChange.send()
         }
     }
     
@@ -231,13 +327,14 @@ class InterestingViewCoordinator: ObservableObject {
     
     // Dictionary to hold hide tasks for each screen UUID
     private var sneakPeekTasks: [String: Task<Void, Never>] = [:]
+    let compactSneakPeekEngine = CompactSneakPeekEngine()
     
     // Default duration
     private var defaultSneakPeekDuration: TimeInterval = 1.5
 
     private func isDisabledWidgetSneakPeek(_ type: SneakContentType) -> Bool {
         switch type {
-        case .timer, .systemMonitor, .accessoryBattery:
+        case .timer, .systemMonitor:
             return true
         default:
             return false
@@ -279,7 +376,7 @@ class InterestingViewCoordinator: ObservableObject {
             return
         }
 
-        if type != .music {
+        if type != .music && type != .voiceRecorder {
             // close()
             if !Defaults[.osdReplacement] {
                 return
@@ -385,6 +482,21 @@ class InterestingViewCoordinator: ObservableObject {
         guard let uuid = screenUUID else { return false }
         return sneakPeekStates[uuid]?.show == true
     }
+
+    func updateCompactSneakPeekLifecycle(
+        on screenUUID: String?, notchState: NotchState, isActive: Bool
+    ) {
+        compactSneakPeekEngine.update(
+            screenUUID: screenUUID,
+            notchState: notchState,
+            isActive: isActive
+        )
+        objectWillChange.send()
+    }
+
+    func shouldRevealCompactSneakPeek(on screenUUID: String?) -> Bool {
+        compactSneakPeekEngine.shouldReveal(on: screenUUID)
+    }
     
     var isAnySneakPeekShowing: Bool {
         return sneakPeekStates.values.contains { $0.show }
@@ -469,6 +581,25 @@ class InterestingViewCoordinator: ObservableObject {
     
     func showEmpty() {
         currentView = .home
+    }
+
+    var shouldKeepNotchOpenWithoutHover: Bool {
+        temporaryOpenContext != nil
+    }
+
+    func presentTimerCompletion(widgetID: String) {
+        currentView = .widget(id: widgetID)
+        temporaryOpenContext = .timerCompletion(widgetID: widgetID)
+    }
+
+    func dismissTemporaryOpenContext(for widgetID: String? = nil) {
+        guard let context = temporaryOpenContext else { return }
+
+        switch context {
+        case .timerCompletion(let presentedWidgetID):
+            guard widgetID == nil || widgetID == presentedWidgetID else { return }
+            temporaryOpenContext = nil
+        }
     }
 
     private func sanitizeCurrentView(pinnedWidgetIDs: [String]) {

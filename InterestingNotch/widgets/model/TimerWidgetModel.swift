@@ -167,6 +167,12 @@ protocol TimerSneakPeekControlling {
 }
 
 @MainActor
+protocol TimerCompletionPresenting {
+    func presentTimerCompletion(widgetID: String)
+    func dismissTimerCompletion(widgetID: String)
+}
+
+@MainActor
 struct SystemTimerSneakPeekController: TimerSneakPeekControlling {
     func showTimer(progress: CGFloat, duration: TimeInterval) {
         InterestingViewCoordinator.shared.toggleSneakPeek(
@@ -186,6 +192,17 @@ struct SystemTimerSneakPeekController: TimerSneakPeekControlling {
 }
 
 @MainActor
+struct SystemTimerCompletionPresenter: TimerCompletionPresenting {
+    func presentTimerCompletion(widgetID: String) {
+        InterestingViewCoordinator.shared.presentTimerCompletion(widgetID: widgetID)
+    }
+
+    func dismissTimerCompletion(widgetID: String) {
+        InterestingViewCoordinator.shared.dismissTemporaryOpenContext(for: widgetID)
+    }
+}
+
+@MainActor
 final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     static let defaultPreset = defaultTimerPreset
     static let presets: [TimerPreset] = timerPresets
@@ -199,6 +216,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
 
     private let now: @Sendable () -> Date
     private let sneakPeekController: any TimerSneakPeekControlling
+    private let completionPresenter: any TimerCompletionPresenting
     private var tickerTask: Task<Void, Never>?
 
     init(
@@ -206,11 +224,13 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         initialPreset: TimerPreset = defaultTimerPreset,
         countdownState: TimerCountdownState? = nil,
         now: @escaping @Sendable () -> Date = { Date() },
-        sneakPeekController: (any TimerSneakPeekControlling)? = nil
+        sneakPeekController: (any TimerSneakPeekControlling)? = nil,
+        completionPresenter: (any TimerCompletionPresenting)? = nil
     ) {
         self.widgetID = widgetID
         self.now = now
         self.sneakPeekController = sneakPeekController ?? SystemTimerSneakPeekController()
+        self.completionPresenter = completionPresenter ?? SystemTimerCompletionPresenter()
         self.countdownState = countdownState ?? TimerCountdownState(duration: initialPreset.duration)
         syncTicker()
         publishSneakPeek()
@@ -271,18 +291,21 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
 
     func setMode(_ newMode: TimerWidgetMode) {
         guard newMode != mode else { return }
+        dismissCompletionPresentationIfNeeded()
         mode = newMode
         syncTicker()
         publishSneakPeek()
     }
 
     func selectPreset(_ preset: TimerPreset) {
+        dismissCompletionPresentationIfNeeded()
         countdownState.selectPreset(preset)
         syncTicker()
         publishSneakPeek()
     }
 
     func setDuration(minutes: Int) {
+        dismissCompletionPresentationIfNeeded()
         let duration = TimeInterval(max(1, minutes) * 60)
         countdownState = TimerCountdownState(duration: duration)
         syncTicker()
@@ -294,6 +317,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         case .timer:
             switch countdownState.phase {
             case .idle, .paused, .finished:
+                dismissCompletionPresentationIfNeeded()
                 countdownState.start(now: now())
             case .running:
                 countdownState.pause(now: now())
@@ -312,6 +336,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     }
 
     func reset() {
+        dismissCompletionPresentationIfNeeded()
         switch mode {
         case .timer:
             countdownState.reset()
@@ -331,6 +356,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
             if previousPhase != .finished && countdownState.phase == .finished {
                 tickerTask?.cancel()
                 tickerTask = nil
+                completionPresenter.presentTimerCompletion(widgetID: widgetID)
                 publishCompletionSneakPeek()
             } else {
                 publishSneakPeek()
@@ -382,5 +408,10 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
             progress: CGFloat(countdownState.progress),
             duration: Defaults[.sneakPeekStyles] == .inline ? 2.8 : 2.8
         )
+    }
+
+    private func dismissCompletionPresentationIfNeeded() {
+        guard mode == .timer, countdownState.phase == .finished else { return }
+        completionPresenter.dismissTimerCompletion(widgetID: widgetID)
     }
 }

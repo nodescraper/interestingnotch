@@ -8,6 +8,7 @@
 import SwiftUI
 import Defaults
 import CoreGraphics
+import AppKit
 
 struct OSDSettings: View {
     // Defaults-backed storage
@@ -16,7 +17,7 @@ struct OSDSettings: View {
     @Default(.optionKeyAction) private var optionKeyActionDefault
     @Default(.osdBrightnessSource) private var osdBrightnessSourceDefault
     @Default(.osdVolumeSource) private var osdVolumeSourceDefault
-    @State private var isAccessibilityAuthorized = true
+    @State private var isAccessibilityAuthorized = false
     @State private var menuBarBrightnessSupported = true
 
     var body: some View {
@@ -75,31 +76,6 @@ struct OSDSettings: View {
                         Text(OSDControlSource.builtin.localizedString)
                     }
                     HelpText("Keyboard brightness currently supports the built-in source only.")
-                    if !isAccessibilityAuthorized {
-                        HStack(alignment: .center, spacing: 12) {
-                            Image(systemName: "accessibility")
-                                .font(.title)
-                                .foregroundStyle(Color.effectiveAccent)
-                                
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Accessibility Access Required")
-                                    .font(.headline)
-                                Text("Grant Accessibility access so built-in keyboard brightness controls can be intercepted.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button("Grant Access") {
-                                Task {
-                                    let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                                    await MainActor.run {
-                                        isAccessibilityAuthorized = granted
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
                 }
 
                 Section(header: Text("Appearance")) {
@@ -143,16 +119,50 @@ struct OSDSettings: View {
                 }
             }
 
+            if !isAccessibilityAuthorized {
+                Section {
+                    HStack(alignment: .center, spacing: 12) {
+                        Image(systemName: "accessibility")
+                            .font(.title)
+                            .foregroundStyle(Color.effectiveAccent)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Accessibility Access Required")
+                                .font(.headline)
+                            Text("Allow InterestingNotch to control your Mac so it can replace the system OSD.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Button("Grant Access") {
+                            Task {
+                                let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
+                                if !granted,
+                                   let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                    NSWorkspace.shared.open(url)
+                                }
+                                await MainActor.run {
+                                    isAccessibilityAuthorized = granted
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
         }
         .formStyle(.grouped)
         .accentColor(.effectiveAccent)
         .task(id: osdReplacementDefault) {
-            guard osdReplacementDefault else { return }
-            isAccessibilityAuthorized = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization()
+            while !Task.isCancelled {
+                isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notif in
-            if let granted = notif.userInfo?["granted"] as? Bool {
-                isAccessibilityAuthorized = granted
+            Task {
+                isAccessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
             }
         }
         .task(id: osdBrightnessSourceDefault) {
