@@ -12,13 +12,6 @@ import SwiftUI
 struct WorkshopInstalledView: View {
     @ObservedObject private var engine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
-    @State private var draggedWidgetID: String?
-
-    private var tabWidgets: [Widget] {
-        pinnedWidgetIDs.compactMap { id in
-            engine.widgets.first(where: { $0.id == id && $0.manifest.presentation.supportsTab })
-        }
-    }
 
     private var pinnedWidgets: [Widget] {
         pinnedWidgetIDs.compactMap { id in
@@ -28,47 +21,6 @@ struct WorkshopInstalledView: View {
 
     var body: some View {
         Form {
-            if !tabWidgets.isEmpty {
-                Section {
-                    List {
-                        ForEach(tabWidgets, id: \.id) { widget in
-                            HStack(spacing: 10) {
-                                Image(systemName: WidgetSlotRenderer.resolvedString(
-                                    forSlotNamed: "icon",
-                                    in: widget.manifest.render.slots,
-                                    value: widget.lastValue,
-                                    fallback: "square.grid.2x2"
-                                ))
-                                Text(widget.manifest.name)
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                            .onDrag {
-                                draggedWidgetID = widget.id
-                                return NSItemProvider(object: widget.id as NSString)
-                            }
-                            .onDrop(
-                                of: [.text],
-                                delegate: WidgetOrderDropDelegate(
-                                    targetID: widget.id,
-                                    draggedWidgetID: $draggedWidgetID,
-                                    pinnedWidgetIDs: $pinnedWidgetIDs,
-                                    tabWidgetIDs: tabWidgets.map(\.id)
-                                )
-                            )
-                        }
-                    }
-                    .listStyle(.inset)
-                    .frame(minHeight: CGFloat(tabWidgets.count) * rowHeight, maxHeight: 220)
-                } header: {
-                    Text("Notch tab order")
-                } footer: {
-                    Text("Drag widgets into the order used by the tab icon selector in the notch.")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-            }
-
             if pinnedWidgets.isEmpty {
                 Section {
                     Text("No widgets are pinned right now.")
@@ -89,44 +41,6 @@ struct WorkshopInstalledView: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Installed")
-    }
-
-    private let rowHeight: CGFloat = 38
-}
-
-private struct WidgetOrderDropDelegate: DropDelegate {
-    let targetID: String
-    @Binding var draggedWidgetID: String?
-    @Binding var pinnedWidgetIDs: [String]
-    let tabWidgetIDs: [String]
-
-    func dropEntered(info: DropInfo) {
-        guard let draggedWidgetID,
-              draggedWidgetID != targetID,
-              let sourceIndex = tabWidgetIDs.firstIndex(of: draggedWidgetID),
-              let targetIndex = tabWidgetIDs.firstIndex(of: targetID)
-        else { return }
-
-        var reorderedTabIDs = tabWidgetIDs
-        reorderedTabIDs.remove(at: sourceIndex)
-        let insertionIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex
-        reorderedTabIDs.insert(draggedWidgetID, at: insertionIndex)
-
-        var nextTabIndex = 0
-        pinnedWidgetIDs = pinnedWidgetIDs.map { id in
-            guard tabWidgetIDs.contains(id) else { return id }
-            defer { nextTabIndex += 1 }
-            return reorderedTabIDs[nextTabIndex]
-        }
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        draggedWidgetID = nil
-        return true
     }
 }
 
