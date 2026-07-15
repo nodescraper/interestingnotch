@@ -8,31 +8,92 @@
 import Defaults
 import SwiftUI
 
+private enum WorkshopBrowseFilter: String, CaseIterable, Identifiable {
+    case all
+    case tab
+    case peek
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .all: "All"
+        case .tab: "Tab"
+        case .peek: "Peek"
+        }
+    }
+}
+
 struct WorkshopBrowseView: View {
     @ObservedObject private var engine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
+    @State private var searchText = ""
+    @State private var selectedFilter: WorkshopBrowseFilter = .all
+
+    private var filteredWidgets: [Widget] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return engine.widgets.filter { widget in
+            let matchesFilter: Bool = switch selectedFilter {
+            case .all:
+                true
+            case .tab:
+                widget.manifest.presentation.supportsTab
+            case .peek:
+                widget.manifest.presentation.supportsPeek
+            }
+
+            let matchesSearch = query.isEmpty ||
+                widget.manifest.name.localizedCaseInsensitiveContains(query) ||
+                (widget.manifest.author?.localizedCaseInsensitiveContains(query) == true) ||
+                WorkshopWidgetCatalog.description(for: widget).localizedCaseInsensitiveContains(query)
+
+            return matchesFilter && matchesSearch
+        }
+    }
 
     var body: some View {
         Form {
             Section {
-                if engine.widgets.isEmpty {
-                    Text("No widgets installed yet.")
+                Picker("Show", selection: $selectedFilter) {
+                    ForEach(WorkshopBrowseFilter.allCases) { filter in
+                        Text(filter.title).tag(filter)
+                    }
+                }
+                .pickerStyle(.segmented)
+            } header: {
+                Text("Widget Store")
+            } footer: {
+                Text("Choose where a widget can appear. Tab widgets use a notch icon; Peek widgets stay compact and do not use a tab slot.")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
+
+            Section {
+                if filteredWidgets.isEmpty {
+                    Text(searchText.isEmpty ? "No widgets match this filter." : "No widgets match your search.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(engine.widgets, id: \.id) { widget in
+                    ForEach(filteredWidgets, id: \.id) { widget in
                         availableWidgetRow(for: widget)
                     }
                 }
             } header: {
-                Text("Available Widgets")
+                HStack {
+                    Text("Available Widgets")
+                    Spacer()
+                    Text("\(filteredWidgets.count)")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             } footer: {
-                Text("Available widgets are loaded from Application Support. Pin one here to make it appear as a notch tab.")
+                Text("Browse widgets installed from Application Support. Tab-compatible widgets can be pinned; peek widgets stay available without taking a tab slot.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Browse")
+        .searchable(text: $searchText, prompt: "Widgets")
     }
 
     private func availableWidgetRow(for widget: Widget) -> some View {
@@ -40,8 +101,11 @@ struct WorkshopBrowseView: View {
             widgetIcon(for: widget)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(widget.manifest.name)
-                    .font(.headline)
+                HStack(spacing: 8) {
+                    Text(widget.manifest.name)
+                        .font(.headline)
+                    presentationBadges(for: widget)
+                }
 
                 Text(WorkshopWidgetCatalog.description(for: widget))
                     .font(.caption)
@@ -51,8 +115,14 @@ struct WorkshopBrowseView: View {
 
             Spacer(minLength: 16)
 
-            Button(isPinned(widget) ? "Unpin" : "Pin") {
-                pinnedWidgetIDs = WidgetPinStore.toggle(widget.id, in: pinnedWidgetIDs)
+            if widget.manifest.presentation.supportsTab {
+                Button(isPinned(widget) ? "Unpin" : "Pin") {
+                    pinnedWidgetIDs = WidgetPinStore.toggle(widget.id, in: pinnedWidgetIDs)
+                }
+            } else {
+                Text("Peek only")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 4)
@@ -74,6 +144,24 @@ struct WorkshopBrowseView: View {
     private func isPinned(_ widget: Widget) -> Bool {
         WidgetPinStore.isPinned(widget.id, in: pinnedWidgetIDs)
     }
+
+    @ViewBuilder
+    private func presentationBadges(for widget: Widget) -> some View {
+        if widget.manifest.presentation.supportsTab {
+            Text("Tab")
+                .font(.caption2.weight(.semibold))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.15), in: Capsule())
+        }
+        if widget.manifest.presentation.supportsPeek {
+            Text("Peek")
+                .font(.caption2.weight(.semibold))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.15), in: Capsule())
+        }
+    }
 }
 
 enum WorkshopWidgetCatalog {
@@ -92,7 +180,9 @@ enum WorkshopWidgetCatalog {
         case "system-monitor":
             return "Watch live CPU and memory usage in the notch, with a compact closed-notch split view."
         default:
-            return "Pin this widget to add it as a tab in the notch."
+            return widget.manifest.presentation == .peek
+                ? "A compact peek-only widget that does not add a tab to the notch."
+                : "Pin this widget to add it as a tab in the notch."
         }
     }
 }

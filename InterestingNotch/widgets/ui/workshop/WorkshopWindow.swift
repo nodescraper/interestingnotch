@@ -10,6 +10,7 @@ import SwiftUI
 private enum WorkshopSection: String, CaseIterable, Identifiable {
     case browse
     case installed
+    case mirror
     case shelf
     case calendar
     case media
@@ -20,6 +21,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "Browse"
         case .installed: "Installed"
+        case .mirror: "Mirror"
         case .shelf: "Shelf"
         case .calendar: "Calendar"
         case .media: "Media"
@@ -30,6 +32,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "square.grid.2x2"
         case .installed: "checklist"
+        case .mirror: "camera"
         case .shelf: "books.vertical"
         case .calendar: "calendar"
         case .media: "play.laptopcomputer"
@@ -50,6 +53,7 @@ struct WorkshopWindow: View {
                 }
 
                 Section("Built-in Widgets") {
+                    workshopSidebarItem(.mirror)
                     workshopSidebarItem(.shelf)
                     workshopSidebarItem(.calendar)
                     workshopSidebarItem(.media)
@@ -66,6 +70,8 @@ struct WorkshopWindow: View {
                     WorkshopBrowseView()
                 case .installed:
                     WorkshopInstalledView()
+                case .mirror:
+                    MirrorSettings()
                 case .shelf:
                     Shelf()
                 case .calendar:

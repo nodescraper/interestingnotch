@@ -19,7 +19,6 @@ struct GeneralSettings: View {
     @ObservedObject var coordinator = InterestingViewCoordinator.shared
 
     @Default(.appLanguage) var appLanguage
-    @Default(.mirrorShape) var mirrorShape
     @Default(.gestureSensitivity) var gestureSensitivity
     @Default(.minimumHoverDuration) var minimumHoverDuration
     @Default(.nonNotchHeight) var nonNotchHeight

@@ -253,6 +253,7 @@ extension Defaults.Keys {
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
+    static let enabledPeekWidgetIDs = Key<[String]>("enabledPeekWidgetIDs", default: [])
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
     static let clipboardHistoryStoreData = Key<Data?>("clipboardHistoryStoreData", default: nil)
     static let clipboardHistoryMaxItems = Key<Int>("clipboardHistoryMaxItems", default: 50)
