@@ -132,13 +132,23 @@ Built on native macOS power assertions — clean, revocable, no shell-outs.
 
 See battery levels for supported Bluetooth accessories — AirPods and Apple Magic devices — directly in the notch, with per-device cards and charging indicators.
 
+When a paired accessory connects or disconnects, InterestingNotch surfaces the change in the notch so it is easy to spot at a glance:
+
+<p align="center">
+  <img src="assets/bluetooth-airpods-pro.png" alt="AirPods Pro connected status shown in the InterestingNotch" width="900">
+</p>
+
 > Battery reporting depends on what macOS exposes to apps. Apple and Magic accessories report their level; most generic third-party devices do not expose battery to any app-accessible API, so they may show as connected without a percentage.
 
 ---
 
 ## Widget library
 
-A dedicated library for managing what's in your notch:
+A dedicated library for managing what's in your notch. Browse the available widgets, see what is installed, and pin or unpin tabs without digging through a long settings list:
+
+<p align="center">
+  <img src="assets/widget-library.png" alt="InterestingNotch widget library showing available widgets" width="900">
+</p>
 
 - **Browse** every available widget with a description.
 - **Pin / Unpin** to add or remove a widget as a notch tab.
