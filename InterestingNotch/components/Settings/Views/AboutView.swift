@@ -5,7 +5,6 @@
 //  Created by Richard Kunkli on 07/08/2024.
 //
 
-import Defaults
 import Sparkle
 import SwiftUI
 
@@ -17,12 +16,6 @@ struct About: View {
         VStack {
             Form {
                 Section {
-                    HStack {
-                        Text("Release name")
-                        Spacer()
-                        Text(Defaults[.releaseName])
-                            .foregroundStyle(.secondary)
-                    }
                     HStack {
                         Text("Version")
                         Spacer()
@@ -47,7 +40,7 @@ struct About: View {
                 HStack(spacing: 30) {
                     Spacer(minLength: 0)
                     Button {
-                        if let url = URL(string: "https://github.com/NodeScraper/InterestingNotch-SE") {
+                        if let url = URL(string: "https://github.com/nodescraper/interestingnotch") {
                             NSWorkspace.shared.open(url)
                         }
                     } label: {
