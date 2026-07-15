@@ -65,3 +65,7 @@ archive.log
 *.p12
 *.cer
 *.mobileprovision
+
+# Local custom widget / peek content
+.interestingnotch/
+demo-peek.json

@@ -118,7 +118,7 @@ struct ClipboardHistoryWidgetPageView: View {
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 6) {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(accent)
@@ -131,11 +131,12 @@ struct ClipboardHistoryWidgetPageView: View {
             Text("Text, links, and images you copy show up here.")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.horizontal, 0)
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
     // MARK: - Card

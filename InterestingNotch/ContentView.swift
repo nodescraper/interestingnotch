@@ -491,7 +491,7 @@ struct ContentView: View {
                     .onAppear {
                         currentAccentColor = .effectiveAccent
                         if customWidgetsEnabled { customPeekWatcher.enable() }
-                        if Defaults[.bluetoothNotificationsEnabled] {
+                        if !coordinator.firstLaunch && Defaults[.bluetoothNotificationsEnabled] {
                             bluetoothStartupTask?.cancel()
                             bluetoothStartupTask = Task { @MainActor in
                                 try? await Task.sleep(for: .seconds(1.5))

@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/nodescraper/interestingnotch"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="InterestingNotch" width="150"></a>
+  <a href="https://github.com/nodescraper/interestingnotch"><img src="assets/interestingnotch-icon.png" alt="InterestingNotch" width="150"></a>
   <br>
   InterestingNotch
   <br>

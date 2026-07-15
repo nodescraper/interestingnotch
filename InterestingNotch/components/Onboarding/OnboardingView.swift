@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 import AVFoundation
 import Defaults
 import Sparkle
@@ -138,11 +139,9 @@ struct OnboardingView: View {
                     description: "InterestingNotch can notify you when selected paired Bluetooth devices connect or disconnect, so important accessory changes are visible in the notch.",
                     privacyNote: "Bluetooth is used to monitor paired-device connection status. You choose which devices can send notifications in Settings.",
                     onAllow: {
-                        Task { @MainActor in
-                            BluetoothDeviceMonitor.shared.enable()
-                            withAnimation(.easeInOut(duration: 0.6)) {
-                                step = .accessibilityPermission
-                            }
+                        openBluetoothSettings()
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .accessibilityPermission
                         }
                     },
                     onSkip: {
@@ -160,13 +159,9 @@ struct OnboardingView: View {
                     description: "Accessibility access is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require Accessibility. You can enable it later in OSD settings if needed.",
                     privacyNote: "Accessibility access is used only to improve media and brightness notifications. No data is collected or shared.",
                     onAllow: {
-                        Task {
-                            _ = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            await MainActor.run {
-                                withAnimation(.easeInOut(duration: 0.6)) {
-                                    step = .musicPermission
-                                }
-                            }
+                        openAccessibilitySettings()
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .musicPermission
                         }
                     },
                     onSkip: {
@@ -236,6 +231,37 @@ struct OnboardingView: View {
 
     func requestMicrophonePermission() async {
         await AVCaptureDevice.requestAccess(for: .audio)
+    }
+
+    func openBluetoothSettings() {
+        openSystemSettings(
+            candidateURLs: [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth",
+                "x-apple.systempreferences:com.apple.BluetoothSettings",
+            ]
+        )
+    }
+
+    func openAccessibilitySettings() {
+        openSystemSettings(
+            candidateURLs: [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+            ]
+        )
+    }
+
+    func openSystemSettings(candidateURLs: [String]) {
+        for candidate in candidateURLs {
+            guard let url = URL(string: candidate) else { continue }
+            if NSWorkspace.shared.open(url) {
+                return
+            }
+        }
+
+        NSWorkspace.shared.openApplication(
+            at: URL(fileURLWithPath: "/System/Applications/System Settings.app"),
+            configuration: NSWorkspace.OpenConfiguration()
+        ) { _, _ in }
     }
     
 }
