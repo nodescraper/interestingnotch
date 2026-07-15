@@ -147,7 +147,6 @@ enum WidgetLibrary {
         WidgetManifest(
             schema: 1,
             kind: .data,
-            presentation: .both,
             id: "system-monitor",
             name: "System Monitor",
             author: "NodeScraper",

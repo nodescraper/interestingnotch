@@ -25,7 +25,7 @@ struct OnboardingFinishView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
 
-            Text("You can now enjoy the app. If you want to tweak things further, you can always visit the settings.")
+            Text("You can now enjoy your widgets, voice notes, and Bluetooth device notifications. Visit Settings whenever you want to customize them further.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

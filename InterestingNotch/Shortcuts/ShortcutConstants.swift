@@ -16,4 +16,5 @@ extension KeyboardShortcuts.Name {
     static let toggleSneakPeek = Self("toggleSneakPeek", default: .init(.h, modifiers: [.command, .shift]))
     static let toggleNotchOpen = Self("toggleNotchOpen", default: .init(.i, modifiers: [.command, .shift]))
     static let colorPickerPickColor = Self("colorPickerPickColor")
+    static let caffeineToggle = Self("caffeineToggle", default: .init(.k, modifiers: [.command, .shift]))
 }

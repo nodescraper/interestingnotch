@@ -87,21 +87,6 @@ struct SystemMonitorSnapshot: Equatable, Sendable {
         SystemMonitorFormatting.rateString(networkBytesPerSec)
     }
 
-    func displayValue(for metric: SystemMonitorSneakPeekMetric) -> String {
-        switch metric {
-        case .none:
-            return "--%"
-        case .cpu:
-            return cpuDisplay
-        case .memory:
-            return memoryDisplay
-        case .disk:
-            return diskDisplay ?? "--%"
-        case .temperature:
-            return temperatureDisplay ?? "--°"
-        }
-    }
-
     var widgetValue: WidgetValue {
         var payload: [String: WidgetValue] = [
             "cpu": .object([

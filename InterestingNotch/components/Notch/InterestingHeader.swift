@@ -12,7 +12,9 @@ struct InterestingHeader: View {
     @EnvironmentObject var vm: InterestingViewModel
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = InterestingViewCoordinator.shared
+    @ObservedObject var caffeineManager = CaffeineManager.shared
     @StateObject var tvm = ShelfStateViewModel.shared
+    @AppStorage("caffeineEnabled") private var caffeineEnabled = true
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
     @Default(.showPinButton) private var showPinButton
     @Default(.pinNotchOpen) private var pinNotchOpen
@@ -62,6 +64,9 @@ struct InterestingHeader: View {
                                 vm.toggleCameraPreview()
                             }
                         }
+                        if caffeineEnabled {
+                            caffeineButton
+                        }
                         headerIconButton(systemName: "square.grid.2x2") {
                             DispatchQueue.main.async {
                                 WorkshopWindowController.shared.showWindow()
@@ -106,6 +111,32 @@ struct InterestingHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+        .onChange(of: caffeineEnabled) {
+            if !caffeineEnabled {
+                caffeineManager.deactivate()
+            }
+        }
+    }
+
+    private var caffeineButton: some View {
+        Button {
+            caffeineManager.toggle()
+        } label: {
+            Image(systemName: caffeineManager.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                .foregroundColor(caffeineManager.isActive ? .effectiveAccent : .gray)
+                .imageScale(.medium)
+                .frame(width: 30, height: 30)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("15 minutes") { caffeineManager.activate(for: 15 * 60) }
+            Button("1 hour") { caffeineManager.activate(for: 60 * 60) }
+            Button("2 hours") { caffeineManager.activate(for: 2 * 60 * 60) }
+            Divider()
+            Button("Until off") { caffeineManager.activate() }
+            Button("Turn off", role: .destructive) { caffeineManager.deactivate() }
+        }
+        .help(caffeineManager.isActive ? "Caffeine on" : "Keep Mac awake")
     }
 
     private func headerIconButton(

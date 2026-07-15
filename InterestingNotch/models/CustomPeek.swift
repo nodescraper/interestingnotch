@@ -45,6 +45,13 @@ final class CustomPeekPreferences: ObservableObject {
         values[id] ?? CustomPeekPreference()
     }
 
+    func preference(for peek: CustomPeek) -> CustomPeekPreference {
+        values[peek.id] ?? CustomPeekPreference(
+            displayMode: peek.defaultDisplayMode ?? .persistent,
+            popUpDuration: peek.defaultPopUpDuration ?? 4
+        )
+    }
+
     func update(_ preference: CustomPeekPreference, for id: String) {
         values[id] = preference
         if let data = try? JSONEncoder().encode(values) {
@@ -62,9 +69,13 @@ struct CustomPeek: Identifiable, Equatable {
     let accent: Color
     let side: PeekSide
     let duration: TimeInterval?
+    let defaultDisplayMode: CustomPeekDisplayMode?
+    let defaultPopUpDuration: TimeInterval?
 
     init(id: String, title: String, message: String?, icon: String?, accent: Color,
-         side: PeekSide, duration: TimeInterval?) {
+         side: PeekSide, duration: TimeInterval?,
+         defaultDisplayMode: CustomPeekDisplayMode? = nil,
+         defaultPopUpDuration: TimeInterval? = nil) {
         self.id = id
         self.title = title
         self.message = message
@@ -72,6 +83,8 @@ struct CustomPeek: Identifiable, Equatable {
         self.accent = accent
         self.side = side
         self.duration = duration
+        self.defaultDisplayMode = defaultDisplayMode
+        self.defaultPopUpDuration = defaultPopUpDuration
     }
 
     static func parse(data: Data, id: String) throws -> CustomPeek {
@@ -81,7 +94,11 @@ struct CustomPeek: Identifiable, Equatable {
         let title = raw.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !title.isEmpty else { throw ParseError.missingTitle }
         if let duration = raw.duration, duration <= 0 { throw ParseError.invalidDuration }
+        if let duration = raw.popUpDuration, duration <= 0 { throw ParseError.invalidPopUpDuration }
         if let side = raw.side, PeekSide(rawValue: side) == nil { throw ParseError.invalidSide }
+        if let display = raw.display, CustomPeekDisplayMode(jsonValue: display) == nil {
+            throw ParseError.invalidDisplay
+        }
         if let accent = raw.accent, Color(hex: accent) == nil { throw ParseError.invalidAccent }
 
         return CustomPeek(
@@ -91,7 +108,9 @@ struct CustomPeek: Identifiable, Equatable {
             icon: raw.icon,
             accent: raw.accent.flatMap(Color.init(hex:)) ?? .effectiveAccent,
             side: raw.side.flatMap(PeekSide.init(rawValue:)) ?? .split,
-            duration: raw.duration
+            duration: raw.duration,
+            defaultDisplayMode: raw.display.flatMap(CustomPeekDisplayMode.init(jsonValue:)),
+            defaultPopUpDuration: raw.popUpDuration
         )
     }
 
@@ -99,7 +118,9 @@ struct CustomPeek: Identifiable, Equatable {
         case invalidJSON
         case missingTitle
         case invalidDuration
+        case invalidPopUpDuration
         case invalidSide
+        case invalidDisplay
         case invalidAccent
 
         var errorDescription: String? {
@@ -107,7 +128,9 @@ struct CustomPeek: Identifiable, Equatable {
             case .invalidJSON: "Invalid JSON."
             case .missingTitle: "The title field is required."
             case .invalidDuration: "Duration must be greater than zero."
+            case .invalidPopUpDuration: "Pop-up duration must be greater than zero."
             case .invalidSide: "Side must be left, right, or split."
+            case .invalidDisplay: "Display must be persistent, popUp, or popup."
             case .invalidAccent: "Accent must be a 6- or 8-digit hex color."
             }
         }
@@ -120,6 +143,18 @@ struct CustomPeek: Identifiable, Equatable {
         let accent: String?
         let side: String?
         let duration: TimeInterval?
+        let display: String?
+        let popUpDuration: TimeInterval?
+    }
+}
+
+private extension CustomPeekDisplayMode {
+    init?(jsonValue: String) {
+        switch jsonValue.lowercased() {
+        case "persistent": self = .persistent
+        case "popup": self = .popUp
+        default: return nil
+        }
     }
 }
 

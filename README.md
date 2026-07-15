@@ -69,6 +69,7 @@ This is not just a rename or packaging fork. The SE branch adds substantial prod
 - **Accessory battery widget** for connected-device battery reporting
 - **Color picker widget polish** with a more focused interaction model
 - **Paged tab behavior** for handling multiple pinned widgets without collapsing the UI
+- **Bluetooth device notifications** for selected paired devices connecting or disconnecting
 - **Onboarding, settings, calendar, and notch-flow changes** to support the new widget model
 - **Widget extraction and rendering test coverage** expanded alongside the new functionality
 
@@ -92,7 +93,11 @@ The biggest shift in InterestingNotch is that the notch is no longer just a medi
 
 ### Workshop flow
 
-SE introduces a **Workshop** experience for browsing and pinning widgets, making the widget system feel like a real feature rather than a hardcoded experiment.
+SE introduces a **Workshop** experience for browsing and pinning tab-based widgets, making the widget system feel like a real feature rather than a hardcoded experiment. Workshop widgets always appear as notch tabs; compact notifications are handled by dedicated activity sources instead of widget presentation tags.
+
+### Bluetooth device notifications
+
+Open **Settings → Bluetooth Devices** to enable connection notifications and select individual paired devices. Connected and disconnected events can be enabled independently, and the popup duration is configurable from 1–15 seconds. The monitor uses macOS Bluetooth connection callbacks rather than background polling, and its notification uses the same compact expansion and closing lifecycle as the other notch activities.
 
 ### Custom Widgets (beta)
 
@@ -117,7 +122,8 @@ Write one JSON file per peek. The filename stem becomes the peek id:
   "icon": "printer.fill",
   "accent": "#F5952E",
   "side": "split",
-  "duration": 4
+  "display": "popUp",
+  "popUpDuration": 4
 }
 ```
 
@@ -128,6 +134,8 @@ Only `title` is required. The other fields are:
 - `accent`: Optional six- or eight-digit hex color. Defaults to the app accent.
 - `side`: `left`, `right`, or `split`; defaults to `split`.
 - `duration`: Optional number of seconds before the source file is cleared. If omitted, the file remains active until removed.
+- `display`: Optional initial setting, `persistent`, `popUp`, or `popup`. User settings override it.
+- `popUpDuration`: Optional initial popup duration. The user can change it from 1–60 seconds in Custom Widgets settings.
 
 Overwriting a file updates the same peek in place. Removing the file clears it. The watcher is event-driven and does not poll the folder.
 

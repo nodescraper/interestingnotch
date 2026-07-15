@@ -37,7 +37,7 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         case .mirror: "camera"
         case .shelf: "books.vertical"
         case .calendar: "calendar"
-        case .media: "play.laptopcomputer"
+        case .media: "play.circle.fill"
         case .customWidgets: "sparkles.rectangle.stack"
         }
     }

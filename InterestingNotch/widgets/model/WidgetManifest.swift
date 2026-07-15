@@ -10,7 +10,6 @@ import Foundation
 struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
     let schema: Int
     let kind: Kind
-    let presentation: Presentation
     let id: String
     let name: String
     let author: String?
@@ -24,7 +23,6 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
     init(
         schema: Int,
         kind: Kind,
-        presentation: Presentation = .tab,
         id: String,
         name: String,
         author: String?,
@@ -37,7 +35,6 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
     ) {
         self.schema = schema
         self.kind = kind
-        self.presentation = presentation
         self.id = id
         self.name = name
         self.author = author
@@ -49,17 +46,8 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         self.interactive = interactive
     }
 
-    enum Presentation: String, Codable, Sendable {
-        case tab
-        case peek
-        case both
-
-        var supportsTab: Bool { self == .tab || self == .both }
-        var supportsPeek: Bool { self == .peek || self == .both }
-    }
-
     private enum CodingKeys: String, CodingKey {
-        case schema, kind, presentation, id, name, author, source, extract, render, onTap, permissions, interactive
+        case schema, kind, id, name, author, source, extract, render, onTap, permissions, interactive
     }
 
     init(from decoder: Decoder) throws {
@@ -67,8 +55,6 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         schema = try container.decode(Int.self, forKey: .schema)
         kind = try container.decode(Kind.self, forKey: .kind)
         id = try container.decode(String.self, forKey: .id)
-        presentation = try container.decodeIfPresent(Presentation.self, forKey: .presentation)
-            ?? (id == "system-monitor" ? .both : .tab)
         name = try container.decode(String.self, forKey: .name)
         author = try container.decodeIfPresent(String.self, forKey: .author)
         source = try container.decodeIfPresent(Source.self, forKey: .source)

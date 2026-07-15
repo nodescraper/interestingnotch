@@ -51,6 +51,11 @@ extension WidgetEngine: WidgetStoreEngine {}
 final class WidgetStore {
     static let shared = WidgetStore()
 
+    /// IDs that were bundled by older releases but are no longer supported.
+    /// Remove their manifests during the next load so they cannot appear in
+    /// onboarding or Workshop after an upgrade.
+    private static let removedBundledWidgetIDs: Set<String> = ["accessory-battery"]
+
     private let fileManager: FileManager
     private let engine: any WidgetStoreEngine
     private let seedBundledManifests: Bool
@@ -104,7 +109,7 @@ final class WidgetStore {
             do {
                 let data = try Data(contentsOf: fileURL)
                 let manifest = try JSONDecoder().decode(WidgetManifest.self, from: data)
-                if manifest.id == "accessory-battery" {
+                if Self.removedBundledWidgetIDs.contains(manifest.id) {
                     // Removed bundled widget: clean up manifests created by older builds.
                     try? fileManager.removeItem(at: fileURL)
                     continue

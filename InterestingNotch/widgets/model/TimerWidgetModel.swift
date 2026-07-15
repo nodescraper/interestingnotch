@@ -9,12 +9,12 @@ import Defaults
 import Foundation
 import SwiftUI
 
-private let defaultTimerPreset = TimerPreset(minutes: 25)
+private let defaultTimerPreset = TimerPreset(minutes: 30)
 private let timerPresets: [TimerPreset] = [
     .init(minutes: 5),
     .init(minutes: 10),
     .init(minutes: 15),
-    .init(minutes: 25),
+    .init(minutes: 30),
     .init(minutes: 50),
 ]
 
@@ -253,7 +253,16 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         let totalSeconds: Int
         switch mode {
         case .timer:
-            totalSeconds = max(0, Int(countdownState.remaining.rounded(.up)))
+            switch countdownState.phase {
+            case .idle:
+                totalSeconds = max(0, Int(countdownState.remaining.rounded(.up)))
+            case .running, .paused:
+                totalSeconds = countdownState.remaining > 0
+                    ? max(1, Int(countdownState.remaining.rounded(.down)))
+                    : 0
+            case .finished:
+                totalSeconds = 0
+            }
         case .stopwatch:
             totalSeconds = max(0, Int(stopwatchState.elapsed.rounded(.down)))
         }
@@ -319,6 +328,7 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
             case .idle, .paused, .finished:
                 dismissCompletionPresentationIfNeeded()
                 countdownState.start(now: now())
+                countdownState.tick(now: now())
             case .running:
                 countdownState.pause(now: now())
             }
@@ -386,20 +396,28 @@ final class TimerWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     }
 
     private func publishSneakPeek() {
-        guard mode == .timer else {
-            sneakPeekController.hideTimer()
-            return
-        }
-        switch countdownState.phase {
-        case .running, .paused:
-            sneakPeekController.showTimer(
-                progress: CGFloat(countdownState.progress),
-                duration: 0
-            )
-        case .idle:
-            sneakPeekController.hideTimer()
-        case .finished:
-            break
+        switch mode {
+        case .timer:
+            switch countdownState.phase {
+            case .running, .paused:
+                sneakPeekController.showTimer(
+                    progress: CGFloat(countdownState.progress),
+                    duration: 0
+                )
+            case .idle:
+                sneakPeekController.hideTimer()
+            case .finished:
+                break
+            }
+        case .stopwatch:
+            switch stopwatchState.phase {
+            case .running, .paused:
+                // The compact view gets the count-up value from the live model;
+                // the coordinator only needs the same timer lifecycle signal.
+                sneakPeekController.showTimer(progress: 1, duration: 0)
+            case .idle, .finished:
+                sneakPeekController.hideTimer()
+            }
         }
     }
 

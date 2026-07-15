@@ -59,7 +59,7 @@ struct CustomWidgetsSettingsView: View {
     private func syncWatcher(_ enabled: Bool) { if enabled { watcher.enable() } else { watcher.disable() } }
 
     private func peekSettingsRow(_ peek: CustomPeek) -> some View {
-        let preference = preferences.preference(for: peek.id)
+        let preference = preferences.preference(for: peek)
         return VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 if let icon = peek.icon, !icon.isEmpty { Image(systemName: icon).foregroundStyle(peek.accent) }
@@ -90,34 +90,41 @@ struct CustomWidgetsSettingsView: View {
 
     private func enabledBinding(for id: String) -> Binding<Bool> {
         Binding(
-            get: { preferences.preference(for: id).isEnabled },
+            get: { preference(for: id).isEnabled },
             set: { newValue in
-                var preference = preferences.preference(for: id)
-                preference.isEnabled = newValue
-                preferences.update(preference, for: id)
+                var updatedPreference = preference(for: id)
+                updatedPreference.isEnabled = newValue
+                preferences.update(updatedPreference, for: id)
             }
         )
     }
 
     private func displayModeBinding(for id: String) -> Binding<CustomPeekDisplayMode> {
         Binding(
-            get: { preferences.preference(for: id).displayMode },
+            get: { preference(for: id).displayMode },
             set: { newValue in
-                var preference = preferences.preference(for: id)
-                preference.displayMode = newValue
-                preferences.update(preference, for: id)
+                var updatedPreference = preference(for: id)
+                updatedPreference.displayMode = newValue
+                preferences.update(updatedPreference, for: id)
             }
         )
     }
 
     private func popUpDurationBinding(for id: String) -> Binding<TimeInterval> {
         Binding(
-            get: { preferences.preference(for: id).popUpDuration },
+            get: { preference(for: id).popUpDuration },
             set: { newValue in
-                var preference = preferences.preference(for: id)
-                preference.popUpDuration = newValue
-                preferences.update(preference, for: id)
+                var updatedPreference = preference(for: id)
+                updatedPreference.popUpDuration = newValue
+                preferences.update(updatedPreference, for: id)
             }
         )
+    }
+
+    private func preference(for id: String) -> CustomPeekPreference {
+        guard let peek = watcher.availablePeeks.first(where: { $0.id == id }) else {
+            return preferences.preference(for: id)
+        }
+        return preferences.preference(for: peek)
     }
 }

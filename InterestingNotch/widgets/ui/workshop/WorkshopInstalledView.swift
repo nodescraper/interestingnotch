@@ -55,8 +55,6 @@ enum WorkshopInstalledSettingsRegistry {
             ColorPickerInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         case "clipboard-history":
             ClipboardHistoryInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
-        case "system-monitor":
-            SystemMonitorInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         default:
             GenericInstalledSettingsSection(widget: widget, pinnedWidgetIDs: pinnedWidgetIDs)
         }
@@ -139,44 +137,6 @@ private struct ClipboardHistoryInstalledSettingsSection: View {
         }
 
         Defaults[.clipboardHistoryStoreData] = try? JSONEncoder().encode(trimmedPayload)
-    }
-}
-
-private struct SystemMonitorInstalledSettingsSection: View {
-    let widget: Widget
-    @Binding var pinnedWidgetIDs: [String]
-    @Default(.systemMonitorSneakPeekEnabled) private var sneakPeekEnabled
-    @Default(.systemMonitorSneakPeekLeftMetric) private var leftMetric
-    @Default(.systemMonitorSneakPeekRightMetric) private var rightMetric
-
-    var body: some View {
-        Section {
-            Toggle("Show sneak peek when closed", isOn: $sneakPeekEnabled)
-
-            Picker("Left side", selection: $leftMetric) {
-                ForEach(SystemMonitorSneakPeekMetric.allCases) { metric in
-                    Label(metric.title, systemImage: metric.symbolName)
-                        .tag(metric)
-                }
-            }
-
-            Picker("Right side", selection: $rightMetric) {
-                ForEach(SystemMonitorSneakPeekMetric.allCases) { metric in
-                    Label(metric.title, systemImage: metric.symbolName)
-                        .tag(metric)
-                }
-            }
-
-            Button("Unpin", role: .destructive) {
-                pinnedWidgetIDs = WidgetPinStore.unpin(widget.id, in: pinnedWidgetIDs)
-            }
-        } header: {
-            Text(widget.manifest.name)
-        } footer: {
-            Text("Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics.")
-                .foregroundStyle(.secondary)
-                .font(.caption)
-        }
     }
 }
 

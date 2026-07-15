@@ -43,7 +43,7 @@ enum WidgetTabResolver {
 
     @MainActor
     static func sources(from widgets: [Widget]) -> [WidgetTabSource] {
-        widgets.filter { $0.manifest.presentation.supportsTab }.map { widget in
+        widgets.map { widget in
             WidgetTabSource(
                 id: widget.id,
                 title: widget.manifest.name,

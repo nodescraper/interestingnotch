@@ -17,6 +17,8 @@
 	<string>InterestingNotch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>InterestingNotch uses your microphone to record voice notes directly from the notch.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>InterestingNotch uses Bluetooth connection status to notify you when selected paired devices connect or disconnect.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

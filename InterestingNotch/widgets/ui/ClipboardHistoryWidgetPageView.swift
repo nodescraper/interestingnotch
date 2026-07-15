@@ -144,10 +144,7 @@ struct ClipboardHistoryWidgetPageView: View {
         let hovered = hoveredItemID == item.id
         let detail = detail(for: item)
 
-        return Button {
-            model.restoreHistoryItem(item)
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
                 // Header: type icon + meta on the left, pin on the right.
                 HStack(spacing: 6) {
                     Image(systemName: detail.symbol)
@@ -189,8 +186,10 @@ struct ClipboardHistoryWidgetPageView: View {
                     .fill(.white.opacity(hovered ? 0.05 : 0))
             )
             .animation(.easeOut(duration: 0.15), value: hovered)
+        .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .onTapGesture {
+            model.restoreHistoryItem(item)
         }
-        .buttonStyle(.plain)
         .onHover { isHovering in
             hoveredItemID = isHovering ? item.id : (hoveredItemID == item.id ? nil : hoveredItemID)
         }

@@ -14,13 +14,18 @@ struct SystemEventIndicatorModifier: View {
     @Binding var value: CGFloat
     @Binding var icon: String
     @Binding var accent: Color?
+    @Binding var message: String
     let showSlider: Bool = false
     var sendEventBack: (CGFloat) -> Void
 
     var body: some View {
         HStack(spacing: 14) {
             OSDIconView(eventType: eventType, icon: icon, value: value, accent: accent)
-            if (eventType != .mic) {
+            if eventType == .caffeine {
+                Text(message)
+                    .foregroundStyle(.gray)
+                    .lineLimit(1)
+            } else if (eventType != .mic) {
                 DraggableProgressBar(value: $value, accentColor: accent)
                 if Defaults[.showClosedNotchOSDPercentage] {
                     Text("\(Int(value * 100))%")
@@ -40,4 +45,3 @@ struct SystemEventIndicatorModifier: View {
         .imageScale(.large)
     }
 }
-

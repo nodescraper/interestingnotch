@@ -64,7 +64,7 @@ final class CustomPeekWatcher: ObservableObject {
 
     func preferencesDidChange() {
         for peek in availablePeeks {
-            if CustomPeekPreferences.shared.preference(for: peek.id).displayMode == .popUp {
+            if CustomPeekPreferences.shared.preference(for: peek).displayMode == .popUp {
                 hiddenPopUps.remove(peek.id)
                 schedulePopUpExpiry(for: peek)
             } else {
@@ -103,7 +103,7 @@ final class CustomPeekWatcher: ObservableObject {
         hiddenPopUps = hiddenPopUps.intersection(next.keys)
         availablePeeks = next.values.sorted { (nextDates[$0.id] ?? .distantPast) > (nextDates[$1.id] ?? .distantPast) }
         activePeeks = availablePeeks.filter { peek in
-            let preference = CustomPeekPreferences.shared.preference(for: peek.id)
+            let preference = CustomPeekPreferences.shared.preference(for: peek)
             return preference.isEnabled && !hiddenPopUps.contains(peek.id)
         }
         currentPeek = activePeeks.first
@@ -122,8 +122,9 @@ final class CustomPeekWatcher: ObservableObject {
 
     private func schedulePopUpExpiry(for peek: CustomPeek) {
         popUpTasks[peek.id]?.cancel()
-        guard CustomPeekPreferences.shared.preference(for: peek.id).displayMode == .popUp else { return }
-        let duration = max(0.5, CustomPeekPreferences.shared.preference(for: peek.id).popUpDuration)
+        let preference = CustomPeekPreferences.shared.preference(for: peek)
+        guard preference.displayMode == .popUp else { return }
+        let duration = max(0.5, preference.popUpDuration)
         popUpTasks[peek.id] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
