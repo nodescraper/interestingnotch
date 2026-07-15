@@ -3,6 +3,10 @@
 
 # InterestingNotch
 
+<video src="assets/demo.mp4" controls muted playsinline width="900">
+  <a href="assets/demo.mp4">Watch the InterestingNotch demo</a>
+</video>
+
 ### The notch, reimagined.
 
 A powerful, extensible take on the Mac notch — built on the foundation of boring.notch, then pushed far beyond it with its own widgets, a pinnable widget library, Bluetooth accessory battery, a built-in caffeine tool, and a custom-widget system you can script yourself.
@@ -11,15 +15,6 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white)
 ![Local first](https://img.shields.io/badge/local%20first-no%20cloud-0F766E)
 ![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-334155)
-
-</div>
-
-<!-- ─────────────────────────── DEMO ─────────────────────────── -->
-<div align="center">
-
-<video src="assets/demo.mp4" controls muted playsinline width="900">
-  <a href="assets/demo.mp4">Watch the InterestingNotch demo</a>
-</video>
 
 </div>
 
