@@ -24,7 +24,9 @@ done
 
 entitlements=$(mktemp)
 trap 'rm -f "$entitlements"' EXIT
-codesign -d --entitlements "$entitlements" "$app_path" 2>/dev/null
+codesign -d --entitlements :- "$app_path" 2>&1 \
+  | awk 'found || /^<\?xml/ { found = 1; print }' >"$entitlements"
+plutil -lint "$entitlements" >/dev/null
 
 for key in com.apple.security.device.camera com.apple.security.device.audio-input com.apple.security.device.bluetooth com.apple.security.personal-information.calendars; do
   [[ "$(/usr/libexec/PlistBuddy -c "Print :$key" "$entitlements")" == "true" ]]

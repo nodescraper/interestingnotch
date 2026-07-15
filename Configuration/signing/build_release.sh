@@ -8,12 +8,18 @@ APP_DIR="$ARCHIVE_DIR/Products/Applications/InterestingNotch.app"
 DMG_PATH="${DMG_PATH:-$ROOT_DIR/Release/InterestingNotch.dmg}"
 ZIP_PATH="${ZIP_PATH:-${TMPDIR:-/tmp}/InterestingNotch-notarization.zip}"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-Developer ID Application}"
+APP_ENTITLEMENTS="$ROOT_DIR/InterestingNotch/InterestingNotch.entitlements"
+HELPER_ENTITLEMENTS="$ROOT_DIR/InterestingNotchXPCHelper/InterestingNotchXPCHelper.entitlements"
+EXPANDED_APP_ENTITLEMENTS="${TMPDIR:-/tmp}/InterestingNotch-release.entitlements"
 
 : "${APPLE_TEAM_ID:?Set APPLE_TEAM_ID to your Apple Developer Team ID}"
 : "${NOTARYTOOL_PROFILE:?Set NOTARYTOOL_PROFILE to your stored notarytool keychain profile}"
 
 mkdir -p "$ROOT_DIR/Release"
 rm -rf "$ARCHIVE_DIR" "$ZIP_PATH" "$DMG_PATH"
+sed 's/$(PRODUCT_BUNDLE_IDENTIFIER)/com.nodescraper.interestingnotch/g' \
+  "$APP_ENTITLEMENTS" > "$EXPANDED_APP_ENTITLEMENTS"
+trap 'rm -f "$EXPANDED_APP_ENTITLEMENTS"' EXIT
 
 security find-identity -v -p codesigning | grep -Fq 'Developer ID Application' || {
   echo "Developer ID Application certificate is not installed in the login keychain." >&2
@@ -22,8 +28,13 @@ security find-identity -v -p codesigning | grep -Fq 'Developer ID Application' |
 
 codesign_runtime() {
   local target="$1"
+  local entitlements="${2:-}"
   if [[ -e "$target" ]]; then
-    codesign --force --options runtime --sign "$SIGNING_IDENTITY" "$target"
+    if [[ -n "$entitlements" ]]; then
+      codesign --force --options runtime --entitlements "$entitlements" --sign "$SIGNING_IDENTITY" "$target"
+    else
+      codesign --force --options runtime --sign "$SIGNING_IDENTITY" "$target"
+    fi
   fi
 }
 
@@ -48,10 +59,10 @@ codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/Auto
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app"
-codesign_runtime "$APP_DIR/Contents/XPCServices/InterestingNotchXPCHelper.xpc"
+codesign_runtime "$APP_DIR/Contents/XPCServices/InterestingNotchXPCHelper.xpc" "$HELPER_ENTITLEMENTS"
 codesign_runtime "$APP_DIR/Contents/Resources/MediaRemoteAdapterTestClient"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework"
-codesign_runtime "$APP_DIR"
+codesign_runtime "$APP_DIR" "$EXPANDED_APP_ENTITLEMENTS"
 
 codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 spctl --assess --type execute --verbose=4 "$APP_DIR" || true
