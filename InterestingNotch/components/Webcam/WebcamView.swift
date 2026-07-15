@@ -76,9 +76,7 @@ struct CameraPreviewView: View {
                 alert.addButton(withTitle: "Cancel")
 
                 if alert.runModal() == .alertFirstButtonReturn {
-                    if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
-                        NSWorkspace.shared.open(settingsURL)
-                    }
+                    SystemPermissionManager.shared.openSettings(.camera)
                 }
             }
         case .notDetermined:

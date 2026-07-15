@@ -19,6 +19,12 @@
 	<string>InterestingNotch uses your microphone to record voice notes directly from the notch.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>InterestingNotch uses Bluetooth connection status to notify you when selected paired devices connect or disconnect.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>InterestingNotch uses the camera only to display the live Mirror preview.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>InterestingNotch uses your calendars to display upcoming events in the Calendar widget.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>InterestingNotch uses your reminders to display scheduled reminders in the Calendar widget.</string>
 	<key>SUEnableDownloaderService</key>
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>

@@ -160,9 +160,7 @@ class InterestingViewModel: NSObject, ObservableObject {
                 alert.addButton(withTitle: "Cancel")
 
                 if alert.runModal() == .alertFirstButtonReturn {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
-                        NSWorkspace.shared.open(url)
-                    }
+                    SystemPermissionManager.shared.openSettings(.camera)
                 }
 
                 NSApp.setActivationPolicy(.accessory)

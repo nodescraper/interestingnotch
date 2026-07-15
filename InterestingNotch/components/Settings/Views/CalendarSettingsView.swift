@@ -40,11 +40,12 @@ struct CalendarSettings: View {
                         .multilineTextAlignment(.center)
                         .padding()
                     Button("Open Calendar Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
+                        Task {
+                            let granted = await SystemPermissionManager.shared.requestCalendarAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.calendars)
+                            }
+                            await calendarManager.checkCalendarAuthorization()
                         }
                     }
                 } else {
@@ -76,11 +77,12 @@ struct CalendarSettings: View {
                         .multilineTextAlignment(.center)
                         .padding()
                     Button("Open Reminder Settings") {
-                        if let settingsURL = URL(
-                            string:
-                                "x-apple.systempreferences:com.apple.preference.security?Privacy_Reminders"
-                        ) {
-                            NSWorkspace.shared.open(settingsURL)
+                        Task {
+                            let granted = await SystemPermissionManager.shared.requestRemindersAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.reminders)
+                            }
+                            await calendarManager.checkReminderAuthorization()
                         }
                     }
                 } else {

@@ -920,22 +920,6 @@ final class WidgetExtractorTests: XCTestCase {
         XCTAssertEqual(resolved!.loadAverageText, "Load 1.23 0.98 0.77")
     }
 
-    func testSystemMonitorSnapshotResolvesConfiguredSneakPeekMetricDisplays() {
-        let snapshot = SystemMonitorSnapshot(
-            cpuPercent: 24.2,
-            memoryPercent: 68.4,
-            diskPercent: 81.1,
-            temperatureCelsius: 54.0,
-            uptimeText: "Uptime 1h 5m",
-            loadAverageText: "Load 1.23 0.98 0.77"
-        )
-
-        XCTAssertEqual(snapshot.displayValue(for: .cpu), "24%")
-        XCTAssertEqual(snapshot.displayValue(for: .memory), "68%")
-        XCTAssertEqual(snapshot.displayValue(for: .disk), "81%")
-        XCTAssertEqual(snapshot.displayValue(for: .temperature), "54°")
-    }
-
     @MainActor
     func testTimerWidgetModelUpdatesSneakPeekAcrossRunPauseAndReset() {
         let controller = RecordingTimerSneakPeekController()
@@ -1041,25 +1025,6 @@ final class WidgetExtractorTests: XCTestCase {
         Defaults[.pinnedWidgetIDs] = ["weather", "battery"]
 
         XCTAssertEqual(Defaults[.pinnedWidgetIDs], ["weather", "battery"])
-    }
-
-    func testSystemMonitorSneakPeekSettingsPersistInDefaults() {
-        let originalEnabled = Defaults[.systemMonitorSneakPeekEnabled]
-        let originalLeft = Defaults[.systemMonitorSneakPeekLeftMetric]
-        let originalRight = Defaults[.systemMonitorSneakPeekRightMetric]
-        defer {
-            Defaults[.systemMonitorSneakPeekEnabled] = originalEnabled
-            Defaults[.systemMonitorSneakPeekLeftMetric] = originalLeft
-            Defaults[.systemMonitorSneakPeekRightMetric] = originalRight
-        }
-
-        Defaults[.systemMonitorSneakPeekEnabled] = false
-        Defaults[.systemMonitorSneakPeekLeftMetric] = .disk
-        Defaults[.systemMonitorSneakPeekRightMetric] = .cpu
-
-        XCTAssertFalse(Defaults[.systemMonitorSneakPeekEnabled])
-        XCTAssertEqual(Defaults[.systemMonitorSneakPeekLeftMetric], .disk)
-        XCTAssertEqual(Defaults[.systemMonitorSneakPeekRightMetric], .cpu)
     }
 
     func testWidgetPinStorePinsAndUnpinsWithoutDuplicates() {

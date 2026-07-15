@@ -136,10 +136,9 @@ struct OSDSettings: View {
                         Spacer()
                         Button("Grant Access") {
                             Task {
-                                let granted = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                                if !granted,
-                                   let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                    NSWorkspace.shared.open(url)
+                                let granted = await SystemPermissionManager.shared.requestAccessibilityAccess()
+                                if !granted {
+                                    SystemPermissionManager.shared.openSettings(.accessibility)
                                 }
                                 await MainActor.run {
                                     isAccessibilityAuthorized = granted

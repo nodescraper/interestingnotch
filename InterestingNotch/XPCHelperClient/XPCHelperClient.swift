@@ -4,8 +4,19 @@ import AsyncXPCConnection
 
 final class XPCHelperClient: NSObject {
     nonisolated static let shared = XPCHelperClient()
-    
-    private let serviceName = "com.nodescraper.interestingnotch.InterestingNotchXPCHelper"
+
+    nonisolated static let helperServiceSuffix = ".InterestingNotchXPCHelper"
+
+    nonisolated static func serviceName(forMainBundleIdentifier bundleIdentifier: String) -> String {
+        bundleIdentifier + helperServiceSuffix
+    }
+
+    private var serviceName: String {
+        Self.serviceName(
+            forMainBundleIdentifier: Bundle.main.bundleIdentifier
+                ?? "com.nodescraper.interestingnotch"
+        )
+    }
     
     private var remoteService: RemoteXPCService<InterestingNotchXPCHelperProtocol>?
     private var connection: NSXPCConnection?

@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import AppKit
-import AVFoundation
 import Defaults
 import Sparkle
 
@@ -24,8 +22,6 @@ enum OnboardingStep {
     case softwareUpdatePermission
     case finished
 }
-
-private let calendarService = CalendarService()
 
 struct OnboardingView: View {
     @State var step: OnboardingStep = .welcome
@@ -52,7 +48,10 @@ struct OnboardingView: View {
                     privacyNote: "Your camera is never used without your consent, and nothing is recorded or stored.",
                     onAllow: {
                         Task {
-                            await requestCameraPermission()
+                            let granted = await SystemPermissionManager.shared.requestCameraAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.camera)
+                            }
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .calendarPermission
                             }
@@ -74,7 +73,10 @@ struct OnboardingView: View {
                     privacyNote: "Your calendar data is only used to show your events and is never shared.",
                     onAllow: {
                         Task {
-                                await requestCalendarPermission()
+                                let granted = await SystemPermissionManager.shared.requestCalendarAccess()
+                                if !granted {
+                                    SystemPermissionManager.shared.openSettings(.calendars)
+                                }
                                 withAnimation(.easeInOut(duration: 0.6)) {
                                     step = .remindersPermission
                                 }
@@ -96,7 +98,10 @@ struct OnboardingView: View {
                     privacyNote: "Your reminders data is only used to show your reminders and is never shared.",
                     onAllow: {
                         Task {
-                            await requestRemindersPermission()
+                            let granted = await SystemPermissionManager.shared.requestRemindersAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.reminders)
+                            }
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .microphonePermission
                             }
@@ -118,7 +123,10 @@ struct OnboardingView: View {
                     privacyNote: "Recordings stay on your Mac and are never uploaded by InterestingNotch.",
                     onAllow: {
                         Task {
-                            await requestMicrophonePermission()
+                            let granted = await SystemPermissionManager.shared.requestMicrophoneAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.microphone)
+                            }
                             withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .bluetoothPermission
                             }
@@ -139,9 +147,14 @@ struct OnboardingView: View {
                     description: "InterestingNotch can notify you when selected paired Bluetooth devices connect or disconnect, so important accessory changes are visible in the notch.",
                     privacyNote: "Bluetooth is used to monitor paired-device connection status. You choose which devices can send notifications in Settings.",
                     onAllow: {
-                        openBluetoothSettings()
-                        withAnimation(.easeInOut(duration: 0.6)) {
-                            step = .accessibilityPermission
+                        Task {
+                            let granted = await SystemPermissionManager.shared.requestBluetoothAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.bluetooth)
+                            }
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .accessibilityPermission
+                            }
                         }
                     },
                     onSkip: {
@@ -159,9 +172,14 @@ struct OnboardingView: View {
                     description: "Accessibility access is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require Accessibility. You can enable it later in OSD settings if needed.",
                     privacyNote: "Accessibility access is used only to improve media and brightness notifications. No data is collected or shared.",
                     onAllow: {
-                        openAccessibilitySettings()
-                        withAnimation(.easeInOut(duration: 0.6)) {
-                            step = .musicPermission
+                        Task {
+                            let granted = await SystemPermissionManager.shared.requestAccessibilityAccess()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.accessibility)
+                            }
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .musicPermission
+                            }
                         }
                     },
                     onSkip: {
@@ -215,60 +233,6 @@ struct OnboardingView: View {
         .frame(width: 400, height: 600)
     }
 
-    // MARK: - Permission Request Logic
-
-    func requestCameraPermission() async {
-        await AVCaptureDevice.requestAccess(for: .video)
-    }
-
-    func requestCalendarPermission() async {
-        _ = try? await calendarService.requestAccess(to: .event)
-    }
-
-    func requestRemindersPermission() async {
-        _ = try? await calendarService.requestAccess(to: .reminder)
-    }
-
-    func requestMicrophonePermission() async {
-        // Use the macOS audio-recording permission API so the app is correctly
-        // registered under System Settings > Privacy & Security > Microphone.
-        _ = await AVAudioApplication.requestRecordPermission()
-        // Keep the capture-device permission in sync on macOS versions that
-        // expose the microphone decision through AVCaptureDevice instead.
-        _ = await AVCaptureDevice.requestAccess(for: .audio)
-    }
-
-    func openBluetoothSettings() {
-        openSystemSettings(
-            candidateURLs: [
-                "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth",
-                "x-apple.systempreferences:com.apple.BluetoothSettings",
-            ]
-        )
-    }
-
-    func openAccessibilitySettings() {
-        openSystemSettings(
-            candidateURLs: [
-                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
-            ]
-        )
-    }
-
-    func openSystemSettings(candidateURLs: [String]) {
-        for candidate in candidateURLs {
-            guard let url = URL(string: candidate) else { continue }
-            if NSWorkspace.shared.open(url) {
-                return
-            }
-        }
-
-        NSWorkspace.shared.openApplication(
-            at: URL(fileURLWithPath: "/System/Applications/System Settings.app"),
-            configuration: NSWorkspace.OpenConfiguration()
-        ) { _, _ in }
-    }
-    
 }
 
 @MainActor
