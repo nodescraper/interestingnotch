@@ -291,19 +291,25 @@ final class VoiceRecorderWidgetModel: NSObject, ObservableObject, InteractiveWid
     }
 
     private func requestMicrophoneAccessIfNeeded() async -> Bool {
-        // On macOS, AVAudioApplication is the permission API for apps that
-        // record audio. AVAudioRecorder may otherwise fail without causing
-        // the app to appear in System Settings > Privacy & Security > Microphone.
-        switch AVAudioApplication.shared.recordPermission {
-        case .granted:
+        // macOS exposes microphone permission through both AVFAudio and
+        // AVCaptureDevice. Depending on the OS version and how the user
+        // granted access, one can be authorized while the other still reports
+        // an undetermined/denied state. Treat either authorized path as valid.
+        if AVAudioApplication.shared.recordPermission == .granted
+            || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
             return true
-        case .undetermined:
-            return await AVAudioApplication.requestRecordPermission()
-        case .denied:
-            return false
-        @unknown default:
-            return false
         }
+
+        if AVAudioApplication.shared.recordPermission == .undetermined {
+            _ = await AVAudioApplication.requestRecordPermission()
+        }
+
+        if AVCaptureDevice.authorizationStatus(for: .audio) == .notDetermined {
+            _ = await AVCaptureDevice.requestAccess(for: .audio)
+        }
+
+        return AVAudioApplication.shared.recordPermission == .granted
+            || AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
     private static let recordingSettings: [String: Any] = [
