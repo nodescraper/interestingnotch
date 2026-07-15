@@ -22,6 +22,7 @@ enum SneakContentType {
     case mic
     case battery
     case download
+    case caffeine
 }
 
 struct sneakPeek {
@@ -31,6 +32,7 @@ struct sneakPeek {
     var icon: String = ""
     var accent: Color? = nil
     var targetScreenUUID: String? = nil
+    var message: String = ""
 }
 
 struct SharedSneakPeek: Codable {
@@ -59,17 +61,34 @@ struct ExpandedItem {
 /// closing, then reveal it with the same animation timing for every widget.
 @MainActor
 final class CompactSneakPeekEngine {
-    private var lastInputs: [String: (NotchState, Bool)] = [:]
+    private struct Input {
+        let notchState: NotchState
+        let isActive: Bool
+        let activityID: String?
+    }
+
+    private var lastInputs: [String: Input] = [:]
     private var revealTasks: [String: Task<Void, Never>] = [:]
+    private var removalTasks: [String: Task<Void, Never>] = [:]
     private(set) var revealedScreens: Set<String> = []
+    private(set) var renderedScreens: Set<String> = []
+    private var renderedActivityIDs: [String: String] = [:]
     var onRevealStateChanged: (() -> Void)?
 
-    func update(screenUUID: String?, notchState: NotchState, isActive: Bool) {
+    func update(
+        screenUUID: String?,
+        notchState: NotchState,
+        isActive: Bool,
+        activityID: String?
+    ) {
         guard let screenUUID else { return }
 
         let previousInput = lastInputs[screenUUID]
-        let input = (notchState, isActive)
-        guard lastInputs[screenUUID]?.0 != input.0 || lastInputs[screenUUID]?.1 != input.1 else {
+        let input = Input(notchState: notchState, isActive: isActive, activityID: activityID)
+        guard previousInput?.notchState != input.notchState
+                || previousInput?.isActive != input.isActive
+                || previousInput?.activityID != input.activityID
+        else {
             return
         }
         lastInputs[screenUUID] = input
@@ -77,17 +96,31 @@ final class CompactSneakPeekEngine {
 
         if !isActive {
             setRevealed(false, for: screenUUID)
+            scheduleRemoval(for: screenUUID)
             return
+        }
+
+        removalTasks[screenUUID]?.cancel()
+        setRendered(true, for: screenUUID)
+
+        let activityChanged = previousInput?.isActive == true
+            && previousInput?.activityID != activityID
+        if renderedActivityIDs[screenUUID] == nil || previousInput?.isActive != true {
+            setRenderedActivityID(activityID, for: screenUUID)
         }
 
         switch notchState {
         case .open:
             setRevealed(false, for: screenUUID)
+            // Content is hidden while open, so it is safe to prepare the next
+            // compact activity immediately.
+            setRenderedActivityID(activityID, for: screenUUID)
 
         case .closed:
-            // A widget becoming active while already closed can appear right away.
-            // A notch that has just closed gets the delayed handoff below.
-            if previousInput?.0 == .open {
+            // Closing the notch or replacing one compact activity with another
+            // always collapses first, then reveals the new activity through the
+            // same engine animation.
+            if previousInput?.notchState == .open || activityChanged {
                 setRevealed(false, for: screenUUID)
             } else {
                 setRevealed(true, for: screenUUID)
@@ -97,8 +130,12 @@ final class CompactSneakPeekEngine {
             revealTasks[screenUUID] = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(revealDelay))
                 guard !Task.isCancelled, let self else { return }
-                guard self.lastInputs[screenUUID]?.0 == .closed,
-                      self.lastInputs[screenUUID]?.1 == true else { return }
+                guard self.lastInputs[screenUUID]?.notchState == .closed,
+                      self.lastInputs[screenUUID]?.isActive == true,
+                      self.lastInputs[screenUUID]?.activityID == activityID else { return }
+                // Keep the outgoing activity mounted during collapse. Swap only
+                // now, while fully hidden, before revealing the incoming one.
+                self.setRenderedActivityID(activityID, for: screenUUID)
                 self.setRevealed(true, for: screenUUID)
             }
         }
@@ -107,6 +144,31 @@ final class CompactSneakPeekEngine {
     func shouldReveal(on screenUUID: String?) -> Bool {
         guard let screenUUID else { return false }
         return revealedScreens.contains(screenUUID)
+    }
+
+    func shouldRender(on screenUUID: String?) -> Bool {
+        guard let screenUUID else { return false }
+        return renderedScreens.contains(screenUUID)
+    }
+
+    func renderedActivityID(on screenUUID: String?) -> String? {
+        guard let screenUUID else { return nil }
+        return renderedActivityIDs[screenUUID]
+    }
+
+    private func scheduleRemoval(for screenUUID: String) {
+        removalTasks[screenUUID]?.cancel()
+        guard renderedScreens.contains(screenUUID) else { return }
+
+        let closeDuration = Defaults[.enableOpeningAnimation]
+            ? max(0.12, 0.5 / max(Defaults[.animationSpeedMultiplier], 0.1))
+            : 0
+        removalTasks[screenUUID] = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(closeDuration))
+            guard !Task.isCancelled, let self else { return }
+            guard self.lastInputs[screenUUID]?.isActive == false else { return }
+            self.setRendered(false, for: screenUUID)
+        }
     }
 
     private func setRevealed(_ revealed: Bool, for screenUUID: String) {
@@ -120,6 +182,23 @@ final class CompactSneakPeekEngine {
         withAnimation(StandardAnimations.close) {
             onRevealStateChanged?()
         }
+    }
+
+    private func setRendered(_ rendered: Bool, for screenUUID: String) {
+        let changed: Bool
+        if rendered {
+            changed = renderedScreens.insert(screenUUID).inserted
+        } else {
+            changed = renderedScreens.remove(screenUUID) != nil
+        }
+        guard changed else { return }
+        onRevealStateChanged?()
+    }
+
+    private func setRenderedActivityID(_ activityID: String?, for screenUUID: String) {
+        guard let activityID, renderedActivityIDs[screenUUID] != activityID else { return }
+        renderedActivityIDs[screenUUID] = activityID
+        onRevealStateChanged?()
     }
 }
 
@@ -343,7 +422,7 @@ class InterestingViewCoordinator: ObservableObject {
 
     func toggleSneakPeek(
         status: Bool, type: SneakContentType, duration: TimeInterval = 1.5, value: CGFloat = 0,
-        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil
+        icon: String = "", accent: Color? = nil, targetScreenUUID: String? = nil, message: String = ""
     ) {
         if isDisabledWidgetSneakPeek(type) {
             Task { @MainActor in
@@ -376,7 +455,7 @@ class InterestingViewCoordinator: ObservableObject {
             return
         }
 
-        if type != .music && type != .voiceRecorder {
+        if type != .music && type != .voiceRecorder && type != .caffeine {
             // close()
             if !Defaults[.osdReplacement] {
                 return
@@ -396,6 +475,7 @@ class InterestingViewCoordinator: ObservableObject {
                     state.value = value
                     state.icon = icon
                     state.accent = accent
+                    state.message = message
                     state.targetScreenUUID = uuid // Ensure UUID is set
                     self.sneakPeekStates[uuid] = state
                 }
@@ -484,18 +564,27 @@ class InterestingViewCoordinator: ObservableObject {
     }
 
     func updateCompactSneakPeekLifecycle(
-        on screenUUID: String?, notchState: NotchState, isActive: Bool
+        on screenUUID: String?, notchState: NotchState, isActive: Bool, activityID: String?
     ) {
         compactSneakPeekEngine.update(
             screenUUID: screenUUID,
             notchState: notchState,
-            isActive: isActive
+            isActive: isActive,
+            activityID: activityID
         )
         objectWillChange.send()
     }
 
     func shouldRevealCompactSneakPeek(on screenUUID: String?) -> Bool {
         compactSneakPeekEngine.shouldReveal(on: screenUUID)
+    }
+
+    func shouldRenderCompactSneakPeek(on screenUUID: String?) -> Bool {
+        compactSneakPeekEngine.shouldRender(on: screenUUID)
+    }
+
+    func renderedCompactSneakPeekActivityID(on screenUUID: String?) -> String? {
+        compactSneakPeekEngine.renderedActivityID(on: screenUUID)
     }
     
     var isAnySneakPeekShowing: Bool {
@@ -598,6 +687,9 @@ class InterestingViewCoordinator: ObservableObject {
         switch context {
         case .timerCompletion(let presentedWidgetID):
             guard widgetID == nil || widgetID == presentedWidgetID else { return }
+            if currentView == .widget(id: presentedWidgetID) {
+                currentView = .home
+            }
             temporaryOpenContext = nil
         }
     }

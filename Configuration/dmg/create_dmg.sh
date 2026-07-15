@@ -10,6 +10,7 @@ VOLUME_NAME="${3:?Volume name required}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETTINGS="$SCRIPT_DIR/dmgbuild_settings.py"
+LOCAL_DMGBUILD="$SCRIPT_DIR/.venv/bin/dmgbuild"
 
 BACKGROUND_DIR="$SCRIPT_DIR/.background"
 
@@ -23,6 +24,10 @@ abs_path() {
 }
 
 ensure_dmgbuild_and_badge_support() {
+  if [ -x "$LOCAL_DMGBUILD" ]; then
+    return 0
+  fi
+
   if command -v dmgbuild >/dev/null 2>&1; then
     return 0
   fi
@@ -105,6 +110,10 @@ if [ ! -d "$DMG_APP_PATH" ]; then
   exit 3
 fi
 
-dmgbuild -s "$SETTINGS" "$DMG_VOLUME_NAME" "$DMG_OUTPUT"
+if [ -x "$LOCAL_DMGBUILD" ]; then
+  "$LOCAL_DMGBUILD" -s "$SETTINGS" "$DMG_VOLUME_NAME" "$DMG_OUTPUT"
+else
+  dmgbuild -s "$SETTINGS" "$DMG_VOLUME_NAME" "$DMG_OUTPUT"
+fi
 
 exit $?

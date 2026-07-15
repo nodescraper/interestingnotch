@@ -204,46 +204,6 @@ enum OSDControlSource: String, CaseIterable, Identifiable, Defaults.Serializable
     }
 }
 
-enum SystemMonitorSneakPeekMetric: String, CaseIterable, Identifiable, Defaults.Serializable {
-    case none
-    case cpu
-    case memory
-    case disk
-    case temperature
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .none:
-            return "None"
-        case .cpu:
-            return "CPU"
-        case .memory:
-            return "RAM"
-        case .disk:
-            return "Disk"
-        case .temperature:
-            return "Temp"
-        }
-    }
-
-    var symbolName: String {
-        switch self {
-        case .none:
-            return "minus"
-        case .cpu:
-            return "cpu"
-        case .memory:
-            return "memorychip"
-        case .disk:
-            return "internaldrive"
-        case .temperature:
-            return "thermometer.medium"
-        }
-    }
-}
-
 extension Defaults.Keys {
     // MARK: General
     static let appLanguage = Key<AppLanguage>("appLanguage", default: .system)
@@ -253,12 +213,14 @@ extension Defaults.Keys {
     static let automaticallySwitchDisplay = Key<Bool>("automaticallySwitchDisplay", default: true)
     static let releaseName = Key<String>("releaseName", default: "Flying Rabbit 🐇🪽")
     static let pinnedWidgetIDs = Key<[String]>("pinnedWidgetIDs", default: [])
+    static let bluetoothNotificationsEnabled = Key<Bool>("bluetoothNotificationsEnabled", default: false)
+    static let bluetoothNotificationDeviceAddresses = Key<[String]>("bluetoothNotificationDeviceAddresses", default: [])
+    static let bluetoothConnectedNotifications = Key<Bool>("bluetoothConnectedNotifications", default: true)
+    static let bluetoothDisconnectedNotifications = Key<Bool>("bluetoothDisconnectedNotifications", default: true)
+    static let bluetoothNotificationDuration = Key<Double>("bluetoothNotificationDuration", default: 4)
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
     static let clipboardHistoryStoreData = Key<Data?>("clipboardHistoryStoreData", default: nil)
     static let clipboardHistoryMaxItems = Key<Int>("clipboardHistoryMaxItems", default: 50)
-    static let systemMonitorSneakPeekEnabled = Key<Bool>("systemMonitorSneakPeekEnabled", default: true)
-    static let systemMonitorSneakPeekLeftMetric = Key<SystemMonitorSneakPeekMetric>("systemMonitorSneakPeekLeftMetric", default: .none)
-    static let systemMonitorSneakPeekRightMetric = Key<SystemMonitorSneakPeekMetric>("systemMonitorSneakPeekRightMetric", default: .memory)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

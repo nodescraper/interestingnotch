@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/nodescraper/interestingnotch"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="InterestingNotch" width="150"></a>
+  <a href="https://github.com/nodescraper/interestingnotch"><img src="assets/interestingnotch-icon.png" alt="InterestingNotch" width="150"></a>
   <br>
   InterestingNotch
   <br>
@@ -28,37 +28,15 @@
 
 **InterestingNotch** is the nodescraper-maintained release fork of the original **Interesting Notch** project by **TheBoredTeam**.
 
-The first stable SE release is **v2.8.0**. It brings the expanded widget system, Workshop flow, and the SE onboarding and navigation work together in one release line.
+This fork keeps the playful notch interaction from upstream, but pushes much harder on the notch-as-a-widget-surface idea: multiple pinned widget tabs, Workshop browsing, bundled widgets, and a more extensible desktop utility workflow.
 
-This repo keeps the spirit of the original app, but pushes much harder on the notch-as-a-widget-platform idea: dynamic widget tabs, a bundled widget library, a Workshop flow, and several new built-in utilities that make the notch feel more like a real desktop surface than a single-purpose overlay.
-
-If you are looking for the original project, go here:
-
-- [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch)
-
-If you want the fork with the expanded widget work and SE-specific changes, you are in the right place.
-
-Release downloads are published on the [InterestingNotch releases page](https://github.com/nodescraper/interestingnotch/releases).
+If you are looking for the original project, see [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch).
 
 ---
 
-## Release 0.1
+## Highlights
 
-The first InterestingNotch release packages the widget-platform foundation and the current notch UI work:
-
-- widget library, manifests, pinning, and Workshop browsing
-- Timer, Clipboard History, System Monitor, Accessory Battery, Color Picker, and Calendar widgets
-- full-tab calendar experience with calendar data/model support
-- improved tab transitions and compact timer/music notch states
-- refined notch, shelf, onboarding, settings, and widget-page behavior
-
-This release is focused on establishing the SE architecture and making the expanded widget workflow usable as a daily desktop surface.
-
----
-
-## What This Fork Adds
-
-This is not just a rename or packaging fork. The SE branch adds substantial product and engineering work on top of upstream, including:
+InterestingNotch adds substantial product and engineering work on top of upstream, including:
 
 - **Dynamic widget-tab navigation** so the notch can host multiple utility surfaces cleanly
 - **Workshop browsing and pinning** to install, manage, and surface widgets inside the notch
@@ -69,18 +47,9 @@ This is not just a rename or packaging fork. The SE branch adds substantial prod
 - **Accessory battery widget** for connected-device battery reporting
 - **Color picker widget polish** with a more focused interaction model
 - **Paged tab behavior** for handling multiple pinned widgets without collapsing the UI
+- **Bluetooth device notifications** for selected paired devices connecting or disconnecting
 - **Onboarding, settings, calendar, and notch-flow changes** to support the new widget model
 - **Widget extraction and rendering test coverage** expanded alongside the new functionality
-
-In short: the original project made the notch fun. This fork pushes it toward a more modular and extensible productivity surface.
-
----
-
-## SE Feature Highlights
-
-### Widget-first notch workflow
-
-The biggest shift in InterestingNotch is that the notch is no longer just a media or shelf surface. It becomes a compact host for multiple pinned tools that you can swap between directly from the notch UI.
 
 ### Built-in widgets included in this fork
 
@@ -92,7 +61,68 @@ The biggest shift in InterestingNotch is that the notch is no longer just a medi
 
 ### Workshop flow
 
-SE introduces a **Workshop** experience for browsing and pinning widgets, making the widget system feel like a real feature rather than a hardcoded experiment.
+SE introduces a **Workshop** experience for browsing and pinning tab-based widgets, making the widget system feel like a real feature rather than a hardcoded experiment. Workshop widgets always appear as notch tabs; compact notifications are handled by dedicated activity sources instead of widget presentation tags.
+
+### Bluetooth device notifications
+
+Open **Settings → Bluetooth Devices** to enable connection notifications and select individual paired devices. Connected and disconnected events can be enabled independently, and the popup duration is configurable from 1–15 seconds. The monitor uses macOS Bluetooth connection callbacks rather than background polling, and its notification uses the same compact expansion and closing lifecycle as the other notch activities.
+
+### Custom Widgets (beta)
+
+Custom Widgets are lightweight, file-driven sneak peeks for scripts and external tools. Enable them in **Workshop → Beta → Custom Widgets**. The app watches:
+
+```text
+~/.interestingnotch/peeks/
+```
+
+In the sandboxed app build, this resolves inside the InterestingNotch container, for example:
+
+```text
+~/Library/Containers/com.nodescraper.interestingnotch/Data/.interestingnotch/peeks/
+```
+
+Write one JSON file per peek. The filename stem becomes the peek id:
+
+```json
+{
+  "title": "X1C",
+  "message": "78%",
+  "icon": "printer.fill",
+  "accent": "#F5952E",
+  "side": "split",
+  "display": "popUp",
+  "popUpDuration": 4
+}
+```
+
+Only `title` is required. The other fields are:
+
+- `message`: Optional text shown on the opposite side of the notch.
+- `icon`: Optional SF Symbol name shown beside the title.
+- `accent`: Optional six- or eight-digit hex color. Defaults to the app accent.
+- `side`: `left`, `right`, or `split`; defaults to `split`.
+- `duration`: Optional number of seconds before the source file is cleared. If omitted, the file remains active until removed.
+- `display`: Optional initial setting, `persistent`, `popUp`, or `popup`. User settings override it.
+- `popUpDuration`: Optional initial popup duration. The user can change it from 1–60 seconds in Custom Widgets settings.
+
+Overwriting a file updates the same peek in place. Removing the file clears it. The watcher is event-driven and does not poll the folder.
+
+Each discovered peek also has independent Workshop controls:
+
+- **Enabled**: Turn an individual peek on or off without disabling Custom Widgets globally.
+- **Persistent**: Keep the peek visible while its file exists.
+- **Pop up**: Show the peek temporarily while leaving the source file in place. Choose a display duration from 1–60 seconds; a later file update shows it again.
+
+The compact view preserves the existing notch activity lifecycle: it stays hidden while the notch is open, then appears after the notch closes. Multiple files are supported, with the most recently modified active file taking priority.
+
+For a quick local test, create `demo-peek.json` in the watched folder or run a small script that rewrites it periodically:
+
+```sh
+while true; do
+  printf '%s\n' '{"title":"Demo","message":"Test","icon":"sparkles","accent":"#F5952E","side":"split"}' > "$HOME/.interestingnotch/peeks/demo-peek.json"
+  sleep 10
+done
+```
 
 ### Better notch navigation
 
@@ -115,19 +145,6 @@ The goal here is not to erase upstream. It is to extend it.
 
 ---
 
-## Why This Fork Exists
-
-The original project already had a strong personality and a fun UX direction. This fork exists to explore what happens when the notch becomes more composable, more widget-driven, and more useful day to day.
-
-That means the emphasis here is on:
-
-- more utility packed into the notch
-- cleaner switching between notch surfaces
-- more built-in tools
-- a stronger foundation for future widget-like expansion
-
----
-
 ## Building From Source
 
 ### Requirements
@@ -138,7 +155,7 @@ That means the emphasis here is on:
 ### Clone
 
 ```bash
-git clone https://github.com/nodescraper/interestingnotch.git
+git clone https://github.com/<owner>/interestingnotch.git
 cd interestingnotch
 ```
 
@@ -163,12 +180,30 @@ git checkout main
 xcodebuild -project InterestingNotch.xcodeproj -scheme InterestingNotch -configuration Release -destination 'generic/platform=macOS' build
 ```
 
+### Signed and notarized release
+
+The Release configuration uses the `Developer ID Application` identity. To produce a warning-free public download, configure the Apple certificate and `notarytool` profile described in [`Configuration/signing/README.md`](Configuration/signing/README.md), then run:
+
+```bash
+APPLE_TEAM_ID=YOUR_TEAM_ID \
+NOTARYTOOL_PROFILE=interestingnotch-notary \
+./Configuration/signing/build_release.sh
+```
+
 ### Run a fresh development build
 
 ```bash
 pkill -x InterestingNotch
 open -n .derivedData/Build/Products/Debug/InterestingNotch.app
 ```
+
+---
+
+## Repository Notes
+
+- Generated release artifacts such as `.dmg`, `.xcarchive`, and local packaging environments are intentionally excluded from git.
+- Apple signing certificates, App Store Connect API keys, and notarization credentials are never stored in this repository.
+- Public releases should be created from the signed release flow in [`Configuration/signing/build_release.sh`](Configuration/signing/build_release.sh).
 
 ---
 

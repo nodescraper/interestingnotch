@@ -4,7 +4,7 @@ Please, go through these steps before you submit a PR.
 1. Make sure that your PR is not a duplicate.
 2. If not, then make sure that:
 
-    a. Your changes MUST NOT change translations. Please submit translations on [Crowdin](https://crowdin.com/project/boring-notch).
+    a. If your change introduces or edits localizable strings, keep translation updates in Crowdin unless a maintainer asks for them in the same PR.
 
     b. You have tested the code yourself to ensure it builds correctly and functions as intended.
 

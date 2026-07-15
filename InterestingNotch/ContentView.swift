@@ -13,6 +13,15 @@ import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
 
+private enum CompactActivityKind: String {
+    case recorder
+    case timer
+    case bluetooth
+    case caffeine
+    case customPeek
+    case music
+}
+
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: InterestingViewModel
@@ -20,6 +29,9 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = InterestingViewCoordinator.shared
     @ObservedObject var widgetEngine = WidgetEngine.shared
+    @ObservedObject var customPeekWatcher = CustomPeekWatcher.shared
+    @ObservedObject var bluetoothDeviceMonitor = BluetoothDeviceMonitor.shared
+    @ObservedObject var caffeineManager = CaffeineManager.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
@@ -31,7 +43,13 @@ struct ContentView: View {
     @State private var horizontalMediaGestureTriggered = false
     @State private var horizontalMediaGestureFeedback: CGFloat = .zero
     @State private var isHoveringMusicArea = false
+    @State private var bluetoothStartupTask: Task<Void, Never>?
     @State private var currentAccentColor: Color = .effectiveAccent
+    @State private var lastCustomPeek: CustomPeek?
+    @State private var lastCompactTimerModel: TimerWidgetModel?
+    @State private var lastCompactRecorderModel: VoiceRecorderWidgetModel?
+    @State private var lastBluetoothConnectionEvent: BluetoothConnectionEvent?
+    @State private var lastCompactActivityKind: CompactActivityKind?
 
     @State private var haptics: Bool = false
 
@@ -40,7 +58,7 @@ struct ContentView: View {
     private var widgetAccent: Color { currentAccentColor }
 
     @Default(.showNotHumanFace) var showNotHumanFace
-    @Default(.systemMonitorSneakPeekEnabled) private var systemMonitorSneakPeekEnabled
+    @AppStorage("customWidgetsEnabled") private var customWidgetsEnabled = false
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -96,15 +114,8 @@ struct ContentView: View {
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
-        } else if shouldShowCompactRecorderActivity {
-            chinWidth += nativeRecorderCompactExtraWidth
-        } else if shouldShowCompactTimerActivity {
-            chinWidth += nativeTimerCompactExtraWidth
-        } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
-            && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
-            && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
-        {
-            chinWidth += (2 * max(0, displayClosedNotchHeight - 12) + 20 + 2 * liveActivityEdgeMargin + 2)
+        } else if let compactExtraWidth = expandedCompactActivityExtraWidth {
+            chinWidth += compactExtraWidth
         } else if !coordinator.expandingView.show && vm.notchState == .closed
             && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace]
             && !vm.hideOnClosed
@@ -201,26 +212,151 @@ struct ContentView: View {
             && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
-    private var shouldShowCompactTimerActivity: Bool {
-        vm.notchState == .closed
-            && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
-            && hasCompactTimerActivity
+    private var hasCompactCustomPeekActivity: Bool {
+        customPeekWatcher.currentPeek != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
-    private var shouldShowCompactRecorderActivity: Bool {
-        vm.notchState == .closed
-            && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
-            && hasCompactRecorderActivity
+    private var hasBluetoothConnectionActivity: Bool {
+        bluetoothDeviceMonitor.currentEvent != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
-    private var systemMonitorCompactMetricWidth: CGFloat {
-        vm.hasNotch ? 88 : 78
+    private var hasCaffeineCompactActivity: Bool {
+        caffeineManager.compactPeekVisible
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
-    private var compactSystemMonitorWidth: CGFloat {
+    private var hasCompactMusicActivity: Bool {
+        coordinator.musicLiveActivityEnabled
+            && (musicManager.isPlaying || !musicManager.isPlayerIdle)
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+    }
+
+    private var activeCompactActivityKind: CompactActivityKind? {
+        if hasCompactRecorderActivity { return .recorder }
+        if hasCompactTimerActivity { return .timer }
+        if hasBluetoothConnectionActivity { return .bluetooth }
+        if hasCaffeineCompactActivity { return .caffeine }
+        if hasCompactCustomPeekActivity { return .customPeek }
+        if hasCompactMusicActivity { return .music }
+        return nil
+    }
+
+    private var renderedCompactActivityKind: CompactActivityKind? {
+        guard vm.notchState == .closed,
+              coordinator.shouldRenderCompactSneakPeek(on: vm.screenUUID)
+        else { return nil }
+
+        if let activityID = coordinator.renderedCompactSneakPeekActivityID(on: vm.screenUUID),
+           let renderedKind = CompactActivityKind(rawValue: activityID)
+        {
+            return renderedKind
+        }
+        return activeCompactActivityKind ?? lastCompactActivityKind
+    }
+
+    private var expandedCompactActivityExtraWidth: CGFloat? {
+        guard vm.notchState == .closed,
+              coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID),
+              let kind = activeCompactActivityKind ?? lastCompactActivityKind
+        else { return nil }
+
+        switch kind {
+        case .recorder:
+            return nativeRecorderCompactExtraWidth
+        case .timer:
+            return nativeTimerCompactExtraWidth
+        case .bluetooth:
+            return max(0, bluetoothCompactWidth - vm.closedNotchSize.width)
+        case .caffeine:
+            return max(0, caffeineCompactWidth - vm.closedNotchSize.width)
+        case .customPeek:
+            return max(0, customPeekCompactWidth - vm.closedNotchSize.width)
+        case .music:
+            return max(0, musicCompactWidth - vm.closedNotchSize.width)
+        }
+    }
+
+    private var compactActivityCenterWidth: CGFloat {
+        // Match the exact intrinsic width of the normal closed-state placeholder.
+        // The surrounding NotchLayout applies its own horizontal corner padding.
+        max(0, vm.closedNotchSize.width - 20)
+    }
+
+    private var renderedCompactActivityWidth: CGFloat {
+        guard coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID),
+              let kind = renderedCompactActivityKind
+        else { return compactActivityCenterWidth }
+
+        switch kind {
+        case .recorder:
+            return nativeRecorderCompactWidth
+        case .timer:
+            return nativeTimerCompactWidth
+        case .bluetooth:
+            return bluetoothCompactWidth
+        case .caffeine:
+            return caffeineCompactWidth
+        case .customPeek:
+            return customPeekCompactWidth
+        case .music:
+            return musicCompactWidth
+        }
+    }
+
+    private func customPeekContentWidth(_ peek: CustomPeek, left: Bool) -> CGFloat {
+        let text = left ? peek.title : (peek.message ?? "")
+        return min(150, max(34, CGFloat(text.count * 7 + (left && peek.icon != nil ? 24 : 0) + 12)))
+    }
+
+    private var customPeekCompactWidth: CGFloat {
+        guard let peek = customPeekWatcher.currentPeek ?? lastCustomPeek else { return vm.closedNotchSize.width }
+        let left = peek.side == .right ? 0 : customPeekContentWidth(peek, left: true)
+        let right = peek.side == .left ? 0 : customPeekContentWidth(peek, left: false)
+        return vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin) + left + right
+    }
+
+    private var bluetoothDeviceNameWidth: CGFloat {
+        guard let event = bluetoothDeviceMonitor.currentEvent ?? lastBluetoothConnectionEvent else { return 0 }
+        return min(190, max(86, CGFloat(event.device.name.count * 7 + 36)))
+    }
+
+    private var bluetoothStatusWidth: CGFloat { 106 }
+
+    private var bluetoothCompactWidth: CGFloat {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
-            + (systemMonitorCompactMetricCount * systemMonitorCompactMetricWidth)
+            + bluetoothDeviceNameWidth
+            + bluetoothStatusWidth
+    }
+
+    private var caffeineCompactWidth: CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + 34
+            + 72
+    }
+
+    private var musicCompactArtworkSize: CGFloat {
+        if let scale = cornerRadiusScaleFactor {
+            return max(0, displayClosedNotchHeight - 12 * scale)
+        }
+        return max(0, displayClosedNotchHeight - 12)
+    }
+
+    private var musicCompactSpectrumWidth: CGFloat {
+        max(0, displayClosedNotchHeight - 12)
+    }
+
+    private var musicCompactWidth: CGFloat {
+        musicCompactArtworkSize
+            + (vm.closedNotchSize.width - 4 + 2 * liveActivityEdgeMargin)
+            + musicCompactSpectrumWidth
     }
 
     private var tabSwitchTransition: AnyTransition {
@@ -230,12 +366,6 @@ struct ContentView: View {
             removal: .scale(scale: 0.8, anchor: .center)
                 .combined(with: .opacity)
         )
-    }
-
-    private var systemMonitorCompactMetricCount: CGFloat {
-        let leftCount = Defaults[.systemMonitorSneakPeekLeftMetric] == .none ? 0 : 1
-        let rightCount = Defaults[.systemMonitorSneakPeekRightMetric] == .none ? 0 : 1
-        return CGFloat(leftCount + rightCount)
     }
 
     var body: some View {
@@ -276,6 +406,7 @@ struct ContentView: View {
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
+                            .animation(StandardAnimations.close, value: computedChinWidth)
                             .animation(.smooth, value: gestureProgress)
                     }
                     .contentShape(Rectangle())
@@ -328,7 +459,6 @@ struct ContentView: View {
                         }
 
                         syncCompactSneakPeekLifecycle()
-                        syncSystemMonitorSneakPeek()
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
                         if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !coordinator.shouldKeepNotchOpenWithoutHover {
@@ -344,27 +474,57 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .onChange(of: coordinator.currentView) { _, _ in
-                        syncSystemMonitorSneakPeek()
-                    }
-                    .onChange(of: systemMonitorSneakPeekEnabled) { _, _ in
-                        syncSystemMonitorSneakPeek()
-                    }
                     .onChange(of: coordinator.temporaryOpenContext) { _, context in
                         guard context != nil else { return }
                         doOpen()
                     }
-                    .onChange(of: widgetEngine.widgets.count) { _, _ in
-                        syncSystemMonitorSneakPeek()
-                    }
                     .onReceive(widgetEngine.objectWillChange) { _ in
-                        syncCompactSneakPeekLifecycle()
-                        syncSystemMonitorSneakPeek()
+                        DispatchQueue.main.async {
+                            syncCompactSneakPeekLifecycle()
+                        }
+                    }
+                    .onReceive(musicManager.objectWillChange) { _ in
+                        DispatchQueue.main.async {
+                            syncCompactSneakPeekLifecycle()
+                        }
                     }
                     .onAppear {
                         currentAccentColor = .effectiveAccent
+                        if customWidgetsEnabled { customPeekWatcher.enable() }
+                        if !coordinator.firstLaunch && Defaults[.bluetoothNotificationsEnabled] {
+                            bluetoothStartupTask?.cancel()
+                            bluetoothStartupTask = Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(1.5))
+                                guard !Task.isCancelled else { return }
+                                bluetoothDeviceMonitor.enable()
+                            }
+                        }
                         syncCompactSneakPeekLifecycle()
-                        syncSystemMonitorSneakPeek()
+                    }
+                    .onChange(of: customWidgetsEnabled) { _, enabled in
+                        if enabled { customPeekWatcher.enable() } else { customPeekWatcher.disable() }
+                        syncCompactSneakPeekLifecycle()
+                    }
+                    .onReceive(customPeekWatcher.$currentPeek) { _ in
+                        DispatchQueue.main.async {
+                            if let currentPeek = customPeekWatcher.currentPeek {
+                                lastCustomPeek = currentPeek
+                            }
+                            syncCompactSneakPeekLifecycle()
+                        }
+                    }
+                    .onReceive(bluetoothDeviceMonitor.$currentEvent) { event in
+                        DispatchQueue.main.async {
+                            if let event {
+                                lastBluetoothConnectionEvent = event
+                            }
+                            syncCompactSneakPeekLifecycle()
+                        }
+                    }
+                    .onReceive(caffeineManager.objectWillChange) { _ in
+                        DispatchQueue.main.async {
+                            syncCompactSneakPeekLifecycle()
+                        }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
                         currentAccentColor = .effectiveAccent
@@ -487,15 +647,18 @@ struct ContentView: View {
                               gestureProgress: $gestureProgress
                           )
                               .transition(.opacity)
-                      } else if shouldShowCompactRecorderActivity {
-                          NativeRecorderCompactActivity()
-                              .frame(width: nativeRecorderCompactWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if shouldShowCompactTimerActivity {
-                          NativeTimerCompactActivity()
-                              .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
+                      } else if renderedCompactActivityKind != nil {
+                          CompactActivityContent()
+                              .frame(
+                                  width: renderedCompactActivityWidth,
+                                  height: displayClosedNotchHeight,
+                                  alignment: .center
+                              )
+                              .clipped()
+                              .animation(
+                                  StandardAnimations.close,
+                                  value: coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
+                              )
                       } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
                           InterestingFaceAnimation()
                        } else if vm.notchState == .open {
@@ -509,12 +672,19 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if coordinator.sneakPeekState(for: vm.screenUUID).type == .caffeine && vm.notchState == .closed {
+                              CaffeineSneakPeek(
+                                  message: coordinator.sneakPeekState(for: vm.screenUUID).message
+                              )
+                              .padding(.bottom, 10)
+                              .padding(.horizontal, 8)
+                          } else if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
                                   icon: coordinator.binding(for: vm.screenUUID).icon,
                                   accent: coordinator.binding(for: vm.screenUUID).accent,
+                                  message: coordinator.binding(for: vm.screenUUID).message,
                                   sendEventBack: { newVal in
                                       switch coordinator.sneakPeekState(for: vm.screenUUID).type {
                                       case .volume:
@@ -604,14 +774,6 @@ struct ContentView: View {
     func MusicLiveActivity() -> some View {
         HStack(spacing: 0) {
             // Closed-mode album art: scale padding and corner radius according to cornerRadiusScaleFactor
-            let baseArtSize = displayClosedNotchHeight - 12
-            let scaledArtSize: CGFloat = {
-                if let scale = cornerRadiusScaleFactor {
-                    return displayClosedNotchHeight - 12 * scale
-                }
-                return baseArtSize
-            }()
-
             let closedCornerRadius: CGFloat = {
                 let base = MusicPlayerImageSizes.cornerRadiusInset.closed
                 if let scale = cornerRadiusScaleFactor {
@@ -629,8 +791,8 @@ struct ContentView: View {
                 )
                 .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
-                    width: scaledArtSize,
-                    height: scaledArtSize
+                    width: musicCompactArtworkSize,
+                    height: musicCompactArtworkSize
                 )
 
             Rectangle()
@@ -691,7 +853,7 @@ struct ContentView: View {
             .frame(
                 width: max(
                     0,
-                    displayClosedNotchHeight - 12
+                    musicCompactSpectrumWidth
                         + gestureProgress / 2
                 ),
                 height: max(
@@ -708,17 +870,178 @@ struct ContentView: View {
     }
 
     private func syncCompactSneakPeekLifecycle() {
+        if let timer = compactTimerLiveModel {
+            lastCompactTimerModel = timer
+        }
+        if let recorder = compactRecorderLiveModel {
+            lastCompactRecorderModel = recorder
+        }
+        if let peek = customPeekWatcher.currentPeek {
+            lastCustomPeek = peek
+        }
+        if let event = bluetoothDeviceMonitor.currentEvent {
+            lastBluetoothConnectionEvent = event
+        }
+        if let kind = activeCompactActivityKind {
+            lastCompactActivityKind = kind
+        }
+
         coordinator.updateCompactSneakPeekLifecycle(
             on: vm.screenUUID,
             notchState: vm.notchState,
-            isActive: hasCompactTimerActivity || hasCompactRecorderActivity
+            isActive: activeCompactActivityKind != nil,
+            activityID: activeCompactActivityKind?.rawValue
         )
     }
 
     @ViewBuilder
-    func NativeTimerCompactActivity() -> some View {
-        if let model = compactTimerLiveModel {
-            TimelineView(.animation(minimumInterval: 0.2)) { _ in
+    private func CompactActivityContent() -> some View {
+        switch renderedCompactActivityKind {
+        case .recorder:
+            if let model = compactRecorderLiveModel ?? lastCompactRecorderModel {
+                NativeRecorderCompactActivity(model: model)
+                    .frame(width: nativeRecorderCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        case .timer:
+            if let model = compactTimerLiveModel ?? lastCompactTimerModel {
+                NativeTimerCompactActivity(model: model)
+                    .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        case .bluetooth:
+            if let event = bluetoothDeviceMonitor.currentEvent ?? lastBluetoothConnectionEvent {
+                BluetoothConnectionCompactActivity(event: event)
+                    .frame(width: bluetoothCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        case .caffeine:
+            CaffeineCompactActivity()
+                .frame(width: caffeineCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+        case .customPeek:
+            if let peek = customPeekWatcher.currentPeek ?? lastCustomPeek {
+                CustomPeekCompactActivity(peek: peek)
+                    .frame(width: customPeekCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
+        case .music:
+            MusicLiveActivity()
+                .frame(width: musicCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+        case nil:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func CaffeineCompactActivity() -> some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 5) {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.effectiveAccent)
+            }
+            .frame(width: 34, height: displayClosedNotchHeight, alignment: .leading)
+            .padding(.leading, 5)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+            Text(caffeineCompactTimeLabel)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white.opacity(0.9))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .frame(width: 72, height: displayClosedNotchHeight, alignment: .trailing)
+                .padding(.trailing, 5)
+        }
+    }
+
+    private func CaffeineSneakPeek(message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "cup.and.saucer.fill")
+                .foregroundStyle(Color.effectiveAccent)
+            Text(message)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.9))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(minWidth: 90, alignment: .center)
+    }
+
+    private var caffeineCompactTimeLabel: String {
+        guard let remaining = caffeineManager.remaining else { return "Until off" }
+        let totalMinutes = max(1, Int(ceil(remaining / 60)))
+        if totalMinutes >= 60 { return "\(totalMinutes / 60)h \(totalMinutes % 60)m" }
+        return "\(totalMinutes)m"
+    }
+
+    @ViewBuilder
+    private func BluetoothConnectionCompactActivity(event: BluetoothConnectionEvent) -> some View {
+        let statusColor: Color = event.isConnected ? .green : .red
+        HStack(spacing: 0) {
+            HStack(spacing: 7) {
+                Image(systemName: event.device.symbolName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(event.device.name)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .padding(.horizontal, 5)
+            .frame(width: bluetoothDeviceNameWidth, height: displayClosedNotchHeight, alignment: .leading)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+            HStack(spacing: 6) {
+                Image(systemName: event.isConnected ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .foregroundStyle(statusColor)
+                Text(event.isConnected ? "Connected" : "Disconnected")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(event.isConnected ? statusColor : .white.opacity(0.72))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .padding(.horizontal, 4)
+            .frame(width: bluetoothStatusWidth, height: displayClosedNotchHeight, alignment: .trailing)
+        }
+    }
+
+    @ViewBuilder
+    func CustomPeekCompactActivity(peek: CustomPeek) -> some View {
+        let leftWidth = peek.side == .right ? 0 : customPeekContentWidth(peek, left: true)
+        let rightWidth = peek.side == .left ? 0 : customPeekContentWidth(peek, left: false)
+        HStack(spacing: 0) {
+            if peek.side != .right {
+                customPeekLabel(peek, left: true)
+                    .frame(width: leftWidth, height: displayClosedNotchHeight, alignment: .leading)
+            }
+            Rectangle().fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+            if peek.side != .left {
+                customPeekLabel(peek, left: false)
+                    .frame(width: rightWidth, height: displayClosedNotchHeight, alignment: .trailing)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func customPeekLabel(_ peek: CustomPeek, left: Bool) -> some View {
+        let text = left ? peek.title : (peek.message ?? "")
+        HStack(spacing: 5) {
+            if left, let icon = peek.icon, !icon.isEmpty { Image(systemName: icon).foregroundStyle(peek.accent) }
+            Text(text)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(left ? .white : peek.accent)
+                .lineLimit(1).minimumScaleFactor(0.7).allowsTightening(true)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    @ViewBuilder
+    func NativeTimerCompactActivity(model: TimerWidgetModel) -> some View {
+        TimelineView(.animation(minimumInterval: 0.2)) { _ in
                 HStack(spacing: 0) {
                     compactTimerLeadingVisual(for: model)
 
@@ -734,19 +1057,23 @@ struct ContentView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                             .fixedSize(horizontal: true, vertical: false)
+                            .transaction { transaction in
+                                if model.mode == .timer {
+                                    transaction.animation = nil
+                                    transaction.disablesAnimations = true
+                                }
+                            }
                     }
                     .frame(width: nativeTimerTimeWidth, height: displayClosedNotchHeight, alignment: .trailing)
                     .padding(.trailing, 4)
                 }
                 .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
-            }
         }
     }
 
     @ViewBuilder
-    func NativeRecorderCompactActivity() -> some View {
-        if let model = compactRecorderLiveModel {
-            TimelineView(.animation(minimumInterval: 0.08)) { _ in
+    func NativeRecorderCompactActivity(model: VoiceRecorderWidgetModel) -> some View {
+        TimelineView(.animation(minimumInterval: 0.08)) { _ in
                 HStack(spacing: 0) {
                     if showsCompactMusicArtwork {
                         compactClosedAlbumArt
@@ -775,7 +1102,6 @@ struct ContentView: View {
                     .padding(.trailing, 4)
                 }
                 .frame(width: nativeRecorderCompactWidth, height: displayClosedNotchHeight, alignment: .center)
-            }
         }
     }
 
@@ -852,19 +1178,6 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    func SystemMonitorLiveActivity() -> some View {
-        if let widget = compactSystemMonitorWidget {
-        SystemMonitorLiveActivityView(
-            widget: widget,
-            metricWidth: systemMonitorCompactMetricWidth,
-            centerWidth: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin),
-                totalWidth: compactSystemMonitorWidth,
-                height: displayClosedNotchHeight
-            )
-        }
-    }
-
-    @ViewBuilder
     var dragDetector: some View {
         if Defaults[.interestingShelf] && vm.notchState == .closed {
             Color.clear
@@ -929,10 +1242,16 @@ struct ContentView: View {
                     withAnimation(animationSpring) {
                         self.isHovering = false
                     }
+
+                    // Timer completion is a temporary expanded view. Once the
+                    // pointer leaves, release its keep-open context so the
+                    // normal notch close animation can run.
+                    if self.coordinator.temporaryOpenContext != nil {
+                        self.coordinator.dismissTemporaryOpenContext()
+                    }
                     
                     if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.coordinator.shouldKeepNotchOpenWithoutHover {
                         self.vm.close()
-                        self.syncSystemMonitorSneakPeek()
                     }
                 }
             }
@@ -1115,13 +1434,21 @@ struct ContentView: View {
     private var compactTimerLiveModel: TimerWidgetModel? {
         guard let model = compactTimerModel else { return nil }
 
-        guard model.mode == .timer else { return nil }
-
-        switch model.countdownState.phase {
-        case .running, .paused:
-            return model
-        case .idle, .finished:
-            return nil
+        switch model.mode {
+        case .timer:
+            switch model.countdownState.phase {
+            case .running, .paused:
+                return model
+            case .idle, .finished:
+                return nil
+            }
+        case .stopwatch:
+            switch model.stopwatchState.phase {
+            case .running, .paused:
+                return model
+            case .idle, .finished:
+                return nil
+            }
         }
     }
 
@@ -1201,12 +1528,14 @@ struct ContentView: View {
     }
 
     private func compactTimerRingProgress(for model: TimerWidgetModel) -> CGFloat {
+        guard model.mode == .timer else { return 1 }
         let progress = max(0.02, 1 - model.countdownState.progress)
         return CGFloat(min(max(progress, 0.02), 1))
     }
 
     private func compactTimerIconName(for model: TimerWidgetModel) -> String {
-        model.countdownState.phase == .finished ? "bell.fill" : "timer"
+        if model.mode == .stopwatch { return "stopwatch" }
+        return model.countdownState.phase == .finished ? "bell.fill" : "timer"
     }
 
     private func compactTimerPrimaryText(for model: TimerWidgetModel) -> String {
@@ -1215,19 +1544,6 @@ struct ContentView: View {
 
     private func compactTimerAccentColor(for model: TimerWidgetModel) -> Color {
         widgetAccent
-    }
-
-    private var compactSystemMonitorWidget: Widget? {
-        widgetEngine.widgets.first(where: { $0.id == "system-monitor" })
-    }
-
-    private func syncSystemMonitorSneakPeek() {
-        coordinator.toggleSneakPeek(
-            status: false,
-            type: .systemMonitor,
-            duration: 0,
-            targetScreenUUID: vm.screenUUID
-        )
     }
 
 }
@@ -1254,86 +1570,6 @@ private struct CalendarTabPageView: View {
             .padding(.trailing, 12)
             .padding(.top, 2)
         }
-    }
-}
-
-private extension Widget {
-    var compactSystemMonitorSnapshot: SystemMonitorSnapshot? {
-        SystemMonitorSnapshot(widgetValue: lastValue)
-    }
-}
-
-private struct SystemMonitorCompactMetricView: View {
-    let label: String
-    let symbolName: String
-    let displayValue: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: symbolName)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.72))
-
-            Text(label)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(.white.opacity(0.56))
-
-            Text(displayValue)
-                .font(.caption.weight(.semibold))
-                .monospacedDigit()
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-    }
-}
-
-private struct SystemMonitorLiveActivityView: View {
-    @ObservedObject var widget: Widget
-
-    let metricWidth: CGFloat
-    let centerWidth: CGFloat
-    let totalWidth: CGFloat
-    let height: CGFloat
-
-    private var rightMetric: SystemMonitorSneakPeekMetric {
-        Defaults[.systemMonitorSneakPeekRightMetric]
-    }
-
-    private var leftMetric: SystemMonitorSneakPeekMetric {
-        Defaults[.systemMonitorSneakPeekLeftMetric]
-    }
-
-    private var snapshot: SystemMonitorSnapshot? {
-        widget.compactSystemMonitorSnapshot
-    }
-
-    var body: some View {
-        HStack(spacing: 0) {
-            if leftMetric != .none {
-                SystemMonitorCompactMetricView(
-                    label: leftMetric.title,
-                    symbolName: leftMetric.symbolName,
-                    displayValue: snapshot?.displayValue(for: leftMetric) ?? "--%"
-                )
-                .frame(width: metricWidth, height: height, alignment: .leading)
-            }
-
-            Rectangle()
-                .fill(.black)
-                .frame(width: centerWidth)
-
-            if rightMetric != .none {
-                SystemMonitorCompactMetricView(
-                    label: rightMetric.title,
-                    symbolName: rightMetric.symbolName,
-                    displayValue: snapshot?.displayValue(for: rightMetric) ?? "--%"
-                )
-                .frame(width: metricWidth, height: height, alignment: .trailing)
-            }
-        }
-        .frame(width: totalWidth, height: height, alignment: .center)
     }
 }
 

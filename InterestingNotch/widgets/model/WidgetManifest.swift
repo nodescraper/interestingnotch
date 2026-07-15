@@ -46,6 +46,25 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
         self.interactive = interactive
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case schema, kind, id, name, author, source, extract, render, onTap, permissions, interactive
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schema = try container.decode(Int.self, forKey: .schema)
+        kind = try container.decode(Kind.self, forKey: .kind)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        author = try container.decodeIfPresent(String.self, forKey: .author)
+        source = try container.decodeIfPresent(Source.self, forKey: .source)
+        extract = try container.decodeIfPresent(Extract.self, forKey: .extract)
+        render = try container.decode(Render.self, forKey: .render)
+        onTap = try container.decodeIfPresent(DeclaredAction.self, forKey: .onTap)
+        permissions = try container.decodeIfPresent([String].self, forKey: .permissions)
+        interactive = try container.decodeIfPresent(Interactive.self, forKey: .interactive)
+    }
+
     enum Kind: String, Codable, Sendable {
         case data
         case interactive

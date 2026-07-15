@@ -40,6 +40,10 @@ struct OSDIconView: View {
                 .contentTransition(.interpolate)
                 .frame(width: 20, height: 15)
                 .foregroundStyle(.white)
+        case .caffeine:
+            Image(systemName: icon.isEmpty ? "cup.and.saucer.fill" : icon)
+                .frame(width: 20, height: 15)
+                .foregroundStyle(accent ?? .white)
         default:
             EmptyView()
         }

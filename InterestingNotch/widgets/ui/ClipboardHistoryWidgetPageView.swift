@@ -118,7 +118,7 @@ struct ClipboardHistoryWidgetPageView: View {
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 6) {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(accent)
@@ -131,11 +131,12 @@ struct ClipboardHistoryWidgetPageView: View {
             Text("Text, links, and images you copy show up here.")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.horizontal, 0)
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
     // MARK: - Card
@@ -144,10 +145,7 @@ struct ClipboardHistoryWidgetPageView: View {
         let hovered = hoveredItemID == item.id
         let detail = detail(for: item)
 
-        return Button {
-            model.restoreHistoryItem(item)
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
                 // Header: type icon + meta on the left, pin on the right.
                 HStack(spacing: 6) {
                     Image(systemName: detail.symbol)
@@ -189,8 +187,10 @@ struct ClipboardHistoryWidgetPageView: View {
                     .fill(.white.opacity(hovered ? 0.05 : 0))
             )
             .animation(.easeOut(duration: 0.15), value: hovered)
+        .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .onTapGesture {
+            model.restoreHistoryItem(item)
         }
-        .buttonStyle(.plain)
         .onHover { isHovering in
             hoveredItemID = isHovering ? item.id : (hoveredItemID == item.id ? nil : hoveredItemID)
         }

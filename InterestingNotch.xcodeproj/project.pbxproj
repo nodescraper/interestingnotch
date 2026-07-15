@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C4FF00112C00000000000001 /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00102C00000000000001 /* MediaPlayerWidget.swift */; };
+		B1B700013A00000100000001 /* BluetoothDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */; };
+		B1B700023A00000100000001 /* BluetoothDevicesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */; };
+		B1B700053A00000100000001 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1B700063A00000100000001 /* IOBluetooth.framework */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -87,6 +91,9 @@
 		11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */; };
 		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
 		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
+		CUST00013A00000100000001 /* CustomPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000001 /* CustomPeek.swift */; };
+		CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000002 /* CustomPeekWatcher.swift */; };
+		CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */; };
 		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
 		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0503A00000100000001 /* WorkshopInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */; };
@@ -111,6 +118,8 @@
 		11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */; };
 		11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D58EA12E760AE100FA8377 /* ImageService.swift */; };
 		11DB26662EDD0BE1001EA0CF /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26652EDD0BE1001EA0CF /* LyricsService.swift */; };
+		C4FF00012C00000000000001 /* CaffeineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00002C00000000000001 /* CaffeineManager.swift */; };
+		C4FF00032C00000000000001 /* CaffeineSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00022C00000000000001 /* CaffeineSettingsView.swift */; };
 		11DB26732EDD0CDF001EA0CF /* ShortcutsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */; };
 		11DB26742EDD0CDF001EA0CF /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */; };
 		11DB26752EDD0CDF001EA0CF /* ShelfSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */; };
@@ -243,6 +252,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C4FF00102C00000000000001 /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
+		B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceMonitor.swift; sourceTree = "<group>"; };
+		B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevicesSettingsView.swift; sourceTree = "<group>"; };
+		B1B700063A00000100000001 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -318,6 +331,9 @@
 		11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLaunchLoader.swift; sourceTree = "<group>"; };
 		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000001 /* CustomPeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeek.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000002 /* CustomPeekWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeekWatcher.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetsSettingsView.swift; sourceTree = "<group>"; };
 		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
 		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopInstalledView.swift; sourceTree = "<group>"; };
@@ -342,6 +358,8 @@
 		11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFinishView.swift; sourceTree = "<group>"; };
 		11D58EA12E760AE100FA8377 /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		11DB26652EDD0BE1001EA0CF /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
+		C4FF00002C00000000000001 /* CaffeineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineManager.swift; sourceTree = "<group>"; };
+		C4FF00022C00000000000001 /* CaffeineSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineSettingsView.swift; sourceTree = "<group>"; };
 		11DB26672EDD0CDF001EA0CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
 		11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsView.swift; sourceTree = "<group>"; };
@@ -464,6 +482,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1B700053A00000100000001 /* IOBluetooth.framework in Frameworks */,
 				111BEA5F2ED07A340079DD4E /* MacroVisionKit in Frameworks */,
 				9A987A102C73CA8D005CA465 /* Collections in Frameworks */,
 				1194E8852EA57D23009C82D6 /* SkyLightWindow in Frameworks */,
@@ -701,6 +720,7 @@
 		11A0D03A3A00000100000001 /* workshop */ = {
 			isa = PBXGroup;
 			children = (
+				CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */,
 				11A0D0413A00000100000001 /* WorkshopBrowseView.swift */,
 				11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */,
 				11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */,
@@ -714,6 +734,8 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */,
+				C4FF00022C00000000000001 /* CaffeineSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -803,6 +825,7 @@
 				F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */,
 				149E0B962C737D00006418B1 /* WebcamManager.swift */,
 				14C08BB52C8DE42D000F8AA0 /* CalendarManager.swift */,
+				C4FF00002C00000000000001 /* CaffeineManager.swift */,
 			);
 			path = managers;
 			sourceTree = "<group>";
@@ -887,6 +910,7 @@
 		14D031EC2C689DB70096E6A1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B1B700063A00000100000001 /* IOBluetooth.framework */,
 				14D031EF2C689DC00096E6A1 /* ApplicationServices.framework */,
 				14D031ED2C689DB70096E6A1 /* IOKit.framework */,
 				112B0EBA2E30DD5000562D6C /* MediaRemoteAdapter.framework */,
@@ -915,6 +939,9 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */,
+				CUST00003A00000100000001 /* CustomPeek.swift */,
+				CUST00003A00000100000002 /* CustomPeekWatcher.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -984,6 +1011,7 @@
 		B186542E2C6F453B000B926A /* Music */ = {
 			isa = PBXGroup;
 			children = (
+				C4FF00102C00000000000001 /* MediaPlayerWidget.swift */,
 				147163972C5D35B70068B555 /* MusicVisualizer.swift */,
 			);
 			path = Music;
@@ -1281,6 +1309,7 @@
 				1153BD8F2D986B1F00979FB0 /* MediaControllerProtocol.swift in Sources */,
 				11985BF42F38520A00F81585 /* DraggableProgressBar.swift in Sources */,
 				9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */,
+				C4FF00112C00000000000001 /* MediaPlayerWidget.swift in Sources */,
 				B172AAC02C95DA0B001623F1 /* InlineOSD.swift in Sources */,
 				14E9FEAA2C70BF610062E83F /* DownloadView.swift in Sources */,
 				B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */,
@@ -1304,6 +1333,8 @@
 				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
 				14D570C62C5F38210011E668 /* InterestingHeader.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
+				C4FF00012C00000000000001 /* CaffeineManager.swift in Sources */,
+				C4FF00032C00000000000001 /* CaffeineSettingsView.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* InterestingBattery.swift in Sources */,
 				B10F84A32C6C9596009F3026 /* TestView.swift in Sources */,
 				1443E7F32C609DCE0027C1FC /* matters.swift in Sources */,
@@ -1329,6 +1360,11 @@
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */,
 				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
+				CUST00013A00000100000001 /* CustomPeek.swift in Sources */,
+				CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */,
+				CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */,
+				B1B700013A00000100000001 /* BluetoothDeviceMonitor.swift in Sources */,
+				B1B700023A00000100000001 /* BluetoothDevicesSettingsView.swift in Sources */,
 				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
 				11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */,
@@ -1494,12 +1530,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = InterestingNotchXPCHelper/InterestingNotchXPCHelper.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 280;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InterestingNotchXPCHelper/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "InterestingNotch Helper";
@@ -1716,9 +1753,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = InterestingNotch/InterestingNotch.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 280;
 				DEAD_CODE_STRIPPING = YES;

@@ -33,6 +33,12 @@ struct WelcomeView: View {
                         .font(.title)
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 30)
+                    Text("Explore widgets, voice notes, and Bluetooth device notifications right from your notch.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 34)
+                        .padding(.bottom, 16)
                     if false {
                         Text("PRO")
                             .font(.system(size: 18, design: .rounded))

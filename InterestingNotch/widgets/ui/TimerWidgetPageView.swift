@@ -10,6 +10,7 @@
 
 import SwiftUI
 import AppKit
+import Defaults
 
 struct TimerWidgetPageView: View {
     @EnvironmentObject private var vm: InterestingViewModel
@@ -20,8 +21,10 @@ struct TimerWidgetPageView: View {
     @ObservedObject var model: TimerWidgetModel
     let animationNamespace: Namespace.ID?
 
-    private let orange = Color(red: 0.96, green: 0.58, blue: 0.24)
-    private let orangeSurface = Color(red: 0.19, green: 0.10, blue: 0.04)
+    @State private var timerAccent = Color.effectiveAccent
+
+    private var orange: Color { timerAccent }
+    private var orangeSurface: Color { timerAccent.opacity(0.18) }
     private let resetSurface = Color(red: 0.16, green: 0.16, blue: 0.17)
 
     // Shared sizing with the recorder.
@@ -30,7 +33,7 @@ struct TimerWidgetPageView: View {
 
     // Ruler scale, in minutes.
     private let minMinute = 0
-    private let maxMinute = 60
+    private let maxMinute = 120
     private let pointsPerMinute: CGFloat = 9.5
 
     // Sensitivity (higher = less sensitive / more precise).
@@ -84,6 +87,13 @@ struct TimerWidgetPageView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Timer")
         .accessibilityValue(model.accessibilitySummary)
+        .onAppear { timerAccent = .effectiveAccent }
+        .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
+            timerAccent = .effectiveAccent
+        }
+        .onReceive(Defaults.publisher(.useCustomAccentColor)) { _ in
+            timerAccent = .effectiveAccent
+        }
     }
 
     private var showsTimerControls: Bool {

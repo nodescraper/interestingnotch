@@ -11,28 +11,48 @@ import SwiftUI
 struct WorkshopBrowseView: View {
     @ObservedObject private var engine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
+    @State private var searchText = ""
+
+    private var filteredWidgets: [Widget] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return engine.widgets.filter { widget in
+            let matchesSearch = query.isEmpty ||
+                widget.manifest.name.localizedCaseInsensitiveContains(query) ||
+                (widget.manifest.author?.localizedCaseInsensitiveContains(query) == true) ||
+                WorkshopWidgetCatalog.description(for: widget).localizedCaseInsensitiveContains(query)
+
+            return matchesSearch
+        }
+    }
 
     var body: some View {
         Form {
             Section {
-                if engine.widgets.isEmpty {
-                    Text("No widgets installed yet.")
+                if filteredWidgets.isEmpty {
+                    Text(searchText.isEmpty ? "No widgets match this filter." : "No widgets match your search.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(engine.widgets, id: \.id) { widget in
+                    ForEach(filteredWidgets, id: \.id) { widget in
                         availableWidgetRow(for: widget)
                     }
                 }
             } header: {
-                Text("Available Widgets")
+                HStack {
+                    Text("Available Widgets")
+                    Spacer()
+                    Text("\(filteredWidgets.count)")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             } footer: {
-                Text("Available widgets are loaded from Application Support. Pin one here to make it appear as a notch tab.")
+                Text("Browse widgets installed from Application Support. Pin a widget to add it as a notch tab.")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Browse")
+        .searchable(text: $searchText, prompt: "Widgets")
     }
 
     private func availableWidgetRow(for widget: Widget) -> some View {
@@ -74,6 +94,7 @@ struct WorkshopBrowseView: View {
     private func isPinned(_ widget: Widget) -> Bool {
         WidgetPinStore.isPinned(widget.id, in: pinnedWidgetIDs)
     }
+
 }
 
 enum WorkshopWidgetCatalog {
@@ -90,7 +111,7 @@ enum WorkshopWidgetCatalog {
         case "voice-recorder":
             return "Record quick voice notes from the notch, track elapsed time live, and reveal the saved file right away."
         case "system-monitor":
-            return "Watch live CPU and memory usage in the notch, with a compact closed-notch split view."
+            return "Watch live CPU and memory usage in the full System Monitor tab."
         default:
             return "Pin this widget to add it as a tab in the notch."
         }

@@ -10,9 +10,11 @@ import SwiftUI
 private enum WorkshopSection: String, CaseIterable, Identifiable {
     case browse
     case installed
+    case mirror
     case shelf
     case calendar
     case media
+    case customWidgets
 
     var id: Self { self }
 
@@ -20,9 +22,11 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "Browse"
         case .installed: "Installed"
+        case .mirror: "Mirror"
         case .shelf: "Shelf"
         case .calendar: "Calendar"
         case .media: "Media"
+        case .customWidgets: "Custom Widgets"
         }
     }
 
@@ -30,9 +34,11 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
         switch self {
         case .browse: "square.grid.2x2"
         case .installed: "checklist"
+        case .mirror: "camera"
         case .shelf: "books.vertical"
         case .calendar: "calendar"
-        case .media: "play.laptopcomputer"
+        case .media: "play.circle.fill"
+        case .customWidgets: "sparkles.rectangle.stack"
         }
     }
 }
@@ -50,9 +56,13 @@ struct WorkshopWindow: View {
                 }
 
                 Section("Built-in Widgets") {
+                    workshopSidebarItem(.mirror)
                     workshopSidebarItem(.shelf)
                     workshopSidebarItem(.calendar)
                     workshopSidebarItem(.media)
+                }
+                Section("Beta") {
+                    workshopSidebarItem(.customWidgets)
                 }
             }
             .listStyle(SidebarListStyle())
@@ -66,12 +76,16 @@ struct WorkshopWindow: View {
                     WorkshopBrowseView()
                 case .installed:
                     WorkshopInstalledView()
+                case .mirror:
+                    MirrorSettings()
                 case .shelf:
                     Shelf()
                 case .calendar:
                     CalendarSettings()
                 case .media:
                     Media()
+                case .customWidgets:
+                    CustomWidgetsSettingsView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

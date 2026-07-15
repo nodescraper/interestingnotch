@@ -28,11 +28,15 @@ DerivedData/
 .derivedData/
 .releaseDerivedData/
 .dmg-venv/
+Configuration/dmg/.venv/
 
 # Build output
 build/
 *.app
 *.dSYM
+*.dmg
+Release/
+archive.log
 
 # Temporary files
 *.swp
@@ -55,3 +59,13 @@ build/
 *.ipa
 *.xcarchive
 *.dSYM
+
+# Signing credentials
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+
+# Local custom widget / peek content
+.interestingnotch/
+demo-peek.json

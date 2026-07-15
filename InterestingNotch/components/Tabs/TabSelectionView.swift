@@ -41,7 +41,8 @@ struct TabSelectionView: View {
     @State private var widgetPageIndex = 0
     @Namespace var animation
 
-    private let maxWidgetTabsBeforePaging = 3
+    /// Home is always present; keep up to four additional tabs visible before paging.
+    private let maxWidgetTabsBeforePaging = 4
 
     private var primaryTabs: [TabModel] {
         [

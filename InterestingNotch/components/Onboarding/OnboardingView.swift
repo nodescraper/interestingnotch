@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 import AVFoundation
 import Defaults
 import Sparkle
@@ -15,6 +16,8 @@ enum OnboardingStep {
     case cameraPermission
     case calendarPermission
     case remindersPermission
+    case microphonePermission
+    case bluetoothPermission
     case accessibilityPermission
     case musicPermission
     case widgetSelection
@@ -85,27 +88,69 @@ struct OnboardingView: View {
                 )
                 .transition(.opacity)
 
-                case .remindersPermission:
-                    PermissionRequestView(
-                        icon: Image(systemName: "checklist"),
-                        title: "Enable Reminders Access",
-                        description: "InterestingNotch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders.",
-                        privacyNote: "Your reminders data is only used to show your reminders and is never shared.",
-                        onAllow: {
-                            Task {
-                                await requestRemindersPermission()
-                                withAnimation(.easeInOut(duration: 0.6)) {
-                                    step = nextStepAfterReminders()
-                                }
-                            }
-                        },
-                        onSkip: {
+            case .remindersPermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "checklist"),
+                    title: "Enable Reminders Access",
+                    description: "InterestingNotch can show your scheduled reminders alongside your calendar events. Access to Reminders is needed to display your reminders.",
+                    privacyNote: "Your reminders data is only used to show your reminders and is never shared.",
+                    onAllow: {
+                        Task {
+                            await requestRemindersPermission()
                             withAnimation(.easeInOut(duration: 0.6)) {
-                                step = nextStepAfterReminders()
+                                step = .microphonePermission
                             }
                         }
-                    )
-                    .transition(.opacity)
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .microphonePermission
+                        }
+                    }
+                )
+                .transition(.opacity)
+
+            case .microphonePermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "mic.fill"),
+                    title: "Enable Microphone Access",
+                    description: "InterestingNotch can record quick voice notes directly from the notch. Microphone access is only used while you are recording.",
+                    privacyNote: "Recordings stay on your Mac and are never uploaded by InterestingNotch.",
+                    onAllow: {
+                        Task {
+                            await requestMicrophonePermission()
+                            withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .bluetoothPermission
+                            }
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .bluetoothPermission
+                        }
+                    }
+                )
+                .transition(.opacity)
+
+            case .bluetoothPermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "dot.radiowaves.left.and.right"),
+                    title: "Enable Bluetooth Access",
+                    description: "InterestingNotch can notify you when selected paired Bluetooth devices connect or disconnect, so important accessory changes are visible in the notch.",
+                    privacyNote: "Bluetooth is used to monitor paired-device connection status. You choose which devices can send notifications in Settings.",
+                    onAllow: {
+                        openBluetoothSettings()
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .accessibilityPermission
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .accessibilityPermission
+                        }
+                    }
+                )
+                .transition(.opacity)
 
             case .accessibilityPermission:
                 PermissionRequestView(
@@ -114,13 +159,9 @@ struct OnboardingView: View {
                     description: "Accessibility access is only needed when using built-in macOS control sources for OSD replacement. External sources like BetterDisplay or Lunar do not require Accessibility. You can enable it later in OSD settings if needed.",
                     privacyNote: "Accessibility access is used only to improve media and brightness notifications. No data is collected or shared.",
                     onAllow: {
-                        Task {
-                            _ = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            await MainActor.run {
-                                withAnimation(.easeInOut(duration: 0.6)) {
-                                    step = .musicPermission
-                                }
-                            }
+                        openAccessibilitySettings()
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .musicPermission
                         }
                     },
                     onSkip: {
@@ -188,8 +229,39 @@ struct OnboardingView: View {
         _ = try? await calendarService.requestAccess(to: .reminder)
     }
 
-    func nextStepAfterReminders() -> OnboardingStep {
-        return .accessibilityPermission
+    func requestMicrophonePermission() async {
+        await AVCaptureDevice.requestAccess(for: .audio)
+    }
+
+    func openBluetoothSettings() {
+        openSystemSettings(
+            candidateURLs: [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth",
+                "x-apple.systempreferences:com.apple.BluetoothSettings",
+            ]
+        )
+    }
+
+    func openAccessibilitySettings() {
+        openSystemSettings(
+            candidateURLs: [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+            ]
+        )
+    }
+
+    func openSystemSettings(candidateURLs: [String]) {
+        for candidate in candidateURLs {
+            guard let url = URL(string: candidate) else { continue }
+            if NSWorkspace.shared.open(url) {
+                return
+            }
+        }
+
+        NSWorkspace.shared.openApplication(
+            at: URL(fileURLWithPath: "/System/Applications/System Settings.app"),
+            configuration: NSWorkspace.OpenConfiguration()
+        ) { _, _ in }
     }
     
 }
@@ -217,7 +289,7 @@ struct WidgetSelectionView: View {
                 .font(.title)
                 .fontWeight(.semibold)
 
-            Text("Select the widgets you want to appear as tabs in your notch. You can change this later in the Workshop.")
+            Text("Select the widgets you want to appear as tabs in your notch. New widgets like Voice Recorder and System Monitor are included here, and you can change this later in the Workshop.")
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.secondary)

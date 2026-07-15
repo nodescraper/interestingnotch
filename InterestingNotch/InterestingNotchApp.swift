@@ -90,7 +90,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowScreenDidChangeObserver: Any?
     private var dragDetectors: [String: DragDetector] = [:] // UUID -> DragDetector
     private var observers: [Any] = []
-    private var hasPresentedAccessibilityPrompt = false
 
     @MainActor
     private var selectedDisplayUUIDs: Set<String> {
@@ -134,6 +133,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        CaffeineManager.shared.deactivate()
         cleanupDragDetectors()
         cleanupWindows()
         BetterDisplayManager.shared.stopObserving()
@@ -435,6 +435,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyDown(for: .caffeineToggle) {
+            Task { @MainActor in CaffeineManager.shared.toggle() }
+        }
+
         KeyboardShortcuts.onKeyDown(for: .toggleNotchOpen) { [weak self] in
             Task { [weak self] in
                 guard let self = self else { return }
@@ -558,39 +562,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // notch windows have been created/cleaned up
         coordinator.applyOSDSources()
 
-        // Existing installations do not go through onboarding again. Ask for
-        // the permission up front so OSD replacement is usable immediately.
-        if !coordinator.firstLaunch {
-            Task { @MainActor [weak self] in
-                await self?.showAccessibilityPromptIfNeeded()
-            }
-        }
-    }
-
-    @MainActor
-    private func showAccessibilityPromptIfNeeded() async {
-        guard !hasPresentedAccessibilityPrompt,
-              Defaults[.osdBrightnessSource] == .builtin || Defaults[.osdVolumeSource] == .builtin
-        else { return }
-
-        guard !(await XPCHelperClient.shared.isAccessibilityAuthorized()) else { return }
-
-        hasPresentedAccessibilityPrompt = true
-
-        let alert = NSAlert()
-        alert.alertStyle = .informational
-        alert.messageText = "Accessibility Access Required"
-        alert.informativeText = "InterestingNotch needs Accessibility access to replace the system volume and brightness OSD. Add the currently installed InterestingNotch app in System Settings, then enable it."
-        alert.addButton(withTitle: "Open Accessibility Settings")
-        alert.addButton(withTitle: "Not Now")
-
-        NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn {
-            _ = await MediaKeyInterceptor.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            }
-        }
     }
 
     func playWelcomeSound() {
