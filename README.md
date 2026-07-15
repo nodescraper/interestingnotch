@@ -9,7 +9,7 @@
 
 ### The notch, reimagined.
 
-A powerful, extensible take on the Mac notch — built on the foundation of boring.notch, then pushed far beyond it with its own widgets, a pinnable widget library, Bluetooth accessory battery, a built-in caffeine tool, and a custom-widget system you can script yourself.
+A powerful, extensible take on the Mac notch — built on the foundation of boring.notch, then pushed far beyond it with native widgets, a pinnable widget library, Bluetooth connection notifications, a built-in caffeine control, and a custom-widget system you can script yourself.
 
 ![macOS](https://img.shields.io/badge/macOS-notch-111827?logo=apple&logoColor=white)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white)
@@ -30,7 +30,7 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 - [Widgets](#widgets)
 - [Custom widgets](#custom-widgets-beta)
 - [Caffeine](#caffeine)
-- [Bluetooth accessory battery](#bluetooth-accessory-battery)
+- [Bluetooth connection notifications](#bluetooth-connection-notifications)
 - [Widget library](#widget-library)
 - [Getting started](#getting-started)
 - [Credits](#credits)
@@ -50,11 +50,12 @@ Everything runs locally. No cloud, no account.
 
 ## Highlights
 
-- **A real widget family** — timer, stopwatch, system monitor, color picker, clipboard history, calendar, voice recorder, accessory battery.
+- **Native widgets** — timer, color picker, clipboard history, calendar, voice recorder, and system monitor.
 - **Pinnable widget library** — browse widgets and pin the ones you want as notch tabs.
 - **Custom widgets** — let your own scripts push sneak peeks to the notch with a single JSON file.
-- **Built-in caffeine** — keep your Mac awake with a tap or a hotkey, no separate app.
-- **Bluetooth accessory battery** — AirPods and Magic accessories, right in the notch.
+- **Bluetooth connection notifications** — see when selected paired devices connect or disconnect.
+- **Built-in Caffeine** — keep your Mac awake with timed display-awake or system-awake modes.
+- **Core notch surfaces** — media activity, Shelf, Mirror, gestures, HUD replacement, and multi-display support.
 - **Redesigned settings** — a cleaner, organized settings layout and a dedicated widget library view.
 - **Local-first** — no network required for anything core.
 
@@ -62,7 +63,7 @@ Everything runs locally. No cloud, no account.
 
 ## Widgets
 
-A consistent, Apple-like family of widgets designed for the notch — quiet, glanceable, and interactive.
+A consistent, Apple-like family of widgets designed for the notch — quiet, glanceable, and interactive. These six widgets are managed from the Widget Library and can be pinned as tabs:
 
 | Widget | What it does |
 |---|---|
@@ -72,7 +73,6 @@ A consistent, Apple-like family of widgets designed for the notch — quiet, gla
 | **Clipboard History** | Recent text, links, and images as scrollable cards — recopy or pin with one click. |
 | **Calendar** | A compact month grid plus an agenda of events and reminders; tap to open in Calendar or Reminders. |
 | **Voice Recorder** | Capture quick voice notes with a live waveform, elapsed time, and instant reveal of the saved file. |
-| **Accessory Battery** | Battery for AirPods and Magic accessories, shown natively. |
 
 Any widget can be **pinned** from the library to become its own notch tab.
 
@@ -123,17 +123,17 @@ Built on native macOS power assertions — clean, revocable, no shell-outs.
 
 ---
 
-## Bluetooth accessory battery
+## Bluetooth connection notifications
 
-See battery levels for supported Bluetooth accessories — AirPods and Apple Magic devices — directly in the notch, with per-device cards and charging indicators.
+InterestingNotch can watch selected paired Bluetooth devices and show a notch activity when they connect or disconnect. This is connection-status monitoring, not a battery-level reader.
 
 When a paired accessory connects or disconnects, InterestingNotch surfaces the change in the notch so it is easy to spot at a glance:
 
 <p align="center">
-  <img src="assets/bluetooth-airpods-pro.png" alt="AirPods Pro connected status shown in the InterestingNotch" width="900">
+  <img src="assets/bluetooth-airpods-pro.png" alt="AirPods Pro connected status shown in InterestingNotch" width="900">
 </p>
 
-> Battery reporting depends on what macOS exposes to apps. Apple and Magic accessories report their level; most generic third-party devices do not expose battery to any app-accessible API, so they may show as connected without a percentage.
+Choose which devices can trigger notifications in Settings → Bluetooth Devices. InterestingNotch listens for connection changes instead of continuously polling in the background.
 
 ---
 
@@ -148,7 +148,7 @@ A dedicated library for managing what's in your notch. Browse the available widg
 - **Browse** every available widget with a description.
 - **Pin / Unpin** to add or remove a widget as a notch tab.
 - **Installed** view for what's currently active.
-- **Built-in widgets** (Mirror, Shelf, Calendar, Media) alongside the widget family.
+- **Core surfaces** (Mirror, Shelf, and Media) remain available alongside the widget family.
 - **Custom Widgets (beta)** to enable and monitor script-driven peeks.
 
 The settings experience has been reorganized around this library, so adding and arranging notch content is fast and obvious.
@@ -169,7 +169,7 @@ Build and run in Xcode. On first launch, grant the permissions the features you 
 
 ## Credits
 
-Built on the foundation of [boring.notch](https://github.com/TheBoredTeam/boring.notch) by The Bored Team. InterestingNotch is a public fork that preserves upstream attribution and extends it with its own widget family, widget library, custom-widget system, caffeine, accessory battery, and a redesigned settings layout.
+Built on the foundation of [boring.notch](https://github.com/TheBoredTeam/boring.notch) by The Bored Team. InterestingNotch is a public fork that preserves upstream attribution and extends it with its own widget family, widget library, custom-widget system, Caffeine control, Bluetooth connection notifications, and a redesigned settings layout.
 
 ---
 
