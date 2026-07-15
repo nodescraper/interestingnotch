@@ -20,6 +20,7 @@ struct ContentView: View {
 
     @ObservedObject var coordinator = InterestingViewCoordinator.shared
     @ObservedObject var widgetEngine = WidgetEngine.shared
+    @ObservedObject var customPeekWatcher = CustomPeekWatcher.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
@@ -41,6 +42,7 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
     @Default(.systemMonitorSneakPeekEnabled) private var systemMonitorSneakPeekEnabled
+    @AppStorage("customWidgetsEnabled") private var customWidgetsEnabled = false
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -100,6 +102,8 @@ struct ContentView: View {
             chinWidth += nativeRecorderCompactExtraWidth
         } else if shouldShowCompactTimerActivity {
             chinWidth += nativeTimerCompactExtraWidth
+        } else if shouldShowCompactCustomPeekActivity {
+            chinWidth += max(0, customPeekCompactWidth - vm.closedNotchSize.width)
         } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
             && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle)
             && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed
@@ -201,6 +205,12 @@ struct ContentView: View {
             && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
+    private var hasCompactCustomPeekActivity: Bool {
+        customPeekWatcher.currentPeek != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+    }
+
     private var shouldShowCompactTimerActivity: Bool {
         vm.notchState == .closed
             && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
@@ -211,6 +221,24 @@ struct ContentView: View {
         vm.notchState == .closed
             && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
             && hasCompactRecorderActivity
+    }
+
+    private var shouldShowCompactCustomPeekActivity: Bool {
+        vm.notchState == .closed
+            && coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
+            && hasCompactCustomPeekActivity
+    }
+
+    private func customPeekContentWidth(_ peek: CustomPeek, left: Bool) -> CGFloat {
+        let text = left ? peek.title : (peek.message ?? "")
+        return min(150, max(34, CGFloat(text.count * 7 + (left && peek.icon != nil ? 24 : 0) + 12)))
+    }
+
+    private var customPeekCompactWidth: CGFloat {
+        guard let peek = customPeekWatcher.currentPeek else { return vm.closedNotchSize.width }
+        let left = peek.side == .right ? 0 : customPeekContentWidth(peek, left: true)
+        let right = peek.side == .left ? 0 : customPeekContentWidth(peek, left: false)
+        return vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin) + left + right
     }
 
     private var systemMonitorCompactMetricWidth: CGFloat {
@@ -363,8 +391,16 @@ struct ContentView: View {
                     }
                     .onAppear {
                         currentAccentColor = .effectiveAccent
+                        if customWidgetsEnabled { customPeekWatcher.enable() }
                         syncCompactSneakPeekLifecycle()
                         syncSystemMonitorSneakPeek()
+                    }
+                    .onChange(of: customWidgetsEnabled) { _, enabled in
+                        if enabled { customPeekWatcher.enable() } else { customPeekWatcher.disable() }
+                        syncCompactSneakPeekLifecycle()
+                    }
+                    .onReceive(customPeekWatcher.objectWillChange) { _ in
+                        syncCompactSneakPeekLifecycle()
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .accentColorChanged)) { _ in
                         currentAccentColor = .effectiveAccent
@@ -493,6 +529,9 @@ struct ContentView: View {
                       } else if shouldShowCompactTimerActivity {
                           NativeTimerCompactActivity()
                               .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+                      } else if shouldShowCompactCustomPeekActivity, let peek = customPeekWatcher.currentPeek {
+                          CustomPeekCompactActivity(peek: peek)
+                              .frame(width: customPeekCompactWidth, height: displayClosedNotchHeight, alignment: .center)
                       } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
                           MusicLiveActivity()
                               .frame(alignment: .center)
@@ -711,8 +750,39 @@ struct ContentView: View {
         coordinator.updateCompactSneakPeekLifecycle(
             on: vm.screenUUID,
             notchState: vm.notchState,
-            isActive: hasCompactTimerActivity || hasCompactRecorderActivity
+            isActive: hasCompactTimerActivity || hasCompactRecorderActivity || hasCompactCustomPeekActivity
         )
+    }
+
+    @ViewBuilder
+    func CustomPeekCompactActivity(peek: CustomPeek) -> some View {
+        let leftWidth = peek.side == .right ? 0 : customPeekContentWidth(peek, left: true)
+        let rightWidth = peek.side == .left ? 0 : customPeekContentWidth(peek, left: false)
+        HStack(spacing: 0) {
+            if peek.side != .right {
+                customPeekLabel(peek, left: true)
+                    .frame(width: leftWidth, height: displayClosedNotchHeight, alignment: .leading)
+            }
+            Rectangle().fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+            if peek.side != .left {
+                customPeekLabel(peek, left: false)
+                    .frame(width: rightWidth, height: displayClosedNotchHeight, alignment: .trailing)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func customPeekLabel(_ peek: CustomPeek, left: Bool) -> some View {
+        let text = left ? peek.title : (peek.message ?? "")
+        HStack(spacing: 5) {
+            if left, let icon = peek.icon, !icon.isEmpty { Image(systemName: icon).foregroundStyle(peek.accent) }
+            Text(text)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(left ? .white : peek.accent)
+                .lineLimit(1).minimumScaleFactor(0.7).allowsTightening(true)
+        }
+        .padding(.horizontal, 4)
     }
 
     @ViewBuilder

@@ -87,6 +87,9 @@
 		11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */; };
 		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
 		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
+		CUST00013A00000100000001 /* CustomPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000001 /* CustomPeek.swift */; };
+		CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000002 /* CustomPeekWatcher.swift */; };
+		CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */; };
 		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
 		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0503A00000100000001 /* WorkshopInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */; };
@@ -318,6 +321,9 @@
 		11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLaunchLoader.swift; sourceTree = "<group>"; };
 		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000001 /* CustomPeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeek.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000002 /* CustomPeekWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeekWatcher.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetsSettingsView.swift; sourceTree = "<group>"; };
 		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
 		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopInstalledView.swift; sourceTree = "<group>"; };
@@ -701,6 +707,7 @@
 		11A0D03A3A00000100000001 /* workshop */ = {
 			isa = PBXGroup;
 			children = (
+				CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */,
 				11A0D0413A00000100000001 /* WorkshopBrowseView.swift */,
 				11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */,
 				11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */,
@@ -915,6 +922,8 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				CUST00003A00000100000001 /* CustomPeek.swift */,
+				CUST00003A00000100000002 /* CustomPeekWatcher.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -1329,6 +1338,9 @@
 				118D1FD12E98FF5F00A2FF63 /* SharingStateManager.swift in Sources */,
 				11985BE62F37A3FC00F81585 /* BetterDisplayNotificationModels.swift in Sources */,
 				11A0D0043A00000100000001 /* WidgetManifest.swift in Sources */,
+				CUST00013A00000100000001 /* CustomPeek.swift in Sources */,
+				CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */,
+				CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */,
 				11A0D0053A00000100000001 /* WidgetValue.swift in Sources */,
 				11A0D0063A00000100000001 /* ColorToken.swift in Sources */,
 				11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */,

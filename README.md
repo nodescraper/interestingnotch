@@ -94,6 +94,60 @@ The biggest shift in InterestingNotch is that the notch is no longer just a medi
 
 SE introduces a **Workshop** experience for browsing and pinning widgets, making the widget system feel like a real feature rather than a hardcoded experiment.
 
+### Custom Widgets (beta)
+
+Custom Widgets are lightweight, file-driven sneak peeks for scripts and external tools. Enable them in **Workshop → Beta → Custom Widgets**. The app watches:
+
+```text
+~/.interestingnotch/peeks/
+```
+
+In the sandboxed app build, this resolves inside the InterestingNotch container, for example:
+
+```text
+~/Library/Containers/com.nodescraper.interestingnotch/Data/.interestingnotch/peeks/
+```
+
+Write one JSON file per peek. The filename stem becomes the peek id:
+
+```json
+{
+  "title": "X1C",
+  "message": "78%",
+  "icon": "printer.fill",
+  "accent": "#F5952E",
+  "side": "split",
+  "duration": 4
+}
+```
+
+Only `title` is required. The other fields are:
+
+- `message`: Optional text shown on the opposite side of the notch.
+- `icon`: Optional SF Symbol name shown beside the title.
+- `accent`: Optional six- or eight-digit hex color. Defaults to the app accent.
+- `side`: `left`, `right`, or `split`; defaults to `split`.
+- `duration`: Optional number of seconds before the source file is cleared. If omitted, the file remains active until removed.
+
+Overwriting a file updates the same peek in place. Removing the file clears it. The watcher is event-driven and does not poll the folder.
+
+Each discovered peek also has independent Workshop controls:
+
+- **Enabled**: Turn an individual peek on or off without disabling Custom Widgets globally.
+- **Persistent**: Keep the peek visible while its file exists.
+- **Pop up**: Show the peek temporarily while leaving the source file in place. Choose a display duration from 1–60 seconds; a later file update shows it again.
+
+The compact view preserves the existing notch activity lifecycle: it stays hidden while the notch is open, then appears after the notch closes. Multiple files are supported, with the most recently modified active file taking priority.
+
+For a quick local test, create `demo-peek.json` in the watched folder or run a small script that rewrites it periodically:
+
+```sh
+while true; do
+  printf '%s\n' '{"title":"Demo","message":"Test","icon":"sparkles","accent":"#F5952E","side":"split"}' > "$HOME/.interestingnotch/peeks/demo-peek.json"
+  sleep 10
+done
+```
+
 ### Better notch navigation
 
 Once multiple widgets are pinned, SE uses paging-aware notch tabs so the interface stays usable instead of turning into a cramped strip of icons.
