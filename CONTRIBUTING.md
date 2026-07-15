@@ -21,7 +21,7 @@ You can contribute in many ways: writing code, improving documentation, reportin
 
 ## Localizations
 
-Please submit all translations to [Crowdin](https://crowdin.com/project/boring-notch). New strings added to the `dev` branch from code changes will sync automatically to Crowdin, and Crowdin will automatically open a new PR with translations to allow us to integrate them.
+Please submit all translations through [Crowdin](https://crowdin.com/project/boring-notch). New strings added on `dev` sync there automatically; translation updates can then come back as their own PRs.
 
 ## Contributing Code
 
@@ -40,8 +40,8 @@ Please submit all translations to [Crowdin](https://crowdin.com/project/boring-n
 
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/{your-username}/interesting.notch.git
-   cd interesting.notch
+   git clone https://github.com/{your-username}/interestingnotch.git
+   cd interestingnotch
    ```
    Replace `{your-username}` with your GitHub username.
 

@@ -28,37 +28,15 @@
 
 **InterestingNotch** is the nodescraper-maintained release fork of the original **Interesting Notch** project by **TheBoredTeam**.
 
-The first stable SE release is **v2.8.0**. It brings the expanded widget system, Workshop flow, and the SE onboarding and navigation work together in one release line.
+This fork keeps the playful notch interaction from upstream, but pushes much harder on the notch-as-a-widget-surface idea: multiple pinned widget tabs, Workshop browsing, bundled widgets, and a more extensible desktop utility workflow.
 
-This repo keeps the spirit of the original app, but pushes much harder on the notch-as-a-widget-platform idea: dynamic widget tabs, a bundled widget library, a Workshop flow, and several new built-in utilities that make the notch feel more like a real desktop surface than a single-purpose overlay.
-
-If you are looking for the original project, go here:
-
-- [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch)
-
-If you want the fork with the expanded widget work and SE-specific changes, you are in the right place.
-
-Release downloads are published on the [InterestingNotch releases page](https://github.com/nodescraper/interestingnotch/releases).
+If you are looking for the original project, see [TheBoredTeam/boring.notch](https://github.com/TheBoredTeam/boring.notch).
 
 ---
 
-## Release 0.1
+## Highlights
 
-The first InterestingNotch release packages the widget-platform foundation and the current notch UI work:
-
-- widget library, manifests, pinning, and Workshop browsing
-- Timer, Clipboard History, System Monitor, Accessory Battery, Color Picker, and Calendar widgets
-- full-tab calendar experience with calendar data/model support
-- improved tab transitions and compact timer/music notch states
-- refined notch, shelf, onboarding, settings, and widget-page behavior
-
-This release is focused on establishing the SE architecture and making the expanded widget workflow usable as a daily desktop surface.
-
----
-
-## What This Fork Adds
-
-This is not just a rename or packaging fork. The SE branch adds substantial product and engineering work on top of upstream, including:
+InterestingNotch adds substantial product and engineering work on top of upstream, including:
 
 - **Dynamic widget-tab navigation** so the notch can host multiple utility surfaces cleanly
 - **Workshop browsing and pinning** to install, manage, and surface widgets inside the notch
@@ -72,16 +50,6 @@ This is not just a rename or packaging fork. The SE branch adds substantial prod
 - **Bluetooth device notifications** for selected paired devices connecting or disconnecting
 - **Onboarding, settings, calendar, and notch-flow changes** to support the new widget model
 - **Widget extraction and rendering test coverage** expanded alongside the new functionality
-
-In short: the original project made the notch fun. This fork pushes it toward a more modular and extensible productivity surface.
-
----
-
-## SE Feature Highlights
-
-### Widget-first notch workflow
-
-The biggest shift in InterestingNotch is that the notch is no longer just a media or shelf surface. It becomes a compact host for multiple pinned tools that you can swap between directly from the notch UI.
 
 ### Built-in widgets included in this fork
 
@@ -177,19 +145,6 @@ The goal here is not to erase upstream. It is to extend it.
 
 ---
 
-## Why This Fork Exists
-
-The original project already had a strong personality and a fun UX direction. This fork exists to explore what happens when the notch becomes more composable, more widget-driven, and more useful day to day.
-
-That means the emphasis here is on:
-
-- more utility packed into the notch
-- cleaner switching between notch surfaces
-- more built-in tools
-- a stronger foundation for future widget-like expansion
-
----
-
 ## Building From Source
 
 ### Requirements
@@ -200,7 +155,7 @@ That means the emphasis here is on:
 ### Clone
 
 ```bash
-git clone https://github.com/nodescraper/interestingnotch.git
+git clone https://github.com/<owner>/interestingnotch.git
 cd interestingnotch
 ```
 
@@ -225,12 +180,30 @@ git checkout main
 xcodebuild -project InterestingNotch.xcodeproj -scheme InterestingNotch -configuration Release -destination 'generic/platform=macOS' build
 ```
 
+### Signed and notarized release
+
+The Release configuration uses the `Developer ID Application` identity. To produce a warning-free public download, configure the Apple certificate and `notarytool` profile described in [`Configuration/signing/README.md`](Configuration/signing/README.md), then run:
+
+```bash
+APPLE_TEAM_ID=YOUR_TEAM_ID \
+NOTARYTOOL_PROFILE=interestingnotch-notary \
+./Configuration/signing/build_release.sh
+```
+
 ### Run a fresh development build
 
 ```bash
 pkill -x InterestingNotch
 open -n .derivedData/Build/Products/Debug/InterestingNotch.app
 ```
+
+---
+
+## Repository Notes
+
+- Generated release artifacts such as `.dmg`, `.xcarchive`, and local packaging environments are intentionally excluded from git.
+- Apple signing certificates, App Store Connect API keys, and notarization credentials are never stored in this repository.
+- Public releases should be created from the signed release flow in [`Configuration/signing/build_release.sh`](Configuration/signing/build_release.sh).
 
 ---
 

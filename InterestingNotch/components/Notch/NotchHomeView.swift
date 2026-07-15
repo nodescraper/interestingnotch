@@ -17,7 +17,6 @@ struct NotchHomeView: View {
 
     var body: some View {
         mainContent
-            .transition(.opacity)
     }
 
     private var shouldShowInlineCalendar: Bool {

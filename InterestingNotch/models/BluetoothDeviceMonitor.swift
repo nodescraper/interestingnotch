@@ -53,6 +53,7 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
     private var audioListenersInstalled = false
     private var audioRefreshWorkItem: DispatchWorkItem?
     private var lastReportedConnectionStates: [String: Bool] = [:]
+    private var callbackStateSuppressions: [String: (state: Bool, expiresAt: Date)] = [:]
     private let inventoryQueue = DispatchQueue(
         label: "com.nodescraper.interestingnotch.bluetooth-inventory",
         qos: .userInitiated
@@ -104,6 +105,7 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
         audioRefreshWorkItem?.cancel()
         currentEvent = nil
         lastReportedConnectionStates.removeAll()
+        callbackStateSuppressions.removeAll()
         isMonitoring = false
         refreshDevices()
     }
@@ -166,19 +168,35 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
     }
 
     private func reportConnectionChanges(in snapshots: [BluetoothDeviceSnapshot]) {
+        let now = Date()
+        callbackStateSuppressions = callbackStateSuppressions.filter { $0.value.expiresAt > now }
+
         let currentStates = snapshots.reduce(into: [String: Bool]()) { states, snapshot in
             states[Self.normalizedAddress(snapshot.address)] = snapshot.isConnected
         }
 
+        var statesToReport = currentStates
+
         for snapshot in snapshots {
             let address = Self.normalizedAddress(snapshot.address)
+
+            // IOBluetooth may briefly return the pre-callback state while the
+            // device teardown/connection settles. Do not turn one real
+            // disconnect into a false Connected -> Disconnected sequence.
+            if let suppression = callbackStateSuppressions[address],
+               snapshot.isConnected != suppression.state
+            {
+                statesToReport[address] = suppression.state
+                continue
+            }
+
             guard let previousState = lastReportedConnectionStates[address],
                   previousState != snapshot.isConnected
             else { continue }
             showEvent(for: snapshot, connected: snapshot.isConnected)
         }
 
-        lastReportedConnectionStates = currentStates
+        lastReportedConnectionStates = statesToReport
     }
 
     func preview(device: BluetoothDeviceSnapshot, connected: Bool) {
@@ -237,7 +255,8 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
         let address = Self.normalizedAddress(snapshot.address)
         let previousState = lastReportedConnectionStates[address]
         lastReportedConnectionStates[address] = true
-        refreshDevices()
+        callbackStateSuppressions[address] = (state: true, expiresAt: Date().addingTimeInterval(0.75))
+        scheduleAudioRefresh()
 
         // The baseline is seeded before registration, so nil now means a newly
         // discovered device rather than a registration replay.
@@ -249,8 +268,9 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
         let address = Self.normalizedAddress(snapshot.address)
         let previousState = lastReportedConnectionStates[address]
         lastReportedConnectionStates[address] = false
+        callbackStateSuppressions[address] = (state: false, expiresAt: Date().addingTimeInterval(0.75))
         disconnectNotifications.removeValue(forKey: address)?.unregister()
-        refreshDevices()
+        scheduleAudioRefresh()
 
         guard previousState == true else { return }
         showEvent(for: snapshot, connected: false)
