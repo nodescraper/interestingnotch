@@ -3,9 +3,7 @@
 
 # InterestingNotch
 
-<video src="assets/demo.mp4" controls muted playsinline width="900">
-  <a href="assets/demo.mp4">Watch the InterestingNotch demo</a>
-</video>
+<img src="assets/demo.gif" alt="InterestingNotch demo" width="900">
 
 ### The notch, reimagined.
 
