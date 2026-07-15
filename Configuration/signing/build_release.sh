@@ -23,7 +23,7 @@ security find-identity -v -p codesigning | grep -Fq 'Developer ID Application' |
 codesign_runtime() {
   local target="$1"
   if [[ -e "$target" ]]; then
-    codesign --force --timestamp --options runtime --sign "$SIGNING_IDENTITY" "$target"
+    codesign --force --options runtime --sign "$SIGNING_IDENTITY" "$target"
   fi
 }
 
@@ -33,13 +33,17 @@ xcodebuild archive \
   -configuration Release \
   -destination 'generic/platform=macOS' \
   -archivePath "$ARCHIVE_DIR" \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_STYLE=Manual \
-  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+  CODE_SIGN_IDENTITY="" \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   | tee "$ROOT_DIR/Release/archive.log"
 
 test -d "$APP_DIR"
 
+codesign_runtime "$APP_DIR/Contents/Frameworks/Lottie.framework"
+codesign_runtime "$APP_DIR/Contents/Frameworks/MediaRemoteAdapter.framework"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Downloader.xpc"
 codesign_runtime "$APP_DIR/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/Installer.xpc"

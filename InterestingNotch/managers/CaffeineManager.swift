@@ -90,7 +90,7 @@ final class CaffeineManager: ObservableObject {
         let endDate = Date().addingTimeInterval(seconds)
         self.endDate = endDate
         remaining = seconds
-        showPeek(message: Self.durationLabel(seconds))
+        showCompactPeek(message: Self.durationLabel(seconds))
 
         timerTask?.cancel()
         timerTask = Task { [weak self] in
