@@ -73,6 +73,8 @@ xcrun stapler staple "$APP_DIR"
 xcrun stapler validate "$APP_DIR"
 
 "$ROOT_DIR/Configuration/dmg/create_dmg.sh" "$APP_DIR" "$DMG_PATH" "InterestingNotch"
+codesign --force --sign "$SIGNING_IDENTITY" "$DMG_PATH"
+codesign --verify --verbose=2 "$DMG_PATH"
 xcrun notarytool submit "$DMG_PATH" --keychain-profile "$NOTARYTOOL_PROFILE" --wait
 xcrun stapler staple "$DMG_PATH"
 xcrun stapler validate "$DMG_PATH"
