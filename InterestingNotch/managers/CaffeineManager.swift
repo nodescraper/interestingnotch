@@ -145,7 +145,6 @@ final class CaffeineManager: ObservableObject {
             compactPeekTask?.cancel()
             compactPeekTask = nil
             compactPeekVisible = false
-            compactPeekMessage = nil
         }
     }
 
@@ -157,7 +156,6 @@ final class CaffeineManager: ObservableObject {
             try? await Task.sleep(for: .seconds(duration))
             guard !Task.isCancelled else { return }
             self?.compactPeekVisible = false
-            self?.compactPeekMessage = nil
         }
     }
 

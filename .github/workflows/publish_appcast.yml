@@ -1,0 +1,105 @@
+name: Publish Sparkle appcast
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version to publish in the appcast
+        required: true
+        default: "1.0.2"
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-appcast
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    env:
+      RELEASE_REPOSITORY: nodescraper/interestingnotch
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Resolve release version
+        id: version
+        env:
+          EVENT_VERSION: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${EVENT_VERSION:-$INPUT_VERSION}"
+          version="${version#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Download release DMG
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p Release
+          gh release download "v${VERSION}" \
+            --repo "$RELEASE_REPOSITORY" \
+            --pattern InterestingNotch.dmg \
+            --dir Release
+
+      - name: Build Sparkle appcast tool
+        run: |
+          set -euo pipefail
+          metadata="InterestingNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          sparkle_src="$RUNNER_TEMP/Sparkle"
+          sparkle_derived="$RUNNER_TEMP/sparkle-derived"
+          read -r sparkle_version sparkle_revision < <(python3 - "$metadata" <<'PY'
+          import json
+          import sys
+          data = json.load(open(sys.argv[1]))
+          pin = next(p for p in data["pins"] if p.get("identity") == "sparkle")
+          state = pin["state"]
+          print(state["version"], state["revision"])
+          PY
+          )
+
+          sparkle_tag="$sparkle_version"
+          if ! git ls-remote --exit-code --tags https://github.com/sparkle-project/Sparkle "refs/tags/$sparkle_tag" >/dev/null 2>&1; then
+            sparkle_tag="v$sparkle_version"
+          fi
+          git clone --depth 1 --branch "$sparkle_tag" --single-branch \
+            https://github.com/sparkle-project/Sparkle "$sparkle_src"
+          test "$(git -C "$sparkle_src" rev-parse HEAD)" = "$sparkle_revision"
+
+          xcodebuild -project "$sparkle_src/Sparkle.xcodeproj" \
+            -scheme generate_appcast \
+            -configuration Release \
+            -derivedDataPath "$sparkle_derived" \
+            CODE_SIGNING_ALLOWED=NO build
+          install -m 0755 "$sparkle_derived/Build/Products/Release/generate_appcast" \
+            "$RUNNER_TEMP/generate_appcast"
+
+      - name: Generate and publish signed appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/generate_appcast" \
+            --ed-key-file - \
+            --link "https://github.com/$RELEASE_REPOSITORY/releases" \
+            --download-url-prefix "https://github.com/$RELEASE_REPOSITORY/releases/download/v${VERSION}/" \
+            --embed-release-notes \
+            -o appcast.xml \
+            Release/
+          cp appcast.xml updater/appcast.xml
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml updater/appcast.xml
+          git commit -m "Publish Sparkle appcast for v${VERSION}" || true
+          git push origin HEAD:main
