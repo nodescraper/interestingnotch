@@ -16,6 +16,7 @@ import SwiftUIIntrospect
 private enum CompactActivityKind: String {
     case recorder
     case timer
+    case sports
     case bluetooth
     case caffeine
     case customPeek
@@ -48,6 +49,7 @@ struct ContentView: View {
     @State private var lastCustomPeek: CustomPeek?
     @State private var lastCompactTimerModel: TimerWidgetModel?
     @State private var lastCompactRecorderModel: VoiceRecorderWidgetModel?
+    @State private var lastCompactSportsGame: GameSnapshot?
     @State private var lastBluetoothConnectionEvent: BluetoothConnectionEvent?
     @State private var lastCompactActivityKind: CompactActivityKind?
 
@@ -206,6 +208,12 @@ struct ContentView: View {
             && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
     }
 
+    private var hasCompactSportsActivity: Bool {
+        compactSportsGame != nil
+            && !vm.hideOnClosed
+            && (!coordinator.expandingView.show || coordinator.expandingView.type == .music)
+    }
+
     private var hasCompactRecorderActivity: Bool {
         compactRecorderLiveModel != nil
             && !vm.hideOnClosed
@@ -240,6 +248,7 @@ struct ContentView: View {
     private var activeCompactActivityKind: CompactActivityKind? {
         if hasCompactRecorderActivity { return .recorder }
         if hasCompactTimerActivity { return .timer }
+        if hasCompactSportsActivity { return .sports }
         if hasBluetoothConnectionActivity { return .bluetooth }
         if hasCaffeineCompactActivity { return .caffeine }
         if hasCompactCustomPeekActivity { return .customPeek }
@@ -271,6 +280,8 @@ struct ContentView: View {
             return nativeRecorderCompactExtraWidth
         case .timer:
             return nativeTimerCompactExtraWidth
+        case .sports:
+            return nativeTimerCompactExtraWidth
         case .bluetooth:
             return max(0, bluetoothCompactWidth - vm.closedNotchSize.width)
         case .caffeine:
@@ -297,6 +308,8 @@ struct ContentView: View {
         case .recorder:
             return nativeRecorderCompactWidth
         case .timer:
+            return nativeTimerCompactWidth
+        case .sports:
             return nativeTimerCompactWidth
         case .bluetooth:
             return bluetoothCompactWidth
@@ -335,9 +348,18 @@ struct ContentView: View {
             + bluetoothStatusWidth
     }
 
+    private var caffeineCompactVisualWidth: CGFloat {
+        nativeTimerVisualSize + 6
+    }
+
+    private var caffeineCompactTextWidth: CGFloat {
+        nativeTimerTimeWidth
+    }
+
     private var caffeineCompactWidth: CGFloat {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
+<<<<<<< HEAD
             + 34
             + caffeineCompactLabelWidth
     }
@@ -347,6 +369,11 @@ struct ContentView: View {
             return min(140, max(86, CGFloat(message.count * 7 + 12)))
         }
         return 72
+=======
+            + caffeineCompactVisualWidth
+            + caffeineCompactTextWidth
+            + 10
+>>>>>>> a9352d3b (Add sports widget flow and refresh widget library)
     }
 
     private var musicCompactArtworkSize: CGFloat {
@@ -661,7 +688,9 @@ struct ContentView: View {
                                   height: displayClosedNotchHeight,
                                   alignment: .center
                               )
-                              .clipped()
+                              .opacity(
+                                  coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID) ? 1 : 0
+                              )
                               .animation(
                                   StandardAnimations.close,
                                   value: coordinator.shouldRevealCompactSneakPeek(on: vm.screenUUID)
@@ -679,13 +708,7 @@ struct ContentView: View {
                        }
 
                       if coordinator.shouldShowSneakPeek(on: vm.screenUUID) {
-                          if coordinator.sneakPeekState(for: vm.screenUUID).type == .caffeine && vm.notchState == .closed {
-                              CaffeineSneakPeek(
-                                  message: coordinator.sneakPeekState(for: vm.screenUUID).message
-                              )
-                              .padding(.bottom, 10)
-                              .padding(.horizontal, 8)
-                          } else if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && !Defaults[.inlineOSD] && vm.notchState == .closed {
+                          if (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .battery) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .caffeine) && !Defaults[.inlineOSD] && vm.notchState == .closed {
                               SystemEventIndicatorModifier(
                                   eventType: coordinator.binding(for: vm.screenUUID).type,
                                   value: coordinator.binding(for: vm.screenUUID).value,
@@ -723,7 +746,7 @@ struct ContentView: View {
                       }
                   }
               }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (vm.notchState == .closed))) { view in
+              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .caffeine) && (vm.notchState == .closed))) { view in
                   view
                       .fixedSize()
               }
@@ -883,6 +906,9 @@ struct ContentView: View {
         if let recorder = compactRecorderLiveModel {
             lastCompactRecorderModel = recorder
         }
+        if let sportsGame = compactSportsGame {
+            lastCompactSportsGame = sportsGame
+        }
         if let peek = customPeekWatcher.currentPeek {
             lastCustomPeek = peek
         }
@@ -914,6 +940,11 @@ struct ContentView: View {
                 NativeTimerCompactActivity(model: model)
                     .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
             }
+        case .sports:
+            if let game = compactSportsGame ?? lastCompactSportsGame {
+                SportsCompactActivity(game: game)
+                    .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+            }
         case .bluetooth:
             if let event = bluetoothDeviceMonitor.currentEvent ?? lastBluetoothConnectionEvent {
                 BluetoothConnectionCompactActivity(event: event)
@@ -938,18 +969,23 @@ struct ContentView: View {
     @ViewBuilder
     private func CaffeineCompactActivity() -> some View {
         HStack(spacing: 0) {
-            HStack(spacing: 5) {
-                Image(systemName: "cup.and.saucer.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.effectiveAccent)
+            ZStack {
+                Circle()
+                    .fill(caffeineCompactAccentColor.opacity(caffeineManager.isActive ? 0.18 : 0.12))
+
+                Image(systemName: caffeineCompactSymbolName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(caffeineCompactAccentColor)
             }
-            .frame(width: 34, height: displayClosedNotchHeight, alignment: .leading)
-            .padding(.leading, 5)
+            .frame(width: nativeTimerVisualSize, height: nativeTimerVisualSize)
+            .frame(width: caffeineCompactVisualWidth, height: displayClosedNotchHeight, alignment: .leading)
+            .padding(.leading, 4)
 
             Rectangle()
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
 
+<<<<<<< HEAD
             Text(caffeineManager.compactPeekMessage ?? caffeineCompactTimeLabel)
                 .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white.opacity(0.9))
@@ -957,20 +993,35 @@ struct ContentView: View {
                 .minimumScaleFactor(0.75)
                 .frame(width: caffeineCompactLabelWidth, height: displayClosedNotchHeight, alignment: .trailing)
                 .padding(.trailing, 5)
+=======
+            HStack(alignment: .center, spacing: 0) {
+                Text(caffeineCompactPrimaryText)
+                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(caffeineCompactAccentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .allowsTightening(true)
+                    .contentTransition(.numericText())
+            }
+            .frame(width: caffeineCompactTextWidth, height: displayClosedNotchHeight, alignment: .trailing)
+            .padding(.trailing, 4)
+>>>>>>> a9352d3b (Add sports widget flow and refresh widget library)
         }
+        .frame(width: caffeineCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+        .clipped()
     }
 
-    private func CaffeineSneakPeek(message: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "cup.and.saucer.fill")
-                .foregroundStyle(Color.effectiveAccent)
-            Text(message)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.9))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(minWidth: 90, alignment: .center)
+    private var caffeineCompactPrimaryText: String {
+        caffeineManager.compactPeekMessage ?? caffeineCompactTimeLabel
+    }
+
+    private var caffeineCompactAccentColor: Color {
+        caffeineManager.isActive ? Color.effectiveAccent : .white.opacity(0.72)
+    }
+
+    private var caffeineCompactSymbolName: String {
+        caffeineManager.isActive ? "cup.and.saucer.fill" : "cup.and.saucer"
     }
 
     private var caffeineCompactTimeLabel: String {
@@ -1265,7 +1316,41 @@ struct ContentView: View {
         }
     }
 
-    private var allowsHoverDuringSneakPeek: Bool {
+    @ViewBuilder
+    private func SportsCompactActivity(game: GameSnapshot) -> some View {
+        TimelineView(.animation(minimumInterval: 0.2)) { _ in
+            HStack(spacing: 0) {
+                HStack(spacing: 4) {
+                    RemoteSportsLogoView(urlString: game.home.logoURL)
+                        .frame(width: 14, height: 14)
+                    Text(game.home.score)
+                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                }
+                .frame(width: nativeTimerVisualSize + 6, height: displayClosedNotchHeight, alignment: .leading)
+                .padding(.leading, 4)
+
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+                HStack(alignment: .center, spacing: 4) {
+                    Text(game.away.score)
+                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.white)
+                    RemoteSportsLogoView(urlString: game.away.logoURL)
+                        .frame(width: 14, height: 14)
+                }
+                .frame(width: nativeTimerTimeWidth, height: displayClosedNotchHeight, alignment: .trailing)
+                .padding(.trailing, 4)
+            }
+            .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+        }
+    }
+
+	    private var allowsHoverDuringSneakPeek: Bool {
         switch coordinator.sneakPeekState(for: vm.screenUUID).type {
         case .colorPicker:
             return true
@@ -1471,6 +1556,23 @@ struct ContentView: View {
         }
 
         return model
+    }
+
+    private var compactSportsModel: SportsWidgetModel? {
+        guard
+            let widget = widgetEngine.widgets.first(where: {
+                $0.manifest.kind == .interactive && $0.manifest.interactive?.type == .sports
+            }),
+            let model = widget.interactiveRuntime as? SportsWidgetModel
+        else {
+            return nil
+        }
+
+        return model
+    }
+
+    private var compactSportsGame: GameSnapshot? {
+        compactSportsModel?.compactGame
     }
 
     private var showsCompactMusicArtwork: Bool {

@@ -221,6 +221,11 @@ extension Defaults.Keys {
     static let colorPickerRecentHistory = Key<[String]>("colorPickerRecentHistory", default: [])
     static let clipboardHistoryStoreData = Key<Data?>("clipboardHistoryStoreData", default: nil)
     static let clipboardHistoryMaxItems = Key<Int>("clipboardHistoryMaxItems", default: 50)
+    static let sportsFollowedTeamsData = Key<Data?>("sportsFollowedTeamsData", default: nil)
+    static let sportsFollowedLeaguesData = Key<Data?>("sportsFollowedLeaguesData", default: nil)
+    static let sportsStarredTeamsData = Key<Data?>("sportsStarredTeamsData", default: nil)
+    static let sportsShowLiveInClosedNotch = Key<Bool>("sportsShowLiveInClosedNotch", default: true)
+    static let sportsMaximumMatches = Key<Int>("sportsMaximumMatches", default: 7)
     
     // MARK: Behavior
     static let minimumHoverDuration = Key<TimeInterval>("minimumHoverDuration", default: 0.3)

@@ -12,6 +12,11 @@ struct WorkshopBrowseView: View {
     @ObservedObject private var engine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
     @State private var searchText = ""
+    let openPinnedWidget: (String) -> Void
+
+    init(openPinnedWidget: @escaping (String) -> Void = { _ in }) {
+        self.openPinnedWidget = openPinnedWidget
+    }
 
     private var filteredWidgets: [Widget] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -25,8 +30,39 @@ struct WorkshopBrowseView: View {
         }
     }
 
+    private var pinnedWidgets: [Widget] {
+        pinnedWidgetIDs.compactMap { id in
+            engine.widgets.first(where: { $0.id == id })
+        }
+    }
+
+    private var filteredPinnedWidgets: [Widget] {
+        let availableIDs = Set(filteredWidgets.map(\.id))
+        return pinnedWidgets.filter { availableIDs.contains($0.id) || searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
     var body: some View {
         Form {
+            if !filteredPinnedWidgets.isEmpty {
+                Section {
+                    ForEach(filteredPinnedWidgets, id: \.id) { widget in
+                        pinnedWidgetRow(for: widget)
+                    }
+                } header: {
+                    HStack {
+                        Text("Pinned Widgets")
+                        Spacer()
+                        Text("\(filteredPinnedWidgets.count)")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                } footer: {
+                    Text("Pinned widgets appear as tabs in the notch. Open one here to manage its own settings page.")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+
             Section {
                 if filteredWidgets.isEmpty {
                     Text(searchText.isEmpty ? "No widgets match this filter." : "No widgets match your search.")
@@ -51,8 +87,38 @@ struct WorkshopBrowseView: View {
             }
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("Browse")
+        .navigationTitle("Widgets")
         .searchable(text: $searchText, prompt: "Widgets")
+    }
+
+    private func pinnedWidgetRow(for widget: Widget) -> some View {
+        Button {
+            openPinnedWidget(widget.id)
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
+                widgetIcon(for: widget)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(widget.manifest.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Text(WorkshopWidgetCatalog.description(for: widget))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                Spacer(minLength: 12)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func availableWidgetRow(for widget: Widget) -> some View {
@@ -106,6 +172,8 @@ enum WorkshopWidgetCatalog {
             return "Pick colors anywhere on screen, copy values, and keep a quick recent history."
         case "timer":
             return "Run a focused countdown with presets in the notch and keep a live closed-notch glance."
+        case "sports":
+            return "Follow teams across leagues, surface the highest-priority live game in the closed notch, and open a full multi-game tab."
         case "clipboard-history":
             return "Keep recent text, links, and images nearby, and recopy any clip with one click."
         case "voice-recorder":

@@ -26,6 +26,7 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 - [What it is](#what-it-is)
 - [Highlights](#highlights)
 - [Widgets](#widgets)
+- [Sports widget](#sports-widget)
 - [Custom widgets](#custom-widgets-beta)
 - [Caffeine](#caffeine)
 - [Bluetooth connection notifications](#bluetooth-connection-notifications)
@@ -73,6 +74,29 @@ A consistent, Apple-like family of widgets designed for the notch — quiet, gla
 | **Voice Recorder** | Capture quick voice notes with a live waveform, elapsed time, and instant reveal of the saved file. |
 
 Any widget can be **pinned** from the library to become its own notch tab.
+
+---
+
+## Sports widget
+
+The Sports widget brings a full match-first flow into InterestingNotch: a live notch tab, a team page with upcoming fixtures and recent results, and a settings-side match detail page with timeline and stat comparisons.
+
+<p align="center">
+  <img src="assets/sports-widget-notch.png" alt="InterestingNotch sports widget shown in the notch with an upcoming match" width="900">
+</p>
+
+<p align="center">
+  <img src="assets/sports-team-page.png" alt="InterestingNotch sports team page showing next matches and recent results" width="900">
+</p>
+
+<p align="center">
+  <img src="assets/sports-match-detail.png" alt="InterestingNotch sports match detail page showing hero score, key events, and stats" width="900">
+</p>
+
+- **Pinned team priority** — starred teams take priority so the notch surfaces the next relevant match first.
+- **Multi-game paging** — swipe or scroll through multiple followed matches directly inside the notch.
+- **Team drill-in** — move from leagues to teams to fixtures without leaving the widget library flow.
+- **Match detail** — open a full summary view with key events, stat bars, venue info, and status.
 
 ---
 
@@ -137,15 +161,15 @@ Choose which devices can trigger notifications in Settings → Bluetooth Devices
 
 ## Widget library
 
-A dedicated library for managing what's in your notch. Browse the available widgets, see what is installed, and pin or unpin tabs without digging through a long settings list:
+A dedicated library for managing what's in your notch. Open the Widgets page, review your pinned widgets at the top, and pin or unpin tabs without digging through a long settings list:
 
 <p align="center">
   <img src="assets/widget-library.png" alt="InterestingNotch widget library showing available widgets" width="900">
 </p>
 
-- **Browse** every available widget with a description.
+- **Widgets** page for every available widget with a description.
+- **Pinned Widgets** area at the top with direct drill-in to each widget's own settings page.
 - **Pin / Unpin** to add or remove a widget as a notch tab.
-- **Installed** view for what's currently active.
 - **Core surfaces** (Mirror, Shelf, and Media) remain available alongside the widget family.
 - **Custom Widgets (beta)** to enable and monitor script-driven peeks.
 

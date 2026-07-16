@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [calendarManifest, colorPickerManifest, timerManifest, clipboardHistoryManifest, voiceRecorderManifest, systemMonitorManifest]
+        [calendarManifest, colorPickerManifest, timerManifest, sportsManifest, clipboardHistoryManifest, voiceRecorderManifest, systemMonitorManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -94,6 +94,29 @@ enum WidgetLibrary {
             onTap: nil,
             permissions: nil,
             interactive: .init(type: .timer)
+        )
+    }
+
+    private static var sportsManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "sports",
+            name: "Sports",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("sportscourt"),
+                    "label": .string("Follow teams"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: nil,
+            interactive: .init(type: .sports)
         )
     }
 

@@ -5,27 +5,28 @@
 //  Created by Codex on 2026-07-13.
 //
 
+import Defaults
 import SwiftUI
 
 private enum WorkshopSection: String, CaseIterable, Identifiable {
     case browse
-    case installed
     case mirror
     case shelf
     case calendar
     case media
+    case sports
     case customWidgets
 
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .browse: "Browse"
-        case .installed: "Installed"
+        case .browse: "Widgets"
         case .mirror: "Mirror"
         case .shelf: "Shelf"
         case .calendar: "Calendar"
         case .media: "Media"
+        case .sports: "Sports"
         case .customWidgets: "Custom Widgets"
         }
     }
@@ -33,26 +34,38 @@ private enum WorkshopSection: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .browse: "square.grid.2x2"
-        case .installed: "checklist"
         case .mirror: "camera"
         case .shelf: "books.vertical"
         case .calendar: "calendar"
         case .media: "play.circle.fill"
+        case .sports: "sportscourt"
         case .customWidgets: "sparkles.rectangle.stack"
         }
     }
 }
 
+private enum WorkshopSelection: Hashable {
+    case section(WorkshopSection)
+    case installedWidget(String)
+}
+
 struct WorkshopWindow: View {
-    @State private var selectedSection: WorkshopSection = .browse
+    @ObservedObject private var engine = WidgetEngine.shared
+    @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
+    @State private var selectedSection: WorkshopSelection = .section(.browse)
     @State private var widgetsLoaded = false
+
+    private var installedWidgets: [Widget] {
+        pinnedWidgetIDs.compactMap { id in
+            engine.widgets.first(where: { $0.id == id })
+        }
+    }
 
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedSection) {
                 Section("Widget Library") {
                     workshopSidebarItem(.browse)
-                    workshopSidebarItem(.installed)
                 }
 
                 Section("Built-in Widgets") {
@@ -72,20 +85,24 @@ struct WorkshopWindow: View {
         } detail: {
             Group {
                 switch selectedSection {
-                case .browse:
-                    WorkshopBrowseView()
-                case .installed:
-                    WorkshopInstalledView()
-                case .mirror:
+                case .section(.browse):
+                    WorkshopBrowseView { widgetID in
+                        selectedSection = .installedWidget(widgetID)
+                    }
+                case .section(.mirror):
                     MirrorSettings()
-                case .shelf:
+                case .section(.shelf):
                     Shelf()
-                case .calendar:
+                case .section(.calendar):
                     CalendarSettings()
-                case .media:
+                case .section(.media):
                     Media()
-                case .customWidgets:
+                case .section(.sports):
+                    SportsSettingsView()
+                case .section(.customWidgets):
                     CustomWidgetsSettingsView()
+                case .installedWidget(let widgetID):
+                    WorkshopInstalledWidgetDetailView(widgetID: widgetID)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -108,12 +125,52 @@ struct WorkshopWindow: View {
             widgetsLoaded = true
             WidgetLaunchLoader().loadWidgets()
         }
+        .onChange(of: pinnedWidgetIDs) { _, newPinnedWidgetIDs in
+            if case .installedWidget(let widgetID) = selectedSection,
+               !newPinnedWidgetIDs.contains(widgetID) {
+                selectedSection = .section(.browse)
+            }
+        }
     }
 
     @ViewBuilder
     private func workshopSidebarItem(_ section: WorkshopSection) -> some View {
         Label(section.title, systemImage: section.systemImage)
-            .tag(section)
+            .tag(WorkshopSelection.section(section))
+    }
+}
+
+private struct WorkshopInstalledWidgetDetailView: View {
+    @ObservedObject private var engine = WidgetEngine.shared
+    @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
+
+    let widgetID: String
+
+    private var widget: Widget? {
+        engine.widgets.first(where: { $0.id == widgetID })
+    }
+
+    var body: some View {
+        Group {
+            if widgetID == "sports" {
+                SportsSettingsView()
+            } else if let widget {
+                Form {
+                    WorkshopInstalledSettingsRegistry.settingsSection(
+                        for: widget,
+                        pinnedWidgetIDs: $pinnedWidgetIDs
+                    )
+                }
+                .accentColor(.effectiveAccent)
+                .navigationTitle(widget.manifest.name)
+            } else {
+                ContentUnavailableView(
+                    "Widget Unavailable",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("This pinned widget is no longer available.")
+                )
+            }
+        }
     }
 }
 

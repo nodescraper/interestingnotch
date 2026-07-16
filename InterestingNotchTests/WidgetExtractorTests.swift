@@ -88,6 +88,11 @@ final class WidgetExtractorTests: XCTestCase {
             icon = "timer"
             label = "Countdown timer"
             permissions = nil
+        case .sports:
+            name = "Sports"
+            icon = "sportscourt"
+            label = "Follow teams"
+            permissions = nil
         case .clipboardHistory:
             name = "Clipboard History"
             icon = "document.on.clipboard"

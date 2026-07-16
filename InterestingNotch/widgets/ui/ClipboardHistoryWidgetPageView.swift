@@ -47,13 +47,6 @@ struct ClipboardHistoryWidgetPageView: View {
     }
 
     var body: some View {
-        content
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    @ViewBuilder
-    private var content: some View {
         if model.items.isEmpty {
             emptyState
         } else {
@@ -101,6 +94,7 @@ struct ClipboardHistoryWidgetPageView: View {
             }
             .frame(height: cardHeight + 20)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 

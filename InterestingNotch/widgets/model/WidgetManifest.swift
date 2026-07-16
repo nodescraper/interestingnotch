@@ -144,6 +144,7 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
             case calendar
             case colorPicker = "color-picker"
             case timer
+            case sports
             case clipboardHistory = "clipboard-history"
             case voiceRecorder = "voice-recorder"
         }

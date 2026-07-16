@@ -12,6 +12,44 @@ import SwiftUI
 import AppKit
 import Defaults
 
+struct WidgetTitleRow<Accessory: View>: View {
+    let title: String
+    let caption: String
+    var titleColor: Color = .white
+    @ViewBuilder var accessory: () -> Accessory
+
+    private let rowHeight: CGFloat = 44
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(titleColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(caption)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.55))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+
+            Spacer(minLength: 8)
+
+            accessory()
+        }
+        .frame(height: rowHeight, alignment: .center)
+    }
+}
+
+extension WidgetTitleRow where Accessory == EmptyView {
+    init(title: String, caption: String, titleColor: Color = .white) {
+        self.init(title: title, caption: caption, titleColor: titleColor) { EmptyView() }
+    }
+}
+
 struct TimerWidgetPageView: View {
     @EnvironmentObject private var vm: InterestingViewModel
     @ObservedObject private var coordinator = InterestingViewCoordinator.shared
@@ -52,7 +90,16 @@ struct TimerWidgetPageView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            titleRow
+            WidgetTitleRow(
+                title: titleText,
+                caption: captionText,
+                titleColor: showsTimerControls ? orange : .white
+            ) {
+                if !showsTimerControls {
+                    modePill
+                        .transition(.opacity)
+                }
+            }
 
             // Middle slot swaps between the ruler and the running/finished controls,
             // with the same smooth transitions as before.
@@ -107,34 +154,6 @@ struct TimerWidgetPageView: View {
 
     private var isFinishedTimer: Bool {
         model.mode == .timer && model.countdownState.phase == .finished
-    }
-
-    // MARK: - Title row (recorder style: title + caption, pill on the right)
-
-    private var titleRow: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(titleText)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(showsTimerControls ? orange : .white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-
-                Text(captionText)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.55))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
-
-            Spacer(minLength: 8)
-
-            // Mode pill only shows when idle (can't switch mid-run).
-            if !showsTimerControls {
-                modePill
-                    .transition(.opacity)
-            }
-        }
     }
 
     private var titleText: String {

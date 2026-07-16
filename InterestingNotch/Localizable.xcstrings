@@ -11,6 +11,9 @@
         }
       }
     },
+    "–" : {
+
+    },
     "'Now Playing' was the only option on previous versions and works with all media apps." : {
       "localizations" : {
         "cs" : {
@@ -144,6 +147,12 @@
           }
         }
       }
+    },
+    "@" : {
+
+    },
+    "@ %@" : {
+
     },
     "%.0f seconds" : {
       "localizations" : {
@@ -421,6 +430,22 @@
         }
       }
     },
+    "%lld sec" : {
+
+    },
+    "%lld seconds" : {
+
+    },
+    "%lld–%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld–%2$lld %3$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
       "localizations" : {
         "en" : {
@@ -438,6 +463,24 @@
       }
     },
     "00:00" : {
+
+    },
+    "1 hour" : {
+
+    },
+    "1h" : {
+
+    },
+    "2 hours" : {
+
+    },
+    "2h" : {
+
+    },
+    "15 minutes" : {
+
+    },
+    "15m" : {
 
     },
     "A fork by nodescraper" : {
@@ -1332,6 +1375,9 @@
         }
       }
     },
+    "All teams" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "cs" : {
@@ -1567,6 +1613,9 @@
           }
         }
       }
+    },
+    "Allow InterestingNotch to control your Mac so it can replace the system OSD." : {
+
     },
     "Always show full event titles" : {
       "localizations" : {
@@ -2638,7 +2687,7 @@
     "Available Widgets" : {
 
     },
-    "Available widgets are loaded from Application Support. Pin one here to make it appear as a notch tab." : {
+    "Away" : {
 
     },
     "Backlight" : {
@@ -3177,6 +3226,15 @@
         }
       }
     },
+    "Beta" : {
+
+    },
+    "Bluetooth connection notifications" : {
+
+    },
+    "Bluetooth Devices" : {
+
+    },
     "Brightness" : {
       "localizations" : {
         "de" : {
@@ -3314,7 +3372,16 @@
     "Browse" : {
 
     },
+    "Browse widgets installed from Application Support. Pin a widget to add it as a notch tab." : {
+
+    },
     "Built-in Widgets" : {
+
+    },
+    "Caffeine" : {
+
+    },
+    "Caffeine on" : {
 
     },
     "Calendar" : {
@@ -4739,9 +4806,6 @@
         }
       }
     },
-    "Choose one optional live metric for each side of the closed notch. The full page still shows all available metrics." : {
-
-    },
     "Choose one or more displays. When no display is selected, the preferred display is used." : {
 
     },
@@ -5784,6 +5848,9 @@
         }
       }
     },
+    "Connected" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "cs" : {
@@ -6526,6 +6593,9 @@
         }
       }
     },
+    "Custom Widgets" : {
+
+    },
     "Customize in Settings" : {
       "localizations" : {
         "cs" : {
@@ -6750,6 +6820,9 @@
         }
       }
     },
+    "Date" : {
+
+    },
     "Default" : {
       "localizations" : {
         "cs" : {
@@ -6867,6 +6940,9 @@
           }
         }
       }
+    },
+    "Default duration" : {
+
     },
     "Description" : {
       "extractionState" : "stale",
@@ -7225,10 +7301,22 @@
         }
       }
     },
+    "Disconnected" : {
+
+    },
     "Dismiss" : {
 
     },
+    "Display" : {
+
+    },
+    "Display awake" : {
+
+    },
     "Displays" : {
+
+    },
+    "Done" : {
 
     },
     "Download" : {
@@ -8075,6 +8163,12 @@
         }
       }
     },
+    "Enable Caffeine header control" : {
+
+    },
+    "Enable custom widgets" : {
+
+    },
     "Enable gestures" : {
       "localizations" : {
         "cs" : {
@@ -8794,6 +8888,9 @@
         }
       }
     },
+    "Enabled" : {
+
+    },
     "Enjoy the open day." : {
 
     },
@@ -9008,6 +9105,9 @@
           }
         }
       }
+    },
+    "Explore widgets, voice notes, and Bluetooth device notifications right from your notch." : {
+
     },
     "Extend hover area" : {
       "localizations" : {
@@ -9228,6 +9328,9 @@
         }
       }
     },
+    "File errors" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "de" : {
@@ -9439,6 +9542,21 @@
           }
         }
       }
+    },
+    "Follow %@" : {
+
+    },
+    "Follow a team to see match details." : {
+
+    },
+    "Follow teams to see live scores here." : {
+
+    },
+    "Following" : {
+
+    },
+    "Form" : {
+
     },
     "Full charge" : {
       "localizations" : {
@@ -10306,6 +10424,7 @@
       }
     },
     "Grant Accessibility access so built-in keyboard brightness controls can be intercepted." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11228,6 +11347,9 @@
         }
       }
     },
+    "Home" : {
+
+    },
     "Hover delay" : {
       "localizations" : {
         "de" : {
@@ -11969,6 +12091,9 @@
     "InterestingNotch can check for updates in the background. You can still check manually from the menu bar at any time." : {
 
     },
+    "InterestingNotch listens for Bluetooth connection changes and does not poll in the background." : {
+
+    },
     "Keep" : {
 
     },
@@ -12003,6 +12128,9 @@
       }
     },
     "Keep InterestingNotch Updated" : {
+
+    },
+    "Keep Mac awake" : {
 
     },
     "Keep newer shelf items in front" : {
@@ -12334,10 +12462,13 @@
         }
       }
     },
-    "Left side" : {
+    "Leagues" : {
 
     },
     "Loading available widgets..." : {
+
+    },
+    "Loading match details…" : {
 
     },
     "Low" : {
@@ -12900,6 +13031,9 @@
           }
         }
       }
+    },
+    "Match" : {
+
     },
     "Match menu bar height" : {
       "localizations" : {
@@ -14469,6 +14603,9 @@
         }
       }
     },
+    "Mode" : {
+
+    },
     "Music Source" : {
       "localizations" : {
         "cs" : {
@@ -15018,6 +15155,12 @@
         }
       }
     },
+    "Next matches" : {
+
+    },
+    "No additional match details yet." : {
+
+    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -15349,13 +15492,31 @@
         }
       }
     },
-    "No info" : {
+    "No matches yet" : {
+
+    },
+    "No Paired Devices" : {
+
+    },
+    "No recent results" : {
+
+    },
+    "No teams found" : {
+
+    },
+    "No upcoming matches" : {
+
+    },
+    "No valid JSON peek files found." : {
 
     },
     "No widgets are pinned right now." : {
 
     },
-    "No widgets installed yet." : {
+    "No widgets match this filter." : {
+
+    },
+    "No widgets match your search." : {
 
     },
     "Normalize gesture direction" : {
@@ -16080,6 +16241,12 @@
     "Nothing scheduled" : {
 
     },
+    "Notifications" : {
+
+    },
+    "Notify For" : {
+
+    },
     "Now Playing" : {
       "localizations" : {
         "cs" : {
@@ -16263,6 +16430,9 @@
 
     },
     "Open in Reminders" : {
+
+    },
+    "Open microphone settings" : {
 
     },
     "Open Notch" : {
@@ -17203,7 +17373,16 @@
         }
       }
     },
+    "Pair a device in System Settings, then refresh this list." : {
+
+    },
     "Pause" : {
+
+    },
+    "Peek files" : {
+
+    },
+    "Persistent peeks stay visible until their file is removed or its duration expires. Pop-up peeks hide after the selected time while their file remains available for the next update." : {
 
     },
     "Pick a Color" : {
@@ -17318,9 +17497,6 @@
     "Pick color shortcut" : {
 
     },
-    "Pick which reporting accessory shows in the closed-notch sneak peek. Automatic prefers AirPods when available." : {
-
-    },
     "Picks appear here" : {
 
     },
@@ -17330,7 +17506,13 @@
     "Pin a widget from Browse to make it appear in the notch and configure it here." : {
 
     },
+    "Pin Sports widget" : {
+
+    },
     "Pinned widget page" : {
+
+    },
+    "Play last recording" : {
 
     },
     "Player tinting" : {
@@ -17497,6 +17679,9 @@
         }
       }
     },
+    "Popup time" : {
+
+    },
     "Preferred display" : {
       "localizations" : {
         "de" : {
@@ -17597,7 +17782,10 @@
         }
       }
     },
-    "Primary device" : {
+    "Preview Connected" : {
+
+    },
+    "Preview Disconnected" : {
 
     },
     "Progress bar style" : {
@@ -18141,10 +18329,17 @@
         }
       }
     },
-    "Recent" : {
+    "Recent results" : {
+
+    },
+    "Record" : {
+
+    },
+    "Refresh Devices" : {
 
     },
     "Release name" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -18873,6 +19068,9 @@
         }
       }
     },
+    "Rescan" : {
+
+    },
     "Reset" : {
 
     },
@@ -19288,10 +19486,16 @@
         }
       }
     },
+    "Result" : {
+
+    },
     "Resume" : {
 
     },
-    "Right side" : {
+    "Reveal" : {
+
+    },
+    "Reveal in Finder" : {
 
     },
     "Running" : {
@@ -19468,6 +19672,12 @@
         }
       }
     },
+    "Search leagues and teams" : {
+
+    },
+    "Search teams" : {
+
+    },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
         "cs" : {
@@ -19580,7 +19790,10 @@
         }
       }
     },
-    "Select the widgets you want to appear as tabs in your notch. You can change this later in the Workshop." : {
+    "Select the paired devices whose connection changes should appear in the notch." : {
+
+    },
+    "Select the widgets you want to appear as tabs in your notch. New widgets like Voice Recorder and System Monitor are included here, and you can change this later in the Workshop." : {
 
     },
     "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {
@@ -20772,6 +20985,9 @@
         }
       }
     },
+    "Shortcut" : {
+
+    },
     "Shortcuts" : {
       "localizations" : {
         "cs" : {
@@ -21325,6 +21541,9 @@
           }
         }
       }
+    },
+    "Show live games in the closed notch" : {
+
     },
     "Show lyrics below artist name" : {
       "localizations" : {
@@ -22592,9 +22811,6 @@
         }
       }
     },
-    "Show sneak peek when closed" : {
-
-    },
     "Slider color" : {
       "localizations" : {
         "cs" : {
@@ -23397,6 +23613,12 @@
         }
       }
     },
+    "Sports" : {
+
+    },
+    "Sports Widget" : {
+
+    },
     "Square" : {
       "localizations" : {
         "cs" : {
@@ -23509,10 +23731,19 @@
         }
       }
     },
+    "Starred" : {
+
+    },
+    "Starred teams get priority in the notch." : {
+
+    },
     "Start" : {
 
     },
     "Status: %@" : {
+
+    },
+    "Stop" : {
 
     },
     "Stopped" : {
@@ -23734,6 +23965,9 @@
         }
       }
     },
+    "System awake" : {
+
+    },
     "System default" : {
       "comment" : "Language picker option: follow the system app language",
       "localizations" : {
@@ -23892,6 +24126,15 @@
           }
         }
       }
+    },
+    "Tap the cup in the open-notch header to toggle Caffeine. Hold it to choose a duration." : {
+
+    },
+    "Team stats" : {
+
+    },
+    "Teams" : {
+
     },
     "Text, links, and images you copy show up here." : {
 
@@ -24136,6 +24379,9 @@
     "Today" : {
 
     },
+    "Toggle Caffeine:" : {
+
+    },
     "Toggle Notch Open:" : {
       "localizations" : {
         "cs" : {
@@ -24360,6 +24606,12 @@
         }
       }
     },
+    "Try again" : {
+
+    },
+    "Turn off" : {
+
+    },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
       "localizations" : {
         "cs" : {
@@ -24465,6 +24717,9 @@
           }
         }
       }
+    },
+    "Unfollow %@" : {
+
     },
     "Uninstall" : {
       "extractionState" : "stale",
@@ -24788,6 +25043,12 @@
     "Unpin" : {
 
     },
+    "Unpin Sports widget" : {
+
+    },
+    "Until off" : {
+
+    },
     "Upgrade to Pro" : {
       "localizations" : {
         "cs" : {
@@ -24899,6 +25160,9 @@
           }
         }
       }
+    },
+    "Usage" : {
+
     },
     "Use accent color" : {
       "localizations" : {
@@ -25279,6 +25543,9 @@
           }
         }
       }
+    },
+    "Venue" : {
+
     },
     "Version" : {
       "localizations" : {
@@ -25787,6 +26054,21 @@
         }
       }
     },
+    "vs" : {
+
+    },
+    "vs %@" : {
+
+    },
+    "Watched folder" : {
+
+    },
+    "Watcher is off" : {
+
+    },
+    "Watching for sneak peeks" : {
+
+    },
     "Week starts on" : {
       "comment" : "Calendar setting: which weekday the week strip starts on",
       "extractionState" : "stale",
@@ -25930,6 +26212,9 @@
 
     },
     "Widget-specific settings will appear here as more widgets declare them." : {
+
+    },
+    "Widgets" : {
 
     },
     "Window Appearance" : {
@@ -26147,7 +26432,11 @@
     "Workshop" : {
 
     },
+    "Write one JSON file per sneak peek to ~/.interestingnotch/peeks. The filename becomes its id; remove the file to clear it." : {
+
+    },
     "You can now enjoy the app. If you want to tweak things further, you can always visit the settings." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -26252,6 +26541,9 @@
           }
         }
       }
+    },
+    "You can now enjoy your widgets, voice notes, and Bluetooth device notifications. Visit Settings whenever you want to customize them further." : {
+
     },
     "You're All Set!" : {
       "localizations" : {

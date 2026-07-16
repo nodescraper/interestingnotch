@@ -24,32 +24,11 @@ struct VoiceRecorderWidgetPageView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Title row: status + filename (left), reveal icon (right).
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 7) {
-                        if model.isRecording {
-                            Circle()
-                                .fill(accent)
-                                .frame(width: 8, height: 8)
-                                .modifier(PulseModifier())
-                        }
-                        Text(model.statusTitle)
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundStyle(model.isRecording ? accent : .white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-
-                    Text(model.statusMessage)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.55))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-
-                Spacer(minLength: 8)
-
+            WidgetTitleRow(
+                title: model.statusTitle,
+                caption: model.statusMessage,
+                titleColor: model.isRecording ? accent : .white
+            ) {
                 if case .permissionDenied = model.phase {
                     iconCircleButton(systemImage: "gearshape", tint: .white) {
                         model.openMicrophoneSettings()
@@ -192,16 +171,3 @@ private struct WaveformView: View {
     }
 }
 
-// MARK: - Pulse
-
-/// Gentle pulsing opacity for the recording dot.
-private struct PulseModifier: ViewModifier {
-    @State private var on = false
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(on ? 0.35 : 1)
-            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: on)
-            .onAppear { on = true }
-    }
-}

@@ -101,6 +101,9 @@
 		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
 		11A0D0563A00000100000001 /* VoiceRecorderWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */; };
 		11A0D0583A00000100000001 /* VoiceRecorderWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */; };
+		SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0023A00000100000001 /* SportsWidgetModel.swift */; };
+		SPORT0033A00000100000001 /* SportsWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0043A00000100000001 /* SportsWidgetPageView.swift */; };
+		SPORT0053A00000100000001 /* SportsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0063A00000100000001 /* SportsSettingsView.swift */; };
 		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
 		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
 		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
@@ -343,6 +346,9 @@
 		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetPageView.swift; sourceTree = "<group>"; };
+		SPORT0023A00000100000001 /* SportsWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetModel.swift; sourceTree = "<group>"; };
+		SPORT0043A00000100000001 /* SportsWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetPageView.swift; sourceTree = "<group>"; };
+		SPORT0063A00000100000001 /* SportsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsSettingsView.swift; sourceTree = "<group>"; };
 		11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorProvider.swift; sourceTree = "<group>"; };
 		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetModel.swift; sourceTree = "<group>"; };
@@ -660,6 +666,7 @@
 				11A0D0853A00000100000001 /* CalendarWidgetModel.swift */,
 				11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */,
 				11A0D0513A00000100000001 /* TimerWidgetModel.swift */,
+				SPORT0023A00000100000001 /* SportsWidgetModel.swift */,
 				11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */,
 				11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */,
 			);
@@ -696,6 +703,7 @@
 				11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */,
 				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
 				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
+				SPORT0043A00000100000001 /* SportsWidgetPageView.swift */,
 				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
 				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
 				11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */,
@@ -749,6 +757,7 @@
 				11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */,
 				11DB266D2EDD0CDF001EA0CF /* OSDSettingsView.swift */,
 				11DB266E2EDD0CDF001EA0CF /* MediaSettingsView.swift */,
+				SPORT0063A00000100000001 /* SportsSettingsView.swift */,
 				11DB266F2EDD0CDF001EA0CF /* SettingsHelpers.swift */,
 				11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */,
 				11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */,
@@ -1338,6 +1347,7 @@
 				11DB267B2EDD0CDF001EA0CF /* CalendarSettingsView.swift in Sources */,
 				11DB267C2EDD0CDF001EA0CF /* OSDSettingsView.swift in Sources */,
 				11DB267D2EDD0CDF001EA0CF /* MediaSettingsView.swift in Sources */,
+				SPORT0053A00000100000001 /* SportsSettingsView.swift in Sources */,
 				14D570C62C5F38210011E668 /* InterestingHeader.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				C4FF00012C00000000000001 /* CaffeineManager.swift in Sources */,
@@ -1377,6 +1387,7 @@
 				11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */,
 				11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */,
 				11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */,
+				SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */,
 				11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */,
 				11A0D0563A00000100000001 /* VoiceRecorderWidgetModel.swift in Sources */,
 				11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */,
@@ -1392,6 +1403,7 @@
 				768D37C2300682F800175C3F /* NetworkMonitorProvider.swift in Sources */,
 				11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */,
 				11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */,
+				SPORT0033A00000100000001 /* SportsWidgetPageView.swift in Sources */,
 				11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */,
 				11A0D0583A00000100000001 /* VoiceRecorderWidgetPageView.swift in Sources */,
 				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,

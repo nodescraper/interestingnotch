@@ -11,6 +11,7 @@ enum WidgetTabPageKind: Equatable {
     case calendar
     case colorPicker
     case timer
+    case sports
     case clipboardHistory
     case voiceRecorder
     case systemMonitor
@@ -35,6 +36,8 @@ enum WidgetTabPageResolver {
                 return .colorPicker
             case .timer:
                 return .timer
+            case .sports:
+                return .sports
             case .clipboardHistory:
                 return .clipboardHistory
             case .voiceRecorder:
@@ -77,6 +80,12 @@ struct WidgetTabPageView: View {
                             model: model,
                             animationNamespace: animationNamespace
                         )
+                    } else {
+                        unavailableState
+                    }
+                case .sports:
+                    if let model = widget.interactiveRuntime as? SportsWidgetModel {
+                        SportsWidgetPageView(widget: widget, model: model)
                     } else {
                         unavailableState
                     }

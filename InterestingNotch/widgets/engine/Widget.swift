@@ -137,6 +137,8 @@ private enum WidgetRuntimeResolver {
             return ColorPickerWidgetModel(widgetID: manifest.id)
         case .timer:
             return TimerWidgetModel(widgetID: manifest.id)
+        case .sports:
+            return SportsWidgetModel(widgetID: manifest.id)
         case .clipboardHistory:
             return ClipboardHistoryWidgetModel(widgetID: manifest.id)
         case .voiceRecorder:

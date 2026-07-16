@@ -86,6 +86,7 @@ private struct ColorPickerInstalledSettingsSection: View {
 }
 
 private struct ClipboardHistoryInstalledSettingsSection: View {
+    @ObservedObject private var engine = WidgetEngine.shared
     let widget: Widget
     @Binding var pinnedWidgetIDs: [String]
     @Default(.clipboardHistoryMaxItems) private var maxHistoryItems
@@ -105,6 +106,9 @@ private struct ClipboardHistoryInstalledSettingsSection: View {
             }
 
             Button("Clear saved history", role: .destructive) {
+                if let model = engine.widgets.first(where: { $0.id == widget.id })?.interactiveRuntime as? ClipboardHistoryWidgetModel {
+                    model.clearHistory()
+                }
                 Defaults[.clipboardHistoryStoreData] = nil
             }
 
