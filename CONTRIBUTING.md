@@ -21,7 +21,7 @@ You can contribute in many ways: writing code, improving documentation, reportin
 
 ## Localizations
 
-Please submit all translations through [Crowdin](https://crowdin.com/project/boring-notch). New strings added on `dev` sync there automatically; translation updates can then come back as their own PRs.
+Please submit all translations through [Crowdin](https://crowdin.com/project/boring-notch). New strings added on `main` can sync there when the Crowdin workflow is enabled; translation updates can then come back as their own PRs.
 
 ## Contributing Code
 
@@ -32,7 +32,7 @@ Please submit all translations through [Crowdin](https://crowdin.com/project/bor
 <!-- - **Review the code style**: Familiarize yourself with our code style guidelines below to ensure consistency. -->
 
 > [!IMPORTANT]
-> All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
+> All contributions should be based on `main`, or on a short-lived feature branch created from `main`.
 
 ### Setting Up Your Environment
 
@@ -45,11 +45,11 @@ Please submit all translations through [Crowdin](https://crowdin.com/project/bor
    ```
    Replace `{your-username}` with your GitHub username.
 
-3. **Switch to the `dev` branch**:
+3. **Switch to the `main` branch**:
    ```bash
-   git checkout dev
+   git checkout main
    ```
-   All code contributions must be based on the `dev` branch, not `main`. Documentation changes should be based on `main` instead.
+   Create your work from `main`. If you are making a larger change, branch off from it first.
 
 5. **Create a new feature branch**:
    ```bash
@@ -71,7 +71,7 @@ Please submit all translations through [Crowdin](https://crowdin.com/project/bor
    Write clear, concise commit messages that explain what your changes do and why.
 
 4. **Keep your branch up to date**:
-   Regularly sync your branch with the latest changes from the `dev` branch to avoid conflicts.
+   Regularly sync your branch with the latest changes from the `main` branch to avoid conflicts.
 
 5. **Push to your fork**:
    ```bash
@@ -80,7 +80,7 @@ Please submit all translations through [Crowdin](https://crowdin.com/project/bor
 
 ### Pull Requests
 
-1. **Create a pull request**: Go to the original repository and click "New Pull Request." Select your feature branch and set the base branch to `dev`.
+1. **Create a pull request**: Go to the original repository and click "New Pull Request." Select your feature branch and set the base branch to `main`.
 
 2. **Write a detailed description**: Your PR should include:
    - A clear title summarizing the changes
