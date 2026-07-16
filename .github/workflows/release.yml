@@ -107,7 +107,7 @@ jobs:
 
       - name: Check version not already released
         env:
-          VERSION: ${{ steps.extract_version.outputs.version }}
+          VERSION: ${{ steps.release_inputs.outputs.version }}
         run: |
           git fetch --tags
           if git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
