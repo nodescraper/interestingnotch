@@ -1,10 +1,26 @@
 name: "Deploy Interesting Notch"
 on:
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (without leading v)"
+        required: true
+      title:
+        description: "Release title suffix"
+        required: false
+        default: "Manual release"
+      release_notes:
+        description: "Release notes markdown"
+        required: false
+        default: "- Manual release"
+      is_beta:
+        description: "Publish as beta/prerelease"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
-  group: release-${{ github.event.issue.number || github.run_id }}
+  group: release-${{ github.run_id }}
   cancel-in-progress: true
 
 env:
@@ -17,131 +33,40 @@ env:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
-  # helper job to test for the release command in the comment; env is safe to use here
-  check_release:
-    name: Check for release command
-    if: ${{ github.event.issue.pull_request }}
-    runs-on: ubuntu-latest
-    outputs:
-      is_release: ${{ steps.check.outputs.is_release }}
-      is_eligible_pr: ${{ steps.check.outputs.is_eligible_pr }}
-    steps:
-      - id: check
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          RELEASE_COMMAND: ${{ env.RELEASE_COMMAND }}
-        run: |
-          set -euo pipefail
-          if [[ "$COMMENT_BODY" == *"$RELEASE_COMMAND"* ]]; then
-            IS_RELEASE=true
-          else
-            IS_RELEASE=false
-          fi
-
-          IS_ELIGIBLE_PR=false
-          PR_NUMBER="${{ github.event.issue.number }}"
-          PR_DATA=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref, head_repo: .head.repo.full_name, base_repo: .base.repo.full_name}')
-          HEAD_REF=$(echo "$PR_DATA" | jq -r '.head_ref')
-          BASE_REF=$(echo "$PR_DATA" | jq -r '.base_ref')
-          HEAD_REPO=$(echo "$PR_DATA" | jq -r '.head_repo')
-          BASE_REPO=$(echo "$PR_DATA" | jq -r '.base_repo')
-
-          if [[ "$HEAD_REPO" == "$REPO" && "$BASE_REPO" == "$REPO" && "$HEAD_REF" != "main" && "$BASE_REF" == "main" ]]; then
-            IS_ELIGIBLE_PR=true
-          fi
-
-          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
-          echo "is_eligible_pr=$IS_ELIGIBLE_PR" >> "$GITHUB_OUTPUT"
-
   preparation:
     name: Preparation
-    needs: check_release
-    if: ${{ needs.check_release.outputs.is_release == 'true' && needs.check_release.outputs.is_eligible_pr == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     outputs:
-      is_beta: ${{ steps.extract_version.outputs.is_beta }}
-      version: ${{ steps.extract_version.outputs.version }}
-      build_number: ${{ steps.extract_version.outputs.build_number }}
+      is_beta: ${{ steps.release_inputs.outputs.is_beta }}
+      version: ${{ steps.release_inputs.outputs.version }}
+      build_number: ${{ steps.release_inputs.outputs.build_number }}
       xcode_version: ${{ steps.build_config.outputs.xcode_version }}
       code_sign_identity: ${{ steps.build_config.outputs.code_sign_identity }}
       title: ${{ steps.release_notes.outputs.title }}
       release_notes: ${{ steps.release_notes.outputs.release_notes }}
       release_notes_github: ${{ steps.release_notes.outputs.release_notes_github }}
-      head_ref: ${{ steps.pr_info.outputs.head_ref }}
-      base_ref: ${{ steps.pr_info.outputs.base_ref }}
+      head_ref: main
+      base_ref: main
     steps:
-      - name: Validate permissions and PR state
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          REPO="${{ github.repository }}"
-          COMMENTER="${{ github.event.comment.user.login }}"
-          PR_NUMBER="${{ github.event.issue.number }}"
-
-          # Acknowledge the command
-          gh api "repos/${REPO}/issues/comments/${{ github.event.comment.id }}/reactions" \
-            -f content=eyes --silent
-
-          # Require admin permission
-          PERM=$(gh api "repos/${REPO}/collaborators/${COMMENTER}/permission" --jq '.permission')
-          if [[ "$PERM" != "admin" ]]; then
-            echo "::error::${COMMENTER} is not an admin (permission: ${PERM})"
-            exit 1
-          fi
-
-          # Require mergeable, non-draft PR
-          IS_DRAFT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.draft')
-          MERGEABLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.mergeable')
-          if [[ "$IS_DRAFT" == "true" || "$MERGEABLE" != "true" ]]; then
-            echo "::error::PR #${PR_NUMBER} is not ready to merge (draft=${IS_DRAFT}, mergeable=${MERGEABLE})"
-            exit 1
-          fi
-
-      - name: Get PR branch info
-        id: pr_info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          PR_DATA=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}" \
-            --jq '{head_ref: .head.ref, base_ref: .base.ref}')
-          echo "head_ref=$(echo "$PR_DATA" | jq -r '.head_ref')" >> "$GITHUB_OUTPUT"
-          echo "base_ref=$(echo "$PR_DATA" | jq -r '.base_ref')" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ steps.pr_info.outputs.head_ref }}
+          ref: main
 
-      - name: Ensure scripts directory exists
+      - name: Resolve release inputs
+        id: release_inputs
         env:
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-        run: |
-          if [ ! -f ".github/scripts/extract_version.py" ]; then
-            echo "Script not found in PR branch, fetching from base branch"
-            git fetch origin "$BASE_REF"
-            git checkout "origin/$BASE_REF" -- .github/scripts/
-          fi
-
-      - name: Extract version from comment
-        id: extract_version
-        env:
-          COMMENT: ${{ github.event.comment.body }}
+          VERSION: ${{ github.event.inputs.version }}
+          IS_BETA: ${{ github.event.inputs.is_beta }}
         run: |
           set -euo pipefail
-          export projname="${{ env.PROJECT_NAME }}"
-          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
-          VERSION=$(awk -F= '/^version=/{print $2; exit}' <<<"$OUTPUT")
-          IS_BETA=$(awk -F= '/^is_beta=/{print $2; exit}' <<<"$OUTPUT")
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$ ]] || {
+            echo "::error::Version must look like 1.1.0 or 1.1.0-beta1"
+            exit 1
+          }
           BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
           {
             echo "version=$VERSION"
@@ -158,18 +83,16 @@ jobs:
             echo "code_sign_identity=${{ env.CODE_SIGN_IDENTITY }}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Generate release notes from PR
+      - name: Generate release notes
         id: release_notes
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TITLE: ${{ github.event.inputs.title }}
+          INPUT_NOTES: ${{ github.event.inputs.release_notes }}
         run: |
           set -euo pipefail
-          PR_NUMBER="${{ github.event.issue.number }}"
-          REPO="${{ github.repository }}"
-          TITLE=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.title // "Release"')
-          BODY=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}" --jq '.body // "- No release notes provided"')
+          TITLE="${INPUT_TITLE:-Manual release}"
+          BODY="${INPUT_NOTES:-- Manual release}"
 
-          # Strip H1 headings for GitHub release notes
           BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
 
           {
@@ -191,23 +114,6 @@ jobs:
             echo "::error::Version v${VERSION} already exists as a tag"
             exit 1
           fi
-
-      - name: Sync branch (stable releases only)
-        if: steps.extract_version.outputs.is_beta == 'false'
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          BASE_REF: ${{ steps.pr_info.outputs.base_ref }}
-          HEAD_REF: ${{ steps.pr_info.outputs.head_ref }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
-          git fetch origin "$BASE_REF"
-          git checkout "$HEAD_REF"
-          git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
-          git push origin "$HEAD_REF"
 
   build:
     name: Build and sign
@@ -364,23 +270,14 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ "${IS_BETA}" == "false" ]]; then
-            git add appcast.xml
-            git add updater/appcast.xml
-            git commit -m "Update version to v${VERSION} and appcast" || true
-            git push origin "HEAD:${HEAD_REF}" || true
+          git add appcast.xml
+          git add updater/appcast.xml
+          if [[ "${IS_BETA}" == "true" ]]; then
+            git commit -m "Update beta appcast for v${VERSION}" || true
           else
-            # Save generated appcast, switch to main, apply and push
-            cp appcast.xml "$RUNNER_TEMP/appcast.xml"
-            git fetch origin main
-            git checkout main
-            cp "$RUNNER_TEMP/appcast.xml" appcast.xml
-            cp "$RUNNER_TEMP/appcast.xml" updater/appcast.xml
-            git add appcast.xml
-            git add updater/appcast.xml
-            git commit -m "Update appcast with beta release for v${VERSION}" || true
-            git push origin main
+            git commit -m "Update appcast for v${VERSION}" || true
           fi
+          git push origin main
 
       - name: Create GitHub release
         env:
@@ -492,53 +389,13 @@ jobs:
 
   ending:
     name: Finalize
-    if: ${{ always() && needs.preparation.result != 'skipped' && needs.check_release.outputs.is_release == 'true' }}
-    needs: [check_release, preparation, build, publish, upgrade-brew]
+    if: ${{ always() && needs.preparation.result != 'skipped' }}
+    needs: [preparation, build, publish, upgrade-brew]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     env:
       ALL_RESULTS: ${{ join(needs.*.result, ',') }}
       RELEASE_SUCCEEDED: ${{ !contains(join(needs.*.result, ','), 'failure') && !contains(join(needs.*.result, ','), 'cancelled') }}
     steps:
-      - name: React to trigger comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          REPO="${{ github.repository }}"
-          COMMENT_ID="${{ github.event.comment.id }}"
-          if [[ "$ALL_RESULTS" != *"failure"* && "$ALL_RESULTS" != *"cancelled"* ]]; then
-            REACTION="rocket"
-          else
-            REACTION="confused"
-          fi
-          gh api "repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content="$REACTION" --silent
-
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        with:
-          ref: ${{ needs.preparation.outputs.head_ref }}
-          fetch-depth: 0
-
-      - name: Merge PR (stable releases only)
-        if: needs.preparation.outputs.is_beta == 'false' && env.RELEASE_SUCCEEDED == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          HEAD_REF: ${{ needs.preparation.outputs.head_ref }}
-          BASE_REF: ${{ needs.preparation.outputs.base_ref }}
-          VERSION: ${{ needs.preparation.outputs.version }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global credential.https://github.com.helper \
-            "!f() { echo \"username=x-access-token\"; printf \"password=%s\\n\" \"\${GITHUB_TOKEN}\"; }; f"
-          git fetch origin "$BASE_REF"
-          git checkout "$BASE_REF"
-          git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
-          git push origin "$BASE_REF"
-
       - name: Summary
         env:
           IS_BETA: ${{ needs.preparation.outputs.is_beta }}
