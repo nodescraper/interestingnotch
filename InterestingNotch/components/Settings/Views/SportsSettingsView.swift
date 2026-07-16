@@ -44,10 +44,10 @@ private final class SportsSettingsModel: ObservableObject {
             do {
                 let teams = try await SportsDataService.shared.searchTeams(
                     query: query,
-                    leagues: SportsLeagueDefinition.all
+                    leagues: SportsLeagueDefinition.supported.filter(\.supportsTeamSelection)
                 )
                 guard !Task.isCancelled else { return }
-                teamResults = teams
+                teamResults = Self.dedupeGlobalTeamResults(teams)
             } catch {
                 guard !Task.isCancelled else { return }
                 teamResults = []
@@ -68,7 +68,11 @@ private final class SportsSettingsModel: ObservableObject {
     }
 
     func toggleTeam(_ team: SportsTeamSearchResult) {
-        SportsPreferences.toggleStar(team)
+        if SportsLeagueDefinition.league(forSport: team.sport, league: team.league)?.format == .sets {
+            SportsPreferences.togglePlayer(team)
+        } else {
+            SportsPreferences.toggleStar(team)
+        }
         refreshPreferences()
     }
 
@@ -77,11 +81,49 @@ private final class SportsSettingsModel: ObservableObject {
     }
 
     func isStarred(_ team: SportsTeamSearchResult) -> Bool {
-        starredTeams.contains { $0.id == "\(team.sport):\(team.league):\(team.id)" }
+        if SportsLeagueDefinition.league(forSport: team.sport, league: team.league)?.format == .sets {
+            return SportsPreferences.isStarred(team, asPlayer: true)
+        }
+        return starredTeams.contains { $0.id == "\(team.sport):\(team.league):\(team.id)" }
     }
 
     func starredCount(for league: SportsLeagueDefinition) -> Int {
-        starredTeams.filter { $0.sport == league.sport && $0.league == league.league }.count
+        if league.format == .sets {
+            return SportsPreferences.starredPlayers().filter { $0.sport == league.sport && $0.league == league.league }.count
+        }
+        return starredTeams.filter { $0.sport == league.sport && $0.league == league.league }.count
+    }
+
+    private static func dedupeGlobalTeamResults(_ teams: [SportsTeamSearchResult]) -> [SportsTeamSearchResult] {
+        var results: [SportsTeamSearchResult] = []
+
+        for team in teams {
+            let key = globalSearchKey(for: team)
+            if let index = results.firstIndex(where: { globalSearchKey(for: $0) == key }) {
+                if globalSearchResultScore(team) > globalSearchResultScore(results[index]) {
+                    results[index] = team
+                }
+            } else {
+                results.append(team)
+            }
+        }
+
+        return results
+    }
+
+    private static func globalSearchKey(for team: SportsTeamSearchResult) -> String {
+        let name = team.name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return "\(team.sport)|\(team.league)|\(name)"
+    }
+
+    private static func globalSearchResultScore(_ team: SportsTeamSearchResult) -> Int {
+        var score = 0
+        if !team.logoURL.isEmpty { score += 4 }
+        if !team.abbreviation.isEmpty { score += 2 }
+        if Int(team.id) != nil { score += 1 }
+        return score
     }
 }
 
@@ -112,16 +154,28 @@ private final class SportsLeagueTeamsModel: ObservableObject {
     }
 
     func toggle(_ team: SportsTeamSearchResult) {
-        SportsPreferences.toggleStar(team)
+        if league.format == .sets {
+            SportsPreferences.togglePlayer(team)
+        } else {
+            SportsPreferences.toggleStar(team)
+        }
         starredTeams = SportsPreferences.starredTeams()
     }
 
     func isStarred(_ team: SportsTeamSearchResult) -> Bool {
-        starredTeams.contains { $0.id == "\(team.sport):\(team.league):\(team.id)" }
+        if league.format == .sets {
+            return SportsPreferences.isStarred(team, asPlayer: true)
+        }
+        return starredTeams.contains { $0.id == "\(team.sport):\(team.league):\(team.id)" }
     }
 
     var starred: [SportsTeamSearchResult] {
-        starredTeams.compactMap { starredTeam in
+        if league.format == .sets {
+            return SportsPreferences.starredPlayers().compactMap { player in
+                teams.first { $0.id == player.playerId }
+            }
+        }
+        return starredTeams.compactMap { starredTeam in
             teams.first { $0.id == starredTeam.teamId }
         }
     }
@@ -141,8 +195,8 @@ struct SportsSettingsView: View {
 
     private var filteredLeagues: [SportsLeagueDefinition] {
         let query = model.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return SportsLeagueDefinition.all }
-        return SportsLeagueDefinition.all.filter {
+        guard !query.isEmpty else { return SportsLeagueDefinition.supported }
+        return SportsLeagueDefinition.supported.filter {
             $0.subtitle.localizedCaseInsensitiveContains(query)
                 || $0.title.localizedCaseInsensitiveContains(query)
                 || $0.league.localizedCaseInsensitiveContains(query)
@@ -164,7 +218,7 @@ struct SportsSettingsView: View {
     }
 
     private var sportGroups: [(String, [SportsLeagueDefinition])] {
-        Dictionary(grouping: filteredLeagues.filter { !model.isFollowing($0) }, by: \.title)
+        Dictionary(grouping: filteredLeagues.filter { !model.isFollowing($0) }, by: \.group)
             .map { ($0.key, $0.value.sorted { $0.subtitle < $1.subtitle }) }
             .sorted { $0.0 < $1.0 }
     }
@@ -280,16 +334,16 @@ struct SportsSettingsView: View {
     }
 
     private func teamSearchRow(_ team: SportsTeamSearchResult) -> some View {
-        HStack(spacing: 10) {
+        let league = SportsLeagueDefinition.league(forSport: team.sport, league: team.league)
+
+        return HStack(spacing: 10) {
             RemoteSportsLogoView(urlString: team.logoURL).frame(width: 28, height: 28)
-            NavigationLink(value: SportsSettingsRoute.team(team)) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(team.name)
-                    Text(SportsLeagueDefinition.league(forSport: team.sport, league: team.league)?.subtitle ?? "Team")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            if league?.supportsCompetitorDetail == true {
+                NavigationLink(value: SportsSettingsRoute.team(team)) {
+                    searchRowLabel(name: team.name, subtitle: league?.subtitle ?? "Team")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                searchRowLabel(name: team.name, subtitle: league?.subtitle ?? "Team")
             }
             Button { model.toggleTeam(team) } label: {
                 Image(systemName: model.isStarred(team) ? "star.fill" : "star")
@@ -300,16 +354,16 @@ struct SportsSettingsView: View {
     }
 
     private func pinnedTeamRow(_ team: SportsTeamSearchResult) -> some View {
-        HStack(spacing: 10) {
+        let league = SportsLeagueDefinition.league(forSport: team.sport, league: team.league)
+
+        return HStack(spacing: 10) {
             RemoteSportsLogoView(urlString: team.logoURL).frame(width: 28, height: 28)
-            NavigationLink(value: SportsSettingsRoute.team(team)) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(team.name)
-                    Text(SportsLeagueDefinition.league(forSport: team.sport, league: team.league)?.subtitle ?? "Team")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            if league?.supportsCompetitorDetail == true {
+                NavigationLink(value: SportsSettingsRoute.team(team)) {
+                    searchRowLabel(name: team.name, subtitle: league?.subtitle ?? "Team")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                searchRowLabel(name: team.name, subtitle: league?.subtitle ?? "Team")
             }
             Button { model.toggleTeam(team) } label: {
                 Image(systemName: "star.fill")
@@ -318,6 +372,16 @@ struct SportsSettingsView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Unstar \(team.name)")
         }
+    }
+
+    private func searchRowLabel(name: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(name)
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -343,17 +407,17 @@ private struct SportsLeagueTeamsView: View {
             if !filteredStarred.isEmpty {
                 Section("Starred") { ForEach(filteredStarred) { teamRow($0) } }
             }
-            Section("All teams") {
-                if filteredAll.isEmpty && !model.isLoading { Text("No teams found").foregroundStyle(.secondary) }
+            Section(league.format == .teamScore ? "All teams" : "All competitors") {
+                if filteredAll.isEmpty && !model.isLoading { Text(emptyStateText).foregroundStyle(.secondary) }
                 ForEach(filteredAll) { teamRow($0) }
             }
             Section {
-                Text("Starred teams get priority in the notch.")
+                Text(league.format == .teamScore ? "Starred teams get priority in the notch." : "Starred competitors stay easy to find while we finish the new non-team sports flow.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .searchable(text: $query, placement: .toolbar, prompt: "Search teams")
+        .searchable(text: $query, placement: .toolbar, prompt: league.format == .teamScore ? "Search teams" : "Search competitors")
         .navigationTitle(league.subtitle)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
@@ -368,13 +432,24 @@ private struct SportsLeagueTeamsView: View {
     private func teamRow(_ team: SportsTeamSearchResult) -> some View {
         HStack(spacing: 10) {
             RemoteSportsLogoView(urlString: team.logoURL).frame(width: 28, height: 28)
-            NavigationLink(value: SportsSettingsRoute.team(team)) { Text(team.name).frame(maxWidth: .infinity, alignment: .leading) }
+            if league.supportsCompetitorDetail {
+                NavigationLink(value: SportsSettingsRoute.team(team)) {
+                    Text(team.name).frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                Text(team.name)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             Button { model.toggle(team) } label: {
                 Image(systemName: model.isStarred(team) ? "star.fill" : "star")
                     .foregroundStyle(model.isStarred(team) ? Color.effectiveAccent : .secondary)
             }
             .buttonStyle(.plain)
         }
+    }
+
+    private var emptyStateText: String {
+        league.format == .teamScore ? "No teams found" : "No competitors found"
     }
 }
 
@@ -930,12 +1005,16 @@ private extension SportsLeagueDefinition {
         case "football": return "🏈"
         case "hockey": return "🏒"
         case "baseball": return "⚾️"
+        case "racing": return "🏎️"
+        case "golf": return "⛳️"
+        case "tennis": return "🎾"
         default: return "🏆"
         }
     }
 
     func subtitleForSettings(starredCount: Int, tag: String?) -> String {
-        let count = starredCount == 0 ? "No teams starred" : "\(starredCount) \(starredCount == 1 ? "team" : "teams") starred"
+        let noun = format == .sets ? "competitor" : "team"
+        let count = starredCount == 0 ? "No \(noun)s starred" : "\(starredCount) \(starredCount == 1 ? noun : "\(noun)s") starred"
         return [country, count, tag].compactMap { $0 }.joined(separator: " · ")
     }
 
@@ -957,12 +1036,61 @@ private extension SportsLeagueDefinition {
 
 struct RemoteSportsLogoView: View {
     let urlString: String
+    @StateObject private var loader = RemoteSportsLogoLoader()
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString)) { image in
-            image.resizable().scaledToFit()
-        } placeholder: {
-            Circle().fill(.white.opacity(0.08))
+        Group {
+            if let image = loader.image {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Circle().fill(.white.opacity(0.08))
+            }
+        }
+        .task(id: urlString) {
+            await loader.load(from: urlString)
+        }
+    }
+}
+
+@MainActor
+private final class RemoteSportsLogoLoader: ObservableObject {
+    @Published var image: NSImage?
+
+    private static let cache = NSCache<NSString, NSImage>()
+    private var currentURLString: String?
+
+    func load(from urlString: String) async {
+        currentURLString = urlString
+
+        guard !urlString.isEmpty else {
+            image = nil
+            return
+        }
+
+        if let cached = Self.cache.object(forKey: urlString as NSString) {
+            image = cached
+            return
+        }
+
+        guard let url = URL(string: urlString) else {
+            image = nil
+            return
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard currentURLString == urlString else { return }
+            guard let downloaded = NSImage(data: data) else {
+                image = nil
+                return
+            }
+            Self.cache.setObject(downloaded, forKey: urlString as NSString)
+            image = downloaded
+        } catch {
+            guard currentURLString == urlString else { return }
+            image = nil
         }
     }
 }

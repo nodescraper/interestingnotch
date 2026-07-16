@@ -202,6 +202,35 @@ struct ContentView: View {
             + nativeTimerCompactExtraWidth
     }
 
+    private func compactSportsLeadingWidth(for game: GameSnapshot) -> CGFloat {
+        switch game.leagueDefinition.format {
+        case .sets:
+            return vm.hasNotch ? 48 : 44
+        case .leaderboard:
+            return vm.hasNotch ? 68 : 60
+        case .teamScore, .innings:
+            return vm.hasNotch ? 46 : 42
+        }
+    }
+
+    private func compactSportsTrailingWidth(for game: GameSnapshot) -> CGFloat {
+        switch game.leagueDefinition.format {
+        case .sets:
+            return vm.hasNotch ? 48 : 44
+        case .leaderboard:
+            return vm.hasNotch ? 76 : 66
+        case .teamScore, .innings:
+            return vm.hasNotch ? 56 : 50
+        }
+    }
+
+    private func compactSportsWidth(for game: GameSnapshot) -> CGFloat {
+        vm.closedNotchSize.width - 4
+            + (2 * liveActivityEdgeMargin)
+            + compactSportsLeadingWidth(for: game)
+            + compactSportsTrailingWidth(for: game)
+    }
+
     private var hasCompactTimerActivity: Bool {
         compactTimerLiveModel != nil
             && !vm.hideOnClosed
@@ -248,10 +277,13 @@ struct ContentView: View {
     private var activeCompactActivityKind: CompactActivityKind? {
         if hasCompactRecorderActivity { return .recorder }
         if hasCompactTimerActivity { return .timer }
-        if hasCompactSportsActivity { return .sports }
+
+        // Short-lived announcement peeks should pre-empt sports so the closed
+        // notch can transition away from a live match and surface the alert.
         if hasBluetoothConnectionActivity { return .bluetooth }
         if hasCaffeineCompactActivity { return .caffeine }
         if hasCompactCustomPeekActivity { return .customPeek }
+        if hasCompactSportsActivity { return .sports }
         if hasCompactMusicActivity { return .music }
         return nil
     }
@@ -281,6 +313,9 @@ struct ContentView: View {
         case .timer:
             return nativeTimerCompactExtraWidth
         case .sports:
+            if let game = compactSportsGame ?? lastCompactSportsGame {
+                return max(0, compactSportsWidth(for: game) - vm.closedNotchSize.width)
+            }
             return nativeTimerCompactExtraWidth
         case .bluetooth:
             return max(0, bluetoothCompactWidth - vm.closedNotchSize.width)
@@ -310,6 +345,9 @@ struct ContentView: View {
         case .timer:
             return nativeTimerCompactWidth
         case .sports:
+            if let game = compactSportsGame ?? lastCompactSportsGame {
+                return compactSportsWidth(for: game)
+            }
             return nativeTimerCompactWidth
         case .bluetooth:
             return bluetoothCompactWidth
@@ -353,15 +391,15 @@ struct ContentView: View {
     }
 
     private var caffeineCompactTextWidth: CGFloat {
-        nativeTimerTimeWidth
+        max(nativeTimerTimeWidth, caffeineCompactLabelWidth)
     }
 
     private var caffeineCompactWidth: CGFloat {
         vm.closedNotchSize.width - 4
             + (2 * liveActivityEdgeMargin)
-<<<<<<< HEAD
-            + 34
-            + caffeineCompactLabelWidth
+            + caffeineCompactVisualWidth
+            + caffeineCompactTextWidth
+            + 10
     }
 
     private var caffeineCompactLabelWidth: CGFloat {
@@ -369,11 +407,6 @@ struct ContentView: View {
             return min(140, max(86, CGFloat(message.count * 7 + 12)))
         }
         return 72
-=======
-            + caffeineCompactVisualWidth
-            + caffeineCompactTextWidth
-            + 10
->>>>>>> a9352d3b (Add sports widget flow and refresh widget library)
     }
 
     private var musicCompactArtworkSize: CGFloat {
@@ -943,7 +976,7 @@ struct ContentView: View {
         case .sports:
             if let game = compactSportsGame ?? lastCompactSportsGame {
                 SportsCompactActivity(game: game)
-                    .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
+                    .frame(width: compactSportsWidth(for: game), height: displayClosedNotchHeight, alignment: .center)
             }
         case .bluetooth:
             if let event = bluetoothDeviceMonitor.currentEvent ?? lastBluetoothConnectionEvent {
@@ -985,15 +1018,6 @@ struct ContentView: View {
                 .fill(.black)
                 .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
 
-<<<<<<< HEAD
-            Text(caffeineManager.compactPeekMessage ?? caffeineCompactTimeLabel)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white.opacity(0.9))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-                .frame(width: caffeineCompactLabelWidth, height: displayClosedNotchHeight, alignment: .trailing)
-                .padding(.trailing, 5)
-=======
             HStack(alignment: .center, spacing: 0) {
                 Text(caffeineCompactPrimaryText)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
@@ -1006,7 +1030,6 @@ struct ContentView: View {
             }
             .frame(width: caffeineCompactTextWidth, height: displayClosedNotchHeight, alignment: .trailing)
             .padding(.trailing, 4)
->>>>>>> a9352d3b (Add sports widget flow and refresh widget library)
         }
         .frame(width: caffeineCompactWidth, height: displayClosedNotchHeight, alignment: .center)
         .clipped()
@@ -1319,35 +1342,206 @@ struct ContentView: View {
     @ViewBuilder
     private func SportsCompactActivity(game: GameSnapshot) -> some View {
         TimelineView(.animation(minimumInterval: 0.2)) { _ in
-            HStack(spacing: 0) {
-                HStack(spacing: 4) {
-                    RemoteSportsLogoView(urlString: game.home.logoURL)
-                        .frame(width: 14, height: 14)
-                    Text(game.home.score)
-                        .font(.system(size: 13, weight: .regular, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.white)
-                }
-                .frame(width: nativeTimerVisualSize + 6, height: displayClosedNotchHeight, alignment: .leading)
-                .padding(.leading, 4)
+            switch game.leagueDefinition.format {
+            case .sets:
+                compactSportsShell(game: game) {
+                    HStack(spacing: 10) {
+                        Text(compactTennisCode(for: game.home.name))
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .foregroundStyle(.white)
 
-                Rectangle()
-                    .fill(.black)
-                    .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+                        Text(game.home.score)
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+                    }
+                } right: {
+                    HStack(spacing: 10) {
+                        Text(game.away.score)
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
 
-                HStack(alignment: .center, spacing: 4) {
-                    Text(game.away.score)
-                        .font(.system(size: 13, weight: .regular, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.white)
-                    RemoteSportsLogoView(urlString: game.away.logoURL)
-                        .frame(width: 14, height: 14)
+                        Text(compactTennisCode(for: game.away.name))
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .foregroundStyle(.white)
+
+                        compactSportsExtraLiveBadge
+                    }
                 }
-                .frame(width: nativeTimerTimeWidth, height: displayClosedNotchHeight, alignment: .trailing)
-                .padding(.trailing, 4)
+            case .leaderboard:
+                if game.followedTeamID != "league", game.leagueDefinition.sport == "racing", let first = game.leaderboardEntries.first {
+                    compactSportsShell(game: game) {
+                        HStack(spacing: 10) {
+                            Text("P\(first.position)")
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundStyle(Color.effectiveAccent)
+
+                            Text(compactLeaderboardName(first.name))
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.92))
+                                .lineLimit(1)
+                        }
+                    } right: {
+                        if let second = game.leaderboardEntries.dropFirst().first {
+                            HStack(spacing: 8) {
+                                Text(compactLeaderboardName(second.name))
+                                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+
+                                Text(compactLeaderboardTrailing(second))
+                                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.7))
+                                    .lineLimit(1)
+
+                                compactSportsExtraLiveBadge
+                            }
+                        }
+                    }
+                } else {
+                    compactSportsShell(game: game) {
+                        HStack(spacing: 10) {
+                            Text(game.leagueDefinition.name == "Formula 1" ? "F1" : game.leagueDefinition.name)
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundStyle(Color.effectiveAccent)
+                                .lineLimit(1)
+
+                            Text(compactLeaderboardStatus(for: game))
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.72))
+                                .lineLimit(1)
+                        }
+                    } right: {
+                        if let leader = game.leaderboardEntries.first {
+                            HStack(spacing: 10) {
+                                Text("P\(leader.position)")
+                                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                                    .foregroundStyle(Color.effectiveAccent)
+
+                                Text(compactLeaderboardName(leader.name))
+                                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+
+                                compactSportsExtraLiveBadge
+                            }
+                        }
+                    }
+                }
+            case .teamScore, .innings:
+                compactSportsShell(game: game) {
+                    HStack(spacing: 8) {
+                        RemoteSportsLogoView(urlString: game.home.logoURL)
+                            .frame(width: 18, height: 18)
+
+                        Text(game.home.score)
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+                    }
+                } right: {
+                    HStack(spacing: 8) {
+                        Text(game.away.score)
+                            .font(.system(size: 13, weight: .regular, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+
+                        RemoteSportsLogoView(urlString: game.away.logoURL)
+                            .frame(width: 18, height: 18)
+
+                        if let status = compactTeamScoreStatus(for: game) {
+                            Text(status)
+                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .foregroundStyle(Color.effectiveAccent)
+                                .lineLimit(1)
+                        }
+
+                        compactSportsExtraLiveBadge
+                    }
+                }
             }
-            .frame(width: nativeTimerCompactWidth, height: displayClosedNotchHeight, alignment: .center)
         }
+    }
+
+    @ViewBuilder
+    private func compactSportsShell<Left: View, Right: View>(
+        game: GameSnapshot,
+        @ViewBuilder left: () -> Left,
+        @ViewBuilder right: () -> Right
+    ) -> some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                left()
+            }
+            .padding(.leading, 2)
+            .padding(.trailing, 1)
+            .frame(width: compactSportsLeadingWidth(for: game), height: displayClosedNotchHeight, alignment: .leading)
+
+            Rectangle()
+                .fill(.black)
+                .frame(width: vm.closedNotchSize.width - 4 + (2 * liveActivityEdgeMargin))
+
+            HStack(spacing: 0) {
+                right()
+            }
+            .padding(.leading, 1)
+            .padding(.trailing, 2)
+            .frame(width: compactSportsTrailingWidth(for: game), height: displayClosedNotchHeight, alignment: .trailing)
+        }
+        .frame(width: compactSportsWidth(for: game), height: displayClosedNotchHeight, alignment: .center)
+        .clipped()
+    }
+
+    @ViewBuilder
+    private var compactSportsExtraLiveBadge: some View {
+        let additionalCount = compactSportsModel?.compactAdditionalLiveCount ?? 0
+        if additionalCount > 0 {
+            Text("+\(additionalCount)")
+                .font(.system(size: 11, weight: .regular, design: .rounded))
+                .foregroundStyle(.white.opacity(0.68))
+                .lineLimit(1)
+        }
+    }
+
+    private func compactTeamScoreStatus(for game: GameSnapshot) -> String? {
+        if let firstEvent = game.events.first, !firstEvent.minute.isEmpty {
+            return firstEvent.minute
+        }
+        if !game.clock.isEmpty {
+            return game.clock
+        }
+        if !game.statusDetail.isEmpty {
+            return game.statusDetail
+        }
+        return nil
+    }
+
+    private func compactLeaderboardStatus(for game: GameSnapshot) -> String {
+        let raw = !game.statusDetail.isEmpty ? game.statusDetail : game.clock
+        guard !raw.isEmpty else { return "Live" }
+        if let slashIndex = raw.firstIndex(of: "/") {
+            return raw[..<slashIndex].trimmingCharacters(in: .whitespaces)
+        }
+        return raw
+    }
+
+    private func compactLeaderboardName(_ name: String) -> String {
+        let parts = name.split(separator: " ")
+        return String(parts.last ?? Substring(name))
+    }
+
+    private func compactLeaderboardTrailing(_ entry: SportsLeaderboardEntry) -> String {
+        if let trailing = entry.trailingText, !trailing.isEmpty {
+            return "P\(entry.position) \(trailing)"
+        }
+        return "P\(entry.position)"
+    }
+
+    private func compactTennisCode(for name: String) -> String {
+        let parts = name.split(separator: " ")
+        let source = parts.last.map(String.init) ?? name
+        return String(source.prefix(3)).uppercased()
     }
 
 	    private var allowsHoverDuringSneakPeek: Bool {

@@ -224,6 +224,7 @@ extension Defaults.Keys {
     static let sportsFollowedTeamsData = Key<Data?>("sportsFollowedTeamsData", default: nil)
     static let sportsFollowedLeaguesData = Key<Data?>("sportsFollowedLeaguesData", default: nil)
     static let sportsStarredTeamsData = Key<Data?>("sportsStarredTeamsData", default: nil)
+    static let sportsStarredPlayersData = Key<Data?>("sportsStarredPlayersData", default: nil)
     static let sportsShowLiveInClosedNotch = Key<Bool>("sportsShowLiveInClosedNotch", default: true)
     static let sportsMaximumMatches = Key<Int>("sportsMaximumMatches", default: 7)
     

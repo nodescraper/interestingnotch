@@ -99,6 +99,7 @@
 		11A0D0503A00000100000001 /* WorkshopInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */; };
 		11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0513A00000100000001 /* TimerWidgetModel.swift */; };
 		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
+		11A0D0A03A00000100000001 /* WidgetTitleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D09F3A00000100000001 /* WidgetTitleRow.swift */; };
 		11A0D0563A00000100000001 /* VoiceRecorderWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */; };
 		11A0D0583A00000100000001 /* VoiceRecorderWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */; };
 		SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0023A00000100000001 /* SportsWidgetModel.swift */; };
@@ -344,6 +345,7 @@
 		11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopInstalledView.swift; sourceTree = "<group>"; };
 		11A0D0513A00000100000001 /* TimerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
+		11A0D09F3A00000100000001 /* WidgetTitleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTitleRow.swift; sourceTree = "<group>"; };
 		11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetPageView.swift; sourceTree = "<group>"; };
 		SPORT0023A00000100000001 /* SportsWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetModel.swift; sourceTree = "<group>"; };
@@ -706,6 +708,7 @@
 				SPORT0043A00000100000001 /* SportsWidgetPageView.swift */,
 				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
 				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
+				11A0D09F3A00000100000001 /* WidgetTitleRow.swift */,
 				11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */,
 				11A0D04B3A00000100000001 /* ScreenColorPicker.swift */,
 				11A0D0383A00000100000001 /* WidgetGridView.swift */,
@@ -1405,6 +1408,7 @@
 				11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */,
 				SPORT0033A00000100000001 /* SportsWidgetPageView.swift in Sources */,
 				11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */,
+				11A0D0A03A00000100000001 /* WidgetTitleRow.swift in Sources */,
 				11A0D0583A00000100000001 /* VoiceRecorderWidgetPageView.swift in Sources */,
 				11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */,
 				11A0D0393A00000100000001 /* WidgetGridView.swift in Sources */,

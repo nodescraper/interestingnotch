@@ -88,6 +88,23 @@ final class BluetoothDeviceMonitor: NSObject, ObservableObject {
         refreshDevices()
     }
 
+    func applyDefaultNotificationPreferences() {
+        let pairedDevices = Self.pairedDevices()
+        let addresses = Self.uniqueSnapshots(from: pairedDevices)
+            .map(\.address)
+            .map(Self.normalizedAddress)
+
+        Defaults[.bluetoothNotificationsEnabled] = true
+        Defaults[.bluetoothConnectedNotifications] = true
+        Defaults[.bluetoothDisconnectedNotifications] = true
+        Defaults[.bluetoothNotificationDeviceAddresses] = addresses
+
+        if isMonitoring {
+            registerDisconnectNotifications(for: pairedDevices)
+            refreshDevices()
+        }
+    }
+
     private func registerConnectNotificationIfNeeded() {
         guard connectNotification == nil else { return }
         connectNotification = IOBluetoothDevice.register(

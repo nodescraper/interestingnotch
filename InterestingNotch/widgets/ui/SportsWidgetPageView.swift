@@ -17,11 +17,12 @@ struct SportsWidgetPageView: View {
     @ObservedObject var model: SportsWidgetModel
 
     private let accent = Color.effectiveAccent
+    private let tennisWinnerColor = Color(red: 0.3569, green: 0.7412, blue: 0.3882)
     private let subtitleColor = Color.white.opacity(0.55)
     private let dividerColor = Color.white.opacity(0.08)
     private let bigScoreSize: CGFloat = 32
     private let crestSize: CGFloat = 40
-    private let middleBandHeight: CGFloat = 96
+    private let middleBandHeight: CGFloat = 92
     private let scrollCommitThreshold: CGFloat = 85
     private let scrollPreviewLimit: CGFloat = 42
 
@@ -39,6 +40,7 @@ struct SportsWidgetPageView: View {
     @State private var lastScrollDelta: CGFloat = 0
     @State private var scrollGestureCommitted = false
     @State private var scrollLockUntil: Date = .distantPast
+    @State private var dragGestureCommitted = false
 
     // MARK: - Derived
 
@@ -52,7 +54,14 @@ struct SportsWidgetPageView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetTitleRow(title: titleText, caption: captionText)
+            WidgetTitleRow(
+                title: titleText,
+                caption: captionText,
+                titleColor: .white,
+                rightText: headerRightText,
+                rightTextColor: headerRightTextColor,
+                showsRightIndicator: headerShowsIndicator
+            )
                 .id(model.focusedGame?.id ?? "empty")
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.28), value: model.focusedGame?.id)
@@ -64,9 +73,9 @@ struct SportsWidgetPageView: View {
                 footerMeta(for: game)
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 8)
-        .padding(.bottom, 5)
+        .padding(.horizontal, 18)
+        .padding(.top, 6)
+        .padding(.bottom, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
@@ -105,6 +114,7 @@ struct SportsWidgetPageView: View {
                         .onChanged { value in
                             isInteracting = true
                             dragOffset = resist(value.translation.width, pageWidth: pageWidth)
+                            handleDragCommitPreview(value: value, pageWidth: pageWidth)
                         }
                         .onEnded { value in
                             settle(velocity: value.velocity.width, pageWidth: pageWidth)
@@ -208,16 +218,45 @@ struct SportsWidgetPageView: View {
         }
     }
 
+    private func handleDragCommitPreview(value: DragGesture.Value, pageWidth: CGFloat) {
+        guard !dragGestureCommitted else { return }
+
+        let translation = value.translation.width
+        let predicted = value.predictedEndTranslation.width
+        let direction = predicted == 0 ? translation : predicted
+        let towardNext = direction < 0
+        let step = towardNext ? 1 : -1
+        let targetIndex = currentIndex + step
+        let canGo = games.indices.contains(targetIndex)
+
+        let passedDistance = abs(translation) > pageWidth * commitFraction
+        let passedPredictedDistance = abs(predicted) > pageWidth * commitFraction
+        let passedVelocityLikePreview = abs(predicted - translation) > scrollCommitThreshold
+        let shouldPreviewCommit = canGo && (passedDistance || passedPredictedDistance || passedVelocityLikePreview)
+
+        if shouldPreviewCommit {
+            fireCommitHaptic()
+            dragGestureCommitted = true
+        } else if !canGo && (passedDistance || passedPredictedDistance) {
+            fireWallHaptic()
+            dragGestureCommitted = true
+        }
+    }
+
     /// On release, snap to the nearest page. Distance past commitFraction OR a
     /// fast flick flips one page; otherwise it springs back to the current one.
     private func settle(velocity: CGFloat, pageWidth: CGFloat) {
         let distance = dragOffset
-        let towardNext = distance < 0
+        let velocityIndicatesNext = velocity < 0
+        let velocityCommit = abs(velocity) > commitVelocity
+        let towardNext = velocityCommit && abs(distance) < pageWidth * commitFraction
+            ? velocityIndicatesNext
+            : distance < 0
         let step = towardNext ? 1 : -1
 
         let passedDistance = abs(distance) > pageWidth * commitFraction
-        let passedVelocity = abs(velocity) > commitVelocity &&
-            ((velocity < 0) == towardNext)
+        let passedVelocity = velocityCommit &&
+            (velocityIndicatesNext == towardNext)
 
         let targetIndex = currentIndex + step
         let canGo = targetIndex >= 0 && targetIndex < games.count
@@ -227,7 +266,9 @@ struct SportsWidgetPageView: View {
         let settleSpring = Animation.spring(response: 0.42, dampingFraction: 0.78)
 
         if shouldCommit {
-            fireCommitHaptic()
+            if !dragGestureCommitted {
+                fireCommitHaptic()
+            }
             // Move the committed index by one AND cancel the drag offset in the
             // same animated transaction. Because the strip rests on currentIndex,
             // shifting the index by one page while zeroing dragOffset keeps the
@@ -237,7 +278,7 @@ struct SportsWidgetPageView: View {
                 dragOffset = 0
             }
         } else {
-            if !canGo && abs(distance) > pageWidth * commitFraction * 0.5 {
+            if !canGo && abs(distance) > pageWidth * commitFraction * 0.5 && !dragGestureCommitted {
                 fireWallHaptic()
             }
             withAnimation(settleSpring) {
@@ -246,6 +287,7 @@ struct SportsWidgetPageView: View {
         }
 
         isInteracting = false
+        dragGestureCommitted = false
     }
 
     // MARK: - Haptics
@@ -260,8 +302,14 @@ struct SportsWidgetPageView: View {
 
     // MARK: - Content
 
+    @ViewBuilder
     private func matchupContent(_ game: GameSnapshot) -> some View {
-        HStack(alignment: .center, spacing: 18) {
+        if game.leagueDefinition.format == .leaderboard {
+            leaderboardContent(game)
+        } else if game.leagueDefinition.format == .sets {
+            setsContent(game)
+        } else {
+            HStack(alignment: .center, spacing: 18) {
             teamColumn(for: game.home)
 
             Spacer(minLength: 6)
@@ -286,10 +334,220 @@ struct SportsWidgetPageView: View {
             Spacer(minLength: 6)
 
             teamColumn(for: game.away)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .contentShape(Rectangle())
+            .onTapGesture { openGamePage(game) }
         }
+    }
+
+    @ViewBuilder
+    private func setsContent(_ game: GameSnapshot) -> some View {
+        if game.state == .pre {
+            upcomingSetsContent(game)
+        } else {
+            liveSetsContent(game)
+        }
+    }
+
+    private func liveSetsContent(_ game: GameSnapshot) -> some View {
+        VStack {
+            Spacer(minLength: 0)
+
+            VStack(alignment: .leading, spacing: 12) {
+                setPlayerRow(game.home, isCurrent: game.state.isLive)
+                setPlayerRow(game.away, isCurrent: game.state.isLive)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .contentShape(Rectangle())
         .onTapGesture { openGamePage(game) }
+    }
+
+    private func upcomingSetsContent(_ game: GameSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Spacer(minLength: 12)
+            }
+
+            VStack(alignment: .leading, spacing: 14) {
+                upcomingSetPlayerRow(game.home)
+                upcomingSetPlayerRow(game.away)
+            }
+        }
+        .padding(.horizontal, 18)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .contentShape(Rectangle())
+        .onTapGesture { openGamePage(game) }
+    }
+
+    private func setPlayerRow(_ player: SportsTeamSide, isCurrent: Bool) -> some View {
+        HStack(spacing: 10) {
+            Text(player.name)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(player.isWinner ? tennisWinnerColor : .white.opacity(0.7))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 9) {
+                ForEach(Array(player.setScores.enumerated()), id: \.offset) { index, score in
+                    Text(score)
+                        .font(.system(size: 17, weight: index == player.setScores.count - 1 ? .bold : .semibold, design: .rounded))
+                        .foregroundStyle(index == player.setScores.count - 1 && isCurrent ? accent : .white.opacity(0.85))
+                        .monospacedDigit()
+                        .frame(minWidth: 20, alignment: .trailing)
+                }
+            }
+        }
+    }
+
+    private func upcomingSetPlayerRow(_ player: SportsTeamSide) -> some View {
+        HStack(spacing: 10) {
+            Text(player.name)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("–")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(subtitleColor)
+                .frame(minWidth: 20, alignment: .trailing)
+        }
+    }
+
+    private func leaderboardContent(_ game: GameSnapshot) -> some View {
+        Group {
+            if game.state.isLive || game.state.isPost {
+                leaderboardRaceContent(game)
+            } else {
+                leaderboardUpcomingContent(game)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { openGamePage(game) }
+    }
+
+    private func leaderboardRaceContent(_ game: GameSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(game.competition)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+
+                    Text(leaderboardSubtitle(for: game))
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 12)
+
+                statusBadge(text: leaderboardBadgeText(for: game))
+            }
+
+            VStack(spacing: 7) {
+                ForEach(Array(game.leaderboardEntries.enumerated()), id: \.element.id) { index, entry in
+                    leaderboardRow(entry, highlighted: index == 0)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func leaderboardUpcomingContent(_ game: GameSnapshot) -> some View {
+        HStack(alignment: .center, spacing: 18) {
+            leaderboardFlag(for: game)
+                .padding(.leading, 18)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(game.competition)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+
+                if let venueName = game.venueName, !venueName.isEmpty {
+                    Text(venueName)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: 12)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                if let startDate = game.startDate {
+                    Text(startDate.formatted(date: .omitted, time: .shortened))
+                        .font(.system(size: 32, weight: .regular, design: .rounded))
+                        .foregroundStyle(accent)
+                        .monospacedDigit()
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+
+                    Text(upcomingDayLabel(for: startDate))
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                } else {
+                    Text("TBD")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                }
+            }
+            .padding(.trailing, 18)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+
+    private func leaderboardRow(_ entry: SportsLeaderboardEntry, highlighted: Bool) -> some View {
+        HStack(spacing: 12) {
+            Text("P\(entry.position)")
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(highlighted ? accent : .white.opacity(0.45))
+                .frame(width: 38, alignment: .leading)
+
+            if let flagURL = entry.flagURL, !flagURL.isEmpty {
+                crest(flagURL, size: 18)
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(entry.name)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                if let secondaryText = entry.secondaryText, !secondaryText.isEmpty {
+                    Text(secondaryText)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(subtitleColor)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            if let trailingText = entry.trailingText, !trailingText.isEmpty {
+                Text(trailingText)
+                    .font(.system(size: 17, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(highlighted ? 0.75 : 0.55))
+                    .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 42)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(highlighted ? accent.opacity(0.16) : .clear)
+        )
     }
 
     private func teamColumn(for team: SportsTeamSide) -> some View {
@@ -319,10 +577,18 @@ struct SportsWidgetPageView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 1)
 
-            HStack {
-                Spacer()
-                paginatorDots
-                Spacer()
+            ZStack(alignment: .trailing) {
+                HStack {
+                    Spacer()
+                    paginatorDots
+                    Spacer()
+                }
+
+                if let footerLabel = footerTrailingText(for: game) {
+                    Text(footerLabel)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(subtitleColor)
+                }
             }
         }
     }
@@ -332,7 +598,7 @@ struct SportsWidgetPageView: View {
             ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
                 let isActive = index == currentIndex
                 Capsule()
-                    .fill(isActive ? accent : Color.white.opacity(0.18))
+                    .fill(paginatorColor(for: game, isActive: isActive))
                     .frame(width: isActive ? 14 : 6, height: 6)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -348,15 +614,64 @@ struct SportsWidgetPageView: View {
         .animation(.spring(response: 0.42, dampingFraction: 0.82), value: currentIndex)
     }
 
+    private func paginatorColor(for game: GameSnapshot, isActive: Bool) -> Color {
+        if game.state.isPost { return tennisWinnerColor }
+        if isActive { return accent }
+        return Color.white.opacity(0.18)
+    }
+
     private var titleText: String {
         guard let game = model.focusedGame else { return "Sports" }
+        if game.leagueDefinition.format == .leaderboard {
+            return game.leagueDefinition.subtitle
+        }
+        if game.leagueDefinition.format == .sets {
+            return "\(game.home.name) vs \(game.away.name)"
+        }
         let home = game.home.name.isEmpty ? game.home.abbreviation : game.home.name
         let away = game.away.name.isEmpty ? game.away.abbreviation : game.away.name
         return "\(home) vs \(away)"
     }
 
     private var captionText: String {
-        model.focusedGame?.competition ?? "Follow teams to see upcoming matches"
+        guard let game = model.focusedGame else { return "Follow teams to see upcoming matches" }
+        if game.leagueDefinition.format == .leaderboard {
+            return game.state == .pre ? "Next race" : (game.venueName ?? game.competition)
+        }
+        if game.leagueDefinition.format == .sets {
+            return [game.competition, game.venueName].compactMap { $0 }.joined(separator: " · ")
+        }
+        return game.competition
+    }
+
+    private var headerRightText: String? {
+        guard let game = model.focusedGame else { return nil }
+        if game.leagueDefinition.format == .sets {
+            switch game.state {
+            case .pre:
+                return upcomingSetsBadgeText(for: game)
+            case .live:
+                return setsBadgeText(for: game)
+            case .post:
+                return "FINAL"
+            default:
+                return nil
+            }
+        }
+        return nil
+    }
+
+    private var headerRightTextColor: Color {
+        guard let game = model.focusedGame else { return .white }
+        if game.leagueDefinition.format == .sets, (game.state == .pre || game.state == .live || game.state == .post) {
+            return accent
+        }
+        return .white
+    }
+
+    private var headerShowsIndicator: Bool {
+        guard let game = model.focusedGame else { return false }
+        return game.leagueDefinition.format == .sets && game.state == .live
     }
 
     private func centerStatusText(for game: GameSnapshot) -> String {
@@ -364,7 +679,8 @@ struct SportsWidgetPageView: View {
         case .live:
             return game.clock.isEmpty ? "Live" : game.clock
         case .pre:
-            return game.startDate?.formatted(date: .abbreviated, time: .shortened) ?? game.displayStatus
+            guard let startDate = game.startDate else { return game.displayStatus }
+            return "\(upcomingDayLabel(for: startDate)) \(startDate.formatted(date: .omitted, time: .shortened))"
         case .post:
             return "Full time"
         case .unknown:
@@ -381,10 +697,160 @@ struct SportsWidgetPageView: View {
     }
 
     private func supportingText(for game: GameSnapshot) -> String? {
+        if game.leagueDefinition.format == .leaderboard || game.leagueDefinition.format == .sets {
+            return nil
+        }
         if let firstEvent = game.events.first {
             return "\(scorerPrefix(for: game, teamID: firstEvent.teamId)) \(firstEvent.player) \(firstEvent.minute)"
         }
         return game.state == .pre ? nil : game.competition
+    }
+
+    private func footerTrailingText(for game: GameSnapshot) -> String? {
+        switch game.leagueDefinition.format {
+        case .leaderboard:
+            return (game.state.isLive || game.state.isPost) ? "Top \(max(game.leaderboardEntries.count, 1))" : nil
+        case .sets:
+            return nil
+        case .teamScore:
+            return nil
+        case .innings:
+            return nil
+        }
+    }
+
+    private func leaderboardSubtitle(for game: GameSnapshot) -> String {
+        let prefix = game.leagueDefinition.subtitle
+        if !game.statusDetail.isEmpty {
+            return "\(prefix) · \(game.statusDetail)"
+        }
+        if !game.clock.isEmpty {
+            return "\(prefix) · \(game.clock)"
+        }
+        return [prefix, game.venueName].compactMap { value in
+            guard let value, !value.isEmpty else { return nil }
+            return value
+        }.joined(separator: " · ")
+    }
+
+    private func leaderboardBadgeText(for game: GameSnapshot) -> String {
+        if game.state.isLive {
+            return "LIVE"
+        }
+        if game.state.isPost {
+            return "FINAL"
+        }
+        return "RACE"
+    }
+
+    private func setsBadgeText(for game: GameSnapshot) -> String {
+        if game.state.isLive {
+            return currentSetLabel(for: game)
+        }
+        if game.state.isPost {
+            return "FINAL"
+        }
+        return centerStatusText(for: game).uppercased()
+    }
+
+    private func currentSetLabel(for game: GameSnapshot) -> String {
+        let setCount = max(game.home.setScores.count, game.away.setScores.count)
+        guard setCount > 0 else {
+            return game.clock.isEmpty ? "LIVE" : game.clock.uppercased()
+        }
+        return "Set \(setCount)"
+    }
+
+    private func upcomingSetsBadgeText(for game: GameSnapshot) -> String {
+        game.startDate?.formatted(date: .omitted, time: .shortened) ?? "TBD"
+    }
+
+    private func upcomingSetsFooterText(for game: GameSnapshot) -> String? {
+        guard let startDate = game.startDate else { return game.venueName }
+        let dayText = upcomingDayLabel(for: startDate)
+        if let venueName = game.venueName, !venueName.isEmpty {
+            return "\(dayText) · \(venueName)"
+        }
+        return dayText
+    }
+
+    private func upcomingDayLabel(for date: Date) -> String {
+        let calendar = Calendar.current
+
+        if calendar.isDateInToday(date) {
+            return "Today"
+        }
+
+        if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        }
+
+        return date.formatted(
+            Date.FormatStyle()
+                .month(.twoDigits)
+                .day(.twoDigits)
+        )
+    }
+
+    private func leaderboardFlag(for game: GameSnapshot) -> some View {
+        Group {
+            if let url = leaderboardFlagURL(for: game) {
+                crest(url.absoluteString, size: 42)
+                    .frame(width: 42, height: 42)
+            } else {
+                Image(systemName: "flag.checkered")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.82))
+                    .frame(width: 42, height: 42)
+            }
+        }
+    }
+
+    private func leaderboardFlagURL(for game: GameSnapshot) -> URL? {
+        guard let country = game.venueCountry,
+              let code = espnCountryCode(for: country) else { return nil }
+        return URL(string: "https://a.espncdn.com/i/teamlogos/countries/500/\(code).png")
+    }
+
+    private func espnCountryCode(for country: String) -> String? {
+        let countryToCode: [String: String] = [
+            "australia": "aus",
+            "bahrain": "brn",
+            "saudi arabia": "sau",
+            "japan": "jpn",
+            "china": "chn",
+            "united states": "usa",
+            "italy": "ita",
+            "monaco": "mco",
+            "canada": "can",
+            "spain": "esp",
+            "austria": "aut",
+            "united kingdom": "gbr",
+            "belgium": "bel",
+            "hungary": "hun",
+            "netherlands": "ned",
+            "azerbaijan": "aze",
+            "singapore": "sgp",
+            "mexico": "mex",
+            "brazil": "bra",
+            "qatar": "qat",
+            "united arab emirates": "are"
+        ]
+        return countryToCode[country.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()]
+    }
+
+    private func statusBadge(text: String) -> some View {
+        HStack(spacing: 7) {
+            Circle()
+                .fill(accent)
+                .frame(width: 8, height: 8)
+
+            Text(text)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(accent)
+                .lineLimit(1)
+        }
+        .padding(.top, 3)
     }
 
     private func scorerPrefix(for game: GameSnapshot, teamID: String) -> String {
@@ -398,30 +864,30 @@ struct SportsWidgetPageView: View {
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Spacer(minLength: 0)
+        VStack(spacing: 6) {
+            Image(systemName: "sportscourt")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(accent)
+                .padding(.bottom, 2)
 
-            Text("No matches yet")
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+            Text("Nothing to show yet")
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
 
-            Text("Follow teams to show their next match here.")
+            Text("Follow a league or team to see upcoming matches here.")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundStyle(subtitleColor)
+                .foregroundStyle(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
     private func crest(_ logoURL: String, size: CGFloat) -> some View {
-        AsyncImage(url: URL(string: logoURL)) { image in
-            image
-                .resizable()
-                .scaledToFit()
-        } placeholder: {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.white.opacity(0.08))
-        }
-        .frame(width: size, height: size)
+        RemoteSportsLogoView(urlString: logoURL)
+            .frame(width: size, height: size)
     }
 
     private func openGamePage(_ game: GameSnapshot) {

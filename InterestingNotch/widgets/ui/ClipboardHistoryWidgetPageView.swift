@@ -165,7 +165,7 @@ struct ClipboardHistoryWidgetPageView: View {
                 // Hero: the content itself.
                 cardHero(for: item, detail: detail)
                     .padding(.horizontal, 11)
-                    .padding(.bottom, 11)
+                    .padding(.bottom, 7)
             }
             .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
             .background(cardBackground(for: item, detail: detail))

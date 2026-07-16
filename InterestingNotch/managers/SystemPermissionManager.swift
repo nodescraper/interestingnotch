@@ -88,6 +88,7 @@ final class SystemPermissionManager: NSObject, CBCentralManagerDelegate {
         switch CBManager.authorization {
         case .allowedAlways:
             BluetoothDeviceMonitor.shared.enable()
+            BluetoothDeviceMonitor.shared.applyDefaultNotificationPreferences()
             return true
         case .denied, .restricted:
             return false
@@ -149,6 +150,7 @@ final class SystemPermissionManager: NSObject, CBCentralManagerDelegate {
 
         if granted {
             BluetoothDeviceMonitor.shared.enable()
+            BluetoothDeviceMonitor.shared.applyDefaultNotificationPreferences()
         }
     }
 }

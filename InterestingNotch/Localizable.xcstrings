@@ -151,9 +151,6 @@
     "@" : {
 
     },
-    "@ %@" : {
-
-    },
     "%.0f seconds" : {
       "localizations" : {
         "cs" : {
@@ -1374,6 +1371,9 @@
           }
         }
       }
+    },
+    "All competitors" : {
+
     },
     "All teams" : {
 
@@ -2687,9 +2687,6 @@
     "Available Widgets" : {
 
     },
-    "Away" : {
-
-    },
     "Backlight" : {
       "localizations" : {
         "de" : {
@@ -3368,9 +3365,6 @@
           }
         }
       }
-    },
-    "Browse" : {
-
     },
     "Browse widgets installed from Application Support. Pin a widget to add it as a notch tab." : {
 
@@ -6820,9 +6814,6 @@
         }
       }
     },
-    "Date" : {
-
-    },
     "Default" : {
       "localizations" : {
         "cs" : {
@@ -9546,10 +9537,7 @@
     "Follow %@" : {
 
     },
-    "Follow a team to see match details." : {
-
-    },
-    "Follow teams to see live scores here." : {
+    "Follow a league or team to see upcoming matches here." : {
 
     },
     "Following" : {
@@ -11347,9 +11335,6 @@
         }
       }
     },
-    "Home" : {
-
-    },
     "Hover delay" : {
       "localizations" : {
         "de" : {
@@ -12468,9 +12453,6 @@
     "Loading available widgets..." : {
 
     },
-    "Loading match details…" : {
-
-    },
     "Low" : {
       "localizations" : {
         "cs" : {
@@ -13032,9 +13014,6 @@
         }
       }
     },
-    "Match" : {
-
-    },
     "Match menu bar height" : {
       "localizations" : {
         "de" : {
@@ -13377,6 +13356,9 @@
       }
     },
     "Max history items" : {
+
+    },
+    "Maximum matches in the notch" : {
 
     },
     "Media" : {
@@ -15158,9 +15140,6 @@
     "Next matches" : {
 
     },
-    "No additional match details yet." : {
-
-    },
     "No events" : {
       "localizations" : {
         "cs" : {
@@ -15492,7 +15471,7 @@
         }
       }
     },
-    "No matches yet" : {
+    "No match details available" : {
 
     },
     "No Paired Devices" : {
@@ -16239,6 +16218,9 @@
 
     },
     "Nothing scheduled" : {
+
+    },
+    "Nothing to show yet" : {
 
     },
     "Notifications" : {
@@ -17373,6 +17355,9 @@
         }
       }
     },
+    "P%lld" : {
+
+    },
     "Pair a device in System Settings, then refresh this list." : {
 
     },
@@ -17509,7 +17494,16 @@
     "Pin Sports widget" : {
 
     },
+    "Pinned teams" : {
+
+    },
     "Pinned widget page" : {
+
+    },
+    "Pinned Widgets" : {
+
+    },
+    "Pinned widgets appear as tabs in the notch. Open one here to manage its own settings page." : {
 
     },
     "Play last recording" : {
@@ -19486,9 +19480,6 @@
         }
       }
     },
-    "Result" : {
-
-    },
     "Resume" : {
 
     },
@@ -19671,6 +19662,9 @@
           }
         }
       }
+    },
+    "Search competitors" : {
+
     },
     "Search leagues and teams" : {
 
@@ -23734,6 +23728,9 @@
     "Starred" : {
 
     },
+    "Starred competitors stay easy to find while we finish the new non-team sports flow." : {
+
+    },
     "Starred teams get priority in the notch." : {
 
     },
@@ -24130,13 +24127,16 @@
     "Tap the cup in the open-notch header to toggle Caffeine. Hold it to choose a duration." : {
 
     },
-    "Team stats" : {
+    "TBD" : {
 
     },
     "Teams" : {
 
     },
     "Text, links, and images you copy show up here." : {
+
+    },
+    "This pinned widget is no longer available." : {
 
     },
     "This placeholder confirms dynamic notch-tab navigation is wired. The real full-page widget UI lands in the next tickets." : {
@@ -24606,9 +24606,6 @@
         }
       }
     },
-    "Try again" : {
-
-    },
     "Turn off" : {
 
     },
@@ -25044,6 +25041,9 @@
 
     },
     "Unpin Sports widget" : {
+
+    },
+    "Unstar %@" : {
 
     },
     "Until off" : {
@@ -25543,9 +25543,6 @@
           }
         }
       }
-    },
-    "Venue" : {
-
     },
     "Version" : {
       "localizations" : {
@@ -26057,9 +26054,6 @@
     "vs" : {
 
     },
-    "vs %@" : {
-
-    },
     "Watched folder" : {
 
     },
@@ -26209,6 +26203,9 @@
 
     },
     "Widget unavailable" : {
+
+    },
+    "Widget Unavailable" : {
 
     },
     "Widget-specific settings will appear here as more widgets declare them." : {

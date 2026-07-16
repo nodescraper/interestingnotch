@@ -69,3 +69,6 @@ archive.log
 # Local custom widget / peek content
 .interestingnotch/
 demo-peek.json
+
+# Local agent notes
+AGENTS.md

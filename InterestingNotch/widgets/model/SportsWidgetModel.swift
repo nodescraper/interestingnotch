@@ -10,40 +10,109 @@ import Defaults
 import Foundation
 import SwiftUI
 
+enum GameFormat: Hashable, Sendable {
+    case teamScore
+    case leaderboard
+    case sets
+    case innings
+}
+
 struct SportsLeagueDefinition: Identifiable, Hashable, Sendable {
     let sport: String
     let league: String
-    let title: String
-    let subtitle: String
+    let name: String
+    let group: String
+    let format: GameFormat
     let sportPath: String
     let espnGamePath: String
 
     var id: String { "\(sport)/\(league)" }
 
-    static let all: [SportsLeagueDefinition] = [
-        .init(sport: "soccer", league: "eng.1", title: "Soccer", subtitle: "Premier League", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "esp.1", title: "Soccer", subtitle: "La Liga", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "ita.1", title: "Soccer", subtitle: "Serie A", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "ger.1", title: "Soccer", subtitle: "Bundesliga", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "fra.1", title: "Soccer", subtitle: "Ligue 1", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "usa.1", title: "Soccer", subtitle: "MLS", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "fifa.world", title: "Soccer", subtitle: "World Cup", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "uefa.champions", title: "Soccer", subtitle: "UEFA Champions League", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "soccer", league: "uefa.europa", title: "Soccer", subtitle: "UEFA Europa League", sportPath: "soccer", espnGamePath: "soccer/match"),
-        .init(sport: "basketball", league: "nba", title: "Basketball", subtitle: "NBA", sportPath: "basketball", espnGamePath: "nba/game"),
-        .init(sport: "football", league: "nfl", title: "Football", subtitle: "NFL", sportPath: "football", espnGamePath: "nfl/game"),
-        .init(sport: "hockey", league: "nhl", title: "Hockey", subtitle: "NHL", sportPath: "hockey", espnGamePath: "nhl/game"),
-        .init(sport: "baseball", league: "mlb", title: "Baseball", subtitle: "MLB", sportPath: "baseball", espnGamePath: "mlb/game"),
+    static let all: [SportsLeagueDefinition] = teamScoreLeagues + futureLeagues
+
+    private static let teamScoreLeagues: [SportsLeagueDefinition] = [
+        // Soccer
+        teamScore("soccer", "eng.1", "Premier League", "soccer/match"),
+        teamScore("soccer", "esp.1", "La Liga", "soccer/match"),
+        teamScore("soccer", "ita.1", "Serie A", "soccer/match"),
+        teamScore("soccer", "ger.1", "Bundesliga", "soccer/match"),
+        teamScore("soccer", "fra.1", "Ligue 1", "soccer/match"),
+        teamScore("soccer", "por.1", "Primeira Liga", "soccer/match"),
+        teamScore("soccer", "ned.1", "Eredivisie", "soccer/match"),
+        teamScore("soccer", "usa.1", "MLS", "soccer/match"),
+        teamScore("soccer", "mex.1", "Liga MX", "soccer/match"),
+        teamScore("soccer", "bra.1", "Brasileirão", "soccer/match"),
+        teamScore("soccer", "arg.1", "Liga Profesional", "soccer/match"),
+        teamScore("soccer", "sco.1", "Scottish Premiership", "soccer/match"),
+        teamScore("soccer", "tur.1", "Süper Lig", "soccer/match"),
+        teamScore("soccer", "bel.1", "Pro League", "soccer/match"),
+        teamScore("soccer", "uefa.champions", "Champions League", "soccer/match"),
+        teamScore("soccer", "uefa.europa", "Europa League", "soccer/match"),
+        teamScore("soccer", "fifa.world", "World Cup", "soccer/match"),
+        teamScore("soccer", "fifa.wwc", "Women's World Cup", "soccer/match"),
+        teamScore("soccer", "uefa.euro", "Euros", "soccer/match"),
+        teamScore("soccer", "conmebol.america", "Copa América", "soccer/match"),
+        // Basketball
+        teamScore("basketball", "nba", "NBA", "nba/game"),
+        teamScore("basketball", "wnba", "WNBA", "wnba/game"),
+        teamScore("basketball", "mens-college-basketball", "NCAAM", "mens-college-basketball/game"),
+        teamScore("basketball", "womens-college-basketball", "NCAAW", "womens-college-basketball/game"),
+        // American football
+        teamScore("football", "nfl", "NFL", "nfl/game"),
+        teamScore("football", "college-football", "NCAAF", "college-football/game"),
+        // Hockey and baseball
+        teamScore("hockey", "nhl", "NHL", "nhl/game"),
+        teamScore("baseball", "mlb", "MLB", "mlb/game"),
+        teamScore("baseball", "college-baseball", "NCAA Baseball", "college-baseball/game"),
+    ]
+
+    private static let futureLeagues: [SportsLeagueDefinition] = [
+        // Defined now for future layouts; these remain hidden from settings/search.
+        .init(sport: "racing", league: "f1", name: "Formula 1", group: "Motorsport", format: .leaderboard, sportPath: "racing", espnGamePath: "f1/race"),
+        .init(sport: "golf", league: "pga", name: "PGA Tour", group: "Golf", format: .leaderboard, sportPath: "golf", espnGamePath: "golf/leaderboard"),
+        .init(sport: "golf", league: "lpga", name: "LPGA Tour", group: "Golf", format: .leaderboard, sportPath: "golf", espnGamePath: "golf/leaderboard"),
+        .init(sport: "tennis", league: "atp", name: "ATP", group: "Tennis", format: .sets, sportPath: "tennis", espnGamePath: "tennis/match"),
+        .init(sport: "tennis", league: "wta", name: "WTA", group: "Tennis", format: .sets, sportPath: "tennis", espnGamePath: "tennis/match"),
+        .init(sport: "mma", league: "ufc", name: "UFC", group: "MMA", format: .leaderboard, sportPath: "mma", espnGamePath: "mma/fight"),
+        .init(sport: "cricket", league: "ipl", name: "IPL", group: "Cricket", format: .innings, sportPath: "cricket", espnGamePath: "cricket/match"),
     ]
 
     static let defaultLeague = all[0]
+    static let supported: [SportsLeagueDefinition] = all.filter { formatIsSupported($0.format) }
+
+    static func formatIsSupported(_ format: GameFormat) -> Bool {
+        switch format {
+        case .teamScore, .leaderboard, .sets:
+            return true
+        case .innings:
+            return false
+        }
+    }
+
+    var supportsTeamSelection: Bool {
+        switch format {
+        case .teamScore, .leaderboard, .sets:
+            return true
+        case .innings:
+            return false
+        }
+    }
+
+    var supportsCompetitorDetail: Bool { format == .teamScore }
+
+    private static func teamScore(_ sport: String, _ league: String, _ name: String, _ espnGamePath: String) -> SportsLeagueDefinition {
+        .init(sport: sport, league: league, name: name, group: sport == "football" ? "American Football" : sport.capitalized, format: .teamScore, sportPath: sport, espnGamePath: espnGamePath)
+    }
+
+    var title: String { group }
+    var subtitle: String { name }
 
     static func league(forSport sport: String, league: String) -> SportsLeagueDefinition? {
         all.first { $0.sport == sport && $0.league == league }
     }
 
     static func leagues(forSportTitle title: String) -> [SportsLeagueDefinition] {
-        all.filter { $0.title == title }
+        supported.filter { $0.group == title }
     }
 }
 
@@ -70,6 +139,15 @@ struct FollowedTeam: Codable, Equatable, Hashable, Identifiable, Sendable {
     var leagueDefinition: SportsLeagueDefinition {
         SportsLeagueDefinition.league(forSport: sport, league: league) ?? .defaultLeague
     }
+}
+
+struct FollowedPlayer: Codable, Equatable, Hashable, Identifiable, Sendable {
+    let sport: String
+    let league: String
+    let playerId: String
+    let name: String
+
+    var id: String { "\(sport):\(league):\(playerId)" }
 }
 
 struct SportsTeamSearchResult: Identifiable, Equatable, Hashable, Sendable {
@@ -165,6 +243,28 @@ struct SportsTeamSide: Equatable, Sendable {
     let logoURL: String
     let score: String
     let record: String?
+    let setScores: [String]
+    let isWinner: Bool
+
+    init(
+        teamId: String,
+        name: String,
+        abbreviation: String,
+        logoURL: String,
+        score: String,
+        record: String?,
+        setScores: [String] = [],
+        isWinner: Bool = false
+    ) {
+        self.teamId = teamId
+        self.name = name
+        self.abbreviation = abbreviation
+        self.logoURL = logoURL
+        self.score = score
+        self.record = record
+        self.setScores = setScores
+        self.isWinner = isWinner
+    }
 }
 
 struct GoalEvent: Equatable, Hashable, Identifiable, Sendable {
@@ -173,6 +273,16 @@ struct GoalEvent: Equatable, Hashable, Identifiable, Sendable {
     let minute: String
 
     var id: String { "\(teamId)-\(player)-\(minute)" }
+}
+
+struct SportsLeaderboardEntry: Equatable, Hashable, Identifiable, Sendable {
+    let position: Int
+    let name: String
+    let secondaryText: String?
+    let trailingText: String?
+    let flagURL: String?
+
+    var id: String { "\(position)-\(name)" }
 }
 
 struct GameSnapshot: Equatable, Identifiable, Sendable {
@@ -184,10 +294,21 @@ struct GameSnapshot: Equatable, Identifiable, Sendable {
     let home: SportsTeamSide
     let away: SportsTeamSide
     let events: [GoalEvent]
+    let leaderboardEntries: [SportsLeaderboardEntry]
     let eventURL: URL?
     let startDate: Date?
     let followedTeamID: String
     let leagueDefinition: SportsLeagueDefinition
+    let venueName: String?
+    let venueCountry: String?
+
+    var isLeagueScopedFollow: Bool {
+        followedTeamID == "league" || followedTeamID == leagueDefinition.id
+    }
+
+    var isSpecificCompetitorFollow: Bool {
+        !isLeagueScopedFollow
+    }
 
     var isToday: Bool {
         guard let startDate else { return state.isLive || state.isPost || state.isPre }
@@ -324,6 +445,32 @@ enum SportsPreferences {
         saveStarredTeams(teams)
     }
 
+    static func starredPlayers() -> [FollowedPlayer] {
+        guard let data = Defaults[.sportsStarredPlayersData] else { return [] }
+        let decoded = (try? JSONDecoder().decode([FollowedPlayer].self, from: data)) ?? []
+        print("🎾 Starred players loaded:", decoded.map { "\($0.league):\($0.name)[\($0.playerId)]" }.joined(separator: ", "))
+        return decoded
+    }
+
+    static func togglePlayer(_ player: SportsTeamSearchResult) {
+        var players = starredPlayers()
+        let id = "\(player.sport):\(player.league):\(player.id)"
+        if let index = players.firstIndex(where: { $0.id == id }) {
+            players.remove(at: index)
+        } else {
+            players.append(FollowedPlayer(sport: player.sport, league: player.league, playerId: player.id, name: player.name))
+        }
+        Defaults[.sportsStarredPlayersData] = try? JSONEncoder().encode(players)
+        print("🎾 Starred players saved:", players.map { "\($0.league):\($0.name)[\($0.playerId)]" }.joined(separator: ", "))
+    }
+
+    static func isStarred(_ player: SportsTeamSearchResult, asPlayer: Bool) -> Bool {
+        if asPlayer {
+            return starredPlayers().contains { $0.id == "\(player.sport):\(player.league):\(player.id)" }
+        }
+        return isStarred(player)
+    }
+
     static func loadFollowedTeams() -> [FollowedTeam] {
         guard let data = Defaults[.sportsFollowedTeamsData] else { return [] }
         return (try? JSONDecoder().decode([FollowedTeam].self, from: data)) ?? []
@@ -378,6 +525,12 @@ actor SportsDataService {
             return cached
         }
 
+        if league.sport == "tennis" {
+            let players = try await tennisPlayers(for: league)
+            teamCache[league.id] = players
+            return players
+        }
+
         let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(league.sport)/\(league.league)/teams")!
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try decoder.decode(ESPNTeamsResponse.self, from: data)
@@ -396,9 +549,46 @@ actor SportsDataService {
                 )
             }
         let dedupedTeams = dedupeTeamResults(teams)
-
+        if dedupedTeams.isEmpty, league.format != .teamScore {
+            let competitors = try await scoreboardParticipants(for: league)
+            teamCache[league.id] = competitors
+            return competitors
+        }
         teamCache[league.id] = dedupedTeams
         return dedupedTeams
+    }
+
+    private func tennisPlayers(for league: SportsLeagueDefinition) async throws -> [SportsTeamSearchResult] {
+        let response = try await fetchTennisScoreboard(for: league, daysAhead: 30)
+        var players: [SportsTeamSearchResult] = []
+        var groupingCount = 0
+        var matchCount = 0
+        var competitorCount = 0
+        var missingIDCount = 0
+        var missingNameCount = 0
+        for event in response.events {
+            for grouping in event.groupings ?? [] {
+                groupingCount += 1
+                for match in grouping.competitions ?? [] {
+                    matchCount += 1
+                    for competitor in match.competitors ?? [] {
+                        competitorCount += 1
+                        guard let id = tennisCompetitorID(for: competitor) else {
+                            missingIDCount += 1
+                            continue
+                        }
+                        guard let name = tennisCompetitorName(for: competitor) else {
+                            missingNameCount += 1
+                            continue
+                        }
+                        players.append(SportsTeamSearchResult(sport: league.sport, league: league.league, id: id, name: name, abbreviation: "", logoURL: ""))
+                    }
+                }
+            }
+        }
+        let result = dedupeTeamResults(players).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        print("🎾 Tennis players (\(league.id)): events=\(response.events.count), groupings=\(groupingCount), matches=\(matchCount), competitors=\(competitorCount), uniquePlayers=\(result.count), missingIDs=\(missingIDCount), missingNames=\(missingNameCount)")
+        return result
     }
 
     func searchTeams(query: String, league: SportsLeagueDefinition) async throws -> [SportsTeamSearchResult] {
@@ -427,6 +617,53 @@ actor SportsDataService {
             let key = "\(team.sport)|\(team.league)|\(team.id)"
             return seen.insert(key).inserted
         }
+    }
+
+    private func scoreboardParticipants(for league: SportsLeagueDefinition) async throws -> [SportsTeamSearchResult] {
+        let response = try await fetchScoreboard(for: league)
+        let participants = response.events
+            .flatMap(\.competitions)
+            .flatMap(\.competitors)
+            .compactMap { competitor -> SportsTeamSearchResult? in
+                if let team = competitor.team {
+                    return SportsTeamSearchResult(
+                        sport: league.sport,
+                        league: league.league,
+                        id: team.id ?? competitor.id ?? UUID().uuidString,
+                        name: team.displayName ?? team.shortDisplayName ?? team.name ?? "Unknown Team",
+                        abbreviation: team.abbreviation ?? "",
+                        logoURL: team.logoURL ?? ""
+                    )
+                }
+
+                if let athlete = competitor.athlete {
+                    return SportsTeamSearchResult(
+                        sport: league.sport,
+                        league: league.league,
+                        id: competitor.id ?? athlete.id ?? UUID().uuidString,
+                        name: athlete.displayName ?? athlete.shortName ?? athlete.fullName ?? "Unknown Competitor",
+                        abbreviation: athlete.shortName ?? "",
+                        logoURL: athlete.flag?.href ?? ""
+                    )
+                }
+
+                if let roster = competitor.roster {
+                    let firstAthlete = roster.athletes?.first
+                    return SportsTeamSearchResult(
+                        sport: league.sport,
+                        league: league.league,
+                        id: competitor.id ?? UUID().uuidString,
+                        name: roster.displayName ?? roster.shortDisplayName ?? firstAthlete?.displayName ?? "Unknown Competitor",
+                        abbreviation: roster.shortDisplayName ?? firstAthlete?.shortName ?? "",
+                        logoURL: firstAthlete?.flag?.href ?? ""
+                    )
+                }
+
+                return nil
+            }
+
+        return dedupeTeamResults(participants)
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     func schedule(for team: SportsTeamSearchResult) async throws -> [SportsTeamScheduleMatch] {
@@ -481,8 +718,7 @@ actor SportsDataService {
                 return nil
             }
 
-            let selected = scheduleCompetitor(matching: team, in: competitors) ?? competitors.first
-            guard let selected,
+            guard let selected = scheduleCompetitor(matching: team, in: competitors),
                   let opponent = competitors.first(where: { $0.id != selected.id }) ?? competitors.dropFirst().first
             else {
                 print("🟥 Sports schedule could not resolve matchup for event:", event.id, "team:", team.id)
@@ -527,17 +763,17 @@ actor SportsDataService {
         guard let url = scoreboardURL(for: league, daysAhead: daysAhead) else { return [] }
         let response = try await fetchScoreboardResponse(from: url)
 
-        return response.events.compactMap { event in
+        return response.events.compactMap { event -> SportsTeamScheduleMatch? in
             guard let competition = event.competitions.first else { return nil }
             let competitors = competition.competitors
             guard competitors.count >= 2 else { return nil }
 
-            let selected = scoreboardCompetitor(matching: team, in: competitors) ?? competitors.first
-            guard let selected,
-                  let opponent = competitors.first(where: { ($0.team?.id ?? "") != (selected.team?.id ?? "") }) ?? competitors.dropFirst().first
-            else {
-                return nil
-            }
+            guard let selected = scoreboardCompetitor(matching: team, in: competitors) else { return nil }
+            let selectedTeamID = selected.team?.id ?? ""
+            let opponent = competitors.first { competitor in
+                competitor.team?.id != selectedTeamID
+            } ?? competitors.dropFirst().first
+            guard let opponent else { return nil }
 
             let dateString = event.date ?? ""
             guard let date = ESPNDate.parse(dateString) else { return nil }
@@ -577,6 +813,10 @@ actor SportsDataService {
     }
 
     private func scoreboardURL(for league: SportsLeagueDefinition, daysAhead: Int) -> URL? {
+        if league.sport == "racing", league.league == "f1" {
+            return URL(string: "https://site.api.espn.com/apis/site/v2/sports/racing/f1/scoreboard?dates=20260101-20261231")
+        }
+
         let calendar = Calendar.current
         let startDate = calendar.startOfDay(for: Date())
         guard let endDate = calendar.date(byAdding: .day, value: daysAhead, to: startDate) else {
@@ -585,7 +825,7 @@ actor SportsDataService {
 
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.timeZone = .current
         formatter.dateFormat = "yyyyMMdd"
 
         let range = "\(formatter.string(from: startDate))-\(formatter.string(from: endDate))"
@@ -661,7 +901,8 @@ actor SportsDataService {
 
         for groupValue in grouped.values {
             guard let first = groupValue.first,
-                  let league = SportsLeagueDefinition.league(forSport: first.sport, league: first.league)
+                  let league = SportsLeagueDefinition.league(forSport: first.sport, league: first.league),
+                  SportsLeagueDefinition.formatIsSupported(league.format)
             else { continue }
 
             let scoreboard = try await fetchScoreboard(for: league)
@@ -692,6 +933,213 @@ actor SportsDataService {
         return deduped.sorted(by: SportsSnapshotPriority.compare)
     }
 
+    func snapshots(
+        for followedTeams: [FollowedTeam],
+        followedLeagues: [FollowedLeague],
+        followedPlayers: [FollowedPlayer] = []
+    ) async throws -> [GameSnapshot] {
+        print("🏟️ Sports snapshots request: teams=\(followedTeams.count) leagues=\(followedLeagues.count) players=\(followedPlayers.count)")
+        if !followedPlayers.isEmpty {
+            print("🎾 Widget followed players:", followedPlayers.map { "\($0.league):\($0.name)[\($0.playerId)]" }.joined(separator: ", "))
+        }
+        var snapshots: [GameSnapshot] = []
+        let followedLeagueIDs = Set(followedLeagues.map(\.id))
+        let teamGroups = Dictionary(grouping: followedTeams, by: { "\($0.sport)|\($0.league)" })
+        let leagueDefinitions = followedLeagues.compactMap { followedLeague -> SportsLeagueDefinition? in
+            guard let definition = SportsLeagueDefinition.league(forSport: followedLeague.sport, league: followedLeague.league),
+                  SportsLeagueDefinition.formatIsSupported(definition.format) else { return nil }
+            return definition
+        }
+
+        // A team follow and a league follow can point at the same scoreboard.
+        // Fetch it once, then apply the appropriate filter to the response.
+        let playerDefinitions = followedPlayers.compactMap { SportsLeagueDefinition.league(forSport: $0.sport, league: $0.league) }
+        let definitions = Set(teamGroups.values.compactMap { $0.first?.leagueDefinition } + leagueDefinitions + playerDefinitions)
+        for league in definitions {
+            let teamGroup = teamGroups["\(league.sport)|\(league.league)"] ?? []
+            if let scoreboard = try? await fetchScoreboard(for: league) {
+                if league.format == .teamScore, !teamGroup.isEmpty {
+                    snapshots.append(contentsOf: matchSnapshots(from: scoreboard, followedTeams: teamGroup, league: league, includeUpcoming: false))
+                } else if league.format == .leaderboard, !teamGroup.isEmpty {
+                    snapshots.append(contentsOf: leaderboardSnapshots(from: scoreboard, followedTeams: teamGroup, league: league, includeUpcoming: false))
+                }
+                if followedLeagueIDs.contains(league.id) {
+                    snapshots.append(contentsOf: leagueSnapshots(from: scoreboard, league: league, includeUpcoming: false))
+                }
+            }
+
+            do {
+                if league.sport == "tennis" {
+                    let players = followedPlayers.filter { $0.sport == league.sport && $0.league == league.league }
+                    if players.isEmpty {
+                        print("🎾 Tennis league \(league.id) is followed, but no starred competitors were loaded for the widget.")
+                    }
+                    if !players.isEmpty {
+                        snapshots.append(contentsOf: try await tennisSnapshots(for: league, players: players))
+                    }
+                    if followedLeagueIDs.contains(league.id) {
+                        snapshots.append(contentsOf: try await tennisLeagueSnapshots(for: league))
+                    }
+                    continue
+                }
+                let upcomingScoreboard = try await fetchScoreboard(for: league, daysAhead: 30)
+                if league.format == .teamScore, !teamGroup.isEmpty {
+                    snapshots.append(contentsOf: matchSnapshots(from: upcomingScoreboard, followedTeams: teamGroup, league: league, includeUpcoming: true))
+                } else if league.format == .leaderboard, !teamGroup.isEmpty {
+                    snapshots.append(contentsOf: leaderboardSnapshots(from: upcomingScoreboard, followedTeams: teamGroup, league: league, includeUpcoming: true))
+                }
+                if followedLeagueIDs.contains(league.id) {
+                    snapshots.append(contentsOf: leagueSnapshots(from: upcomingScoreboard, league: league, includeUpcoming: true))
+                }
+            } catch {
+                print("🟨 Sports scoreboard unavailable for \(league.id):", error)
+            }
+        }
+
+        let deduped = Dictionary(grouping: snapshots, by: \.id).compactMap { _, matches in
+            matches.min(by: SportsSnapshotPriority.compare)
+        }
+        return deduped.sorted(by: SportsSnapshotPriority.compare)
+    }
+
+    private func tennisSnapshots(for league: SportsLeagueDefinition, players: [FollowedPlayer]) async throws -> [GameSnapshot] {
+        guard !players.isEmpty else { return [] }
+        let response = try await fetchTennisScoreboard(for: league, daysAhead: 30)
+        let followedIDs = Set(players.map(\.playerId))
+        print("🎾 Tennis scan (\(league.id)): followedPlayers=\(players.map(\.name).joined(separator: ", ")), events=\(response.events.count)")
+        var matchedCompetitions = 0
+        let candidates = response.events.flatMap { event in
+            (event.groupings ?? []).flatMap { grouping in
+                (grouping.competitions ?? []).compactMap { match -> GameSnapshot? in
+                    guard let competitors = match.competitors,
+                          competitors.count >= 2,
+                          competitors.contains(where: { competitor in
+                              tennisCompetitorIdentifiers(for: competitor).contains(where: followedIDs.contains)
+                          }),
+                          let first = competitors.first,
+                          let second = competitors.dropFirst().first else { return nil }
+
+                    matchedCompetitions += 1
+                    let status = match.status
+                    let date = ESPNDate.parse(match.date ?? "")
+                    let names = competitors.map { tennisCompetitorName(for: $0) ?? "?" }.joined(separator: " vs ")
+                    print("🎾 Matched tennis competition (\(league.id)): id=\(match.id) state=\(status?.type?.state ?? "?") detail=\(status?.type?.detail ?? status?.type?.shortDetail ?? "?") date=\(match.date ?? "?") players=\(names)")
+                    let snapshot = GameSnapshot(
+                        id: match.id,
+                        competition: event.name,
+                        state: SportsGameState.fromESPN(status?.type?.state),
+                        clock: status?.displayClock ?? "",
+                        statusDetail: status?.type?.shortDetail ?? "",
+                        home: mapTennisSide(first),
+                        away: mapTennisSide(second),
+                        events: [],
+                        leaderboardEntries: [],
+                        eventURL: Self.eventURL(for: match.id, league: league),
+                        startDate: date,
+                        followedTeamID: players.first(where: { followedIDs.contains($0.playerId) })?.id ?? "player",
+                        leagueDefinition: league,
+                        venueName: match.round?.displayName,
+                        venueCountry: nil
+                    )
+
+                    if snapshot.state.isLive { return snapshot }
+                    if snapshot.state == .pre, let date, date >= Date() { return snapshot }
+                    if snapshot.state == .post, let date, date >= Date().addingTimeInterval(-86_400) { return snapshot }
+                    print("🎾 Skipped tennis match after retention (\(league.id)): id=\(match.id) state=\(snapshot.state.rawValue) parsedDate=\(String(describing: date))")
+                    return nil
+                }
+            }
+        }
+        print("🎾 Tennis competitions matched before retention (\(league.id)): \(matchedCompetitions)")
+        let sorted = candidates.sorted { lhs, rhs in
+            let rank: (GameSnapshot) -> Int = { snapshot in
+                switch snapshot.state {
+                case .live: return 0
+                case .pre: return 1
+                case .post: return 2
+                case .unknown: return 3
+                }
+            }
+            let lhsRank = rank(lhs)
+            let rhsRank = rank(rhs)
+            if lhsRank != rhsRank { return lhsRank < rhsRank }
+            if lhs.state == .post {
+                return (lhs.startDate ?? .distantPast) > (rhs.startDate ?? .distantPast)
+            }
+            return (lhs.startDate ?? .distantFuture) < (rhs.startDate ?? .distantFuture)
+        }
+        print("🎾 Tennis matches retained (\(league.id)): \(sorted.count)")
+        return sorted
+    }
+
+    private func tennisLeagueSnapshots(for league: SportsLeagueDefinition) async throws -> [GameSnapshot] {
+        let response = try await fetchTennisScoreboard(for: league, daysAhead: 30)
+        print("🎾 Tennis league scan (\(league.id)): events=\(response.events.count)")
+
+        let candidates = response.events.flatMap { event in
+            (event.groupings ?? []).flatMap { grouping in
+                (grouping.competitions ?? []).compactMap { match -> GameSnapshot? in
+                    guard let competitors = match.competitors,
+                          competitors.count >= 2,
+                          let first = competitors.first,
+                          let second = competitors.dropFirst().first else { return nil }
+
+                    let firstName = tennisCompetitorName(for: first) ?? "?"
+                    let secondName = tennisCompetitorName(for: second) ?? "?"
+                    guard isMeaningfulTennisName(firstName) || isMeaningfulTennisName(secondName) else {
+                        print("🎾 Skipped tennis league match with unknown competitors (\(league.id)): id=\(match.id) players=\(firstName) vs \(secondName)")
+                        return nil
+                    }
+
+                    let status = match.status
+                    let date = ESPNDate.parse(match.date ?? "")
+                    let snapshot = GameSnapshot(
+                        id: match.id,
+                        competition: event.name,
+                        state: SportsGameState.fromESPN(status?.type?.state),
+                        clock: status?.displayClock ?? "",
+                        statusDetail: status?.type?.shortDetail ?? "",
+                        home: mapTennisSide(first),
+                        away: mapTennisSide(second),
+                        events: [],
+                        leaderboardEntries: [],
+                        eventURL: Self.eventURL(for: match.id, league: league),
+                        startDate: date,
+                        followedTeamID: league.id,
+                        leagueDefinition: league,
+                        venueName: match.round?.displayName,
+                        venueCountry: nil
+                    )
+
+                    if snapshot.state.isLive { return snapshot }
+                    if snapshot.state == .pre, let date, date >= Date() { return snapshot }
+                    if snapshot.state == .post, let date, date >= Date().addingTimeInterval(-86_400) { return snapshot }
+                    return nil
+                }
+            }
+        }
+
+        let sorted = candidates.sorted { lhs, rhs in
+            let rank: (GameSnapshot) -> Int = { snapshot in
+                switch snapshot.state {
+                case .live: return 0
+                case .pre: return 1
+                case .post: return 2
+                case .unknown: return 3
+                }
+            }
+            let lhsRank = rank(lhs)
+            let rhsRank = rank(rhs)
+            if lhsRank != rhsRank { return lhsRank < rhsRank }
+            if lhs.state == .post {
+                return (lhs.startDate ?? .distantPast) > (rhs.startDate ?? .distantPast)
+            }
+            return (lhs.startDate ?? .distantFuture) < (rhs.startDate ?? .distantFuture)
+        }
+        print("🎾 Tennis league matches retained (\(league.id)): \(sorted.count)")
+        return sorted
+    }
+
     func matchDetail(for game: GameSnapshot) async throws -> SportsMatchDetail {
         guard let eventID = game.id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(game.leagueDefinition.sport)/\(game.leagueDefinition.league)/summary?event=\(eventID)")
@@ -718,16 +1166,90 @@ actor SportsDataService {
 
     private func fetchScoreboard(for league: SportsLeagueDefinition) async throws -> ESPNScoreboardResponse {
         let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/\(league.sport)/\(league.league)/scoreboard")!
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return try decoder.decode(ESPNScoreboardResponse.self, from: data)
+        return try await fetchScoreboard(from: url, league: league)
     }
 
     private func fetchScoreboard(for league: SportsLeagueDefinition, daysAhead: Int) async throws -> ESPNScoreboardResponse {
         guard let url = scoreboardURL(for: league, daysAhead: daysAhead) else {
             return try await fetchScoreboard(for: league)
         }
+        return try await fetchScoreboard(from: url, league: league)
+    }
+
+    private func fetchScoreboard(from url: URL, league: SportsLeagueDefinition) async throws -> ESPNScoreboardResponse {
         let (data, _) = try await URLSession.shared.data(from: url)
-        return try decoder.decode(ESPNScoreboardResponse.self, from: data)
+
+        do {
+            let decoded = try decoder.decode(ESPNScoreboardResponse.self, from: data)
+            return decoded
+        } catch let error as DecodingError {
+            throw error
+        }
+    }
+
+    private func fetchTennisScoreboard(for league: SportsLeagueDefinition, daysAhead: Int) async throws -> TennisScoreboardResponse {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: Date())
+        let end = calendar.date(byAdding: .day, value: daysAhead, to: start) ?? start
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = "yyyyMMdd"
+        let range = "\(formatter.string(from: start))-\(formatter.string(from: end))"
+        let url = URL(string: "https://site.api.espn.com/apis/site/v2/sports/tennis/\(league.league)/scoreboard?dates=\(range)")!
+        print("🎾 Tennis request:", url.absoluteString)
+        let (data, response) = try await URLSession.shared.data(from: url)
+        print("🎾 Tennis response: status=\((response as? HTTPURLResponse)?.statusCode ?? -1), bytes=\(data.count)")
+        debugLogLiveTennisPayload(data, leagueID: league.id)
+        do {
+            let decoded = try decoder.decode(TennisScoreboardResponse.self, from: data)
+            print("🎾 Tennis decoded events:", decoded.events.count)
+            return decoded
+        } catch let error as DecodingError {
+            print("🟥 Tennis decode error:", error)
+            throw error
+        }
+    }
+
+    private func debugLogLiveTennisPayload(_ data: Data, leagueID: String) {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let events = root["events"] as? [[String: Any]] else { return }
+
+        for event in events {
+            let eventName = event["name"] as? String ?? "?"
+            let groupings = event["groupings"] as? [[String: Any]] ?? []
+
+            for grouping in groupings {
+                let competitions = grouping["competitions"] as? [[String: Any]] ?? []
+
+                for competition in competitions {
+                    let status = ((competition["status"] as? [String: Any])?["type"] as? [String: Any]) ?? [:]
+                    let state = status["state"] as? String ?? "?"
+                    guard state == "in" || state == "live" else { continue }
+
+                    let matchID = competition["id"] as? String ?? "?"
+                    let detail = status["detail"] as? String ?? status["shortDetail"] as? String ?? "?"
+                    let competitors = competition["competitors"] as? [[String: Any]] ?? []
+                    let competitorNames = competitors.compactMap {
+                        (($0["athlete"] as? [String: Any])?["displayName"] as? String)
+                    }
+                    let competitorKeys = competitors.map { Array($0.keys).sorted() }
+                    let athleteKeys = competitors.map {
+                        Array((($0["athlete"] as? [String: Any]) ?? [:]).keys).sorted()
+                    }
+                    let linescoreKeys = competitors.map { competitor in
+                        let linescores = competitor["linescores"] as? [[String: Any]] ?? []
+                        return linescores.first.map { Array($0.keys).sorted() } ?? []
+                    }
+
+                    print("🎾 Live tennis raw (\(leagueID)): event=\(eventName) match=\(matchID) detail=\(detail) players=\(competitorNames.joined(separator: " vs "))")
+                    print("🎾 Live tennis competitor keys (\(leagueID)): \(competitorKeys)")
+                    print("🎾 Live tennis athlete keys (\(leagueID)): \(athleteKeys)")
+                    print("🎾 Live tennis first linescore keys (\(leagueID)): \(linescoreKeys)")
+                    print("🎾 Live tennis competitors payload (\(leagueID)): \(competitors)")
+                }
+            }
+        }
     }
 
     private func matchSnapshots(
@@ -772,10 +1294,13 @@ actor SportsDataService {
                 home: mapSide(homeCompetitor),
                 away: mapSide(awayCompetitor),
                 events: mapGoalEvents(competition.details ?? []),
+                leaderboardEntries: [],
                 eventURL: Self.eventURL(for: event.id, league: league),
                 startDate: startDate,
                 followedTeamID: followedTeam.id,
-                leagueDefinition: league
+                leagueDefinition: league,
+                venueName: competition.venue?.fullName,
+                venueCountry: nil
             )
 
             // Live games must always be retained. ESPN can return a UTC date that
@@ -794,6 +1319,134 @@ actor SportsDataService {
         }
     }
 
+    private func leagueSnapshots(
+        from response: ESPNScoreboardResponse,
+        league: SportsLeagueDefinition,
+        includeUpcoming: Bool
+    ) -> [GameSnapshot] {
+        response.events.compactMap { event in
+            guard let competition = event.competitions.first else { return nil }
+
+            if league.format == .leaderboard, league.sport == "racing" {
+                return raceSnapshot(from: event, competition: competition, league: league, includeUpcoming: includeUpcoming)
+            }
+
+            guard competition.competitors.count >= 2,
+                  let home = competition.competitors.first(where: { $0.homeAway == "home" }) ?? competition.competitors.first,
+                  let away = competition.competitors.first(where: { $0.homeAway == "away" }) ?? competition.competitors.dropFirst().first
+            else { return nil }
+
+            let status = competition.status ?? event.status
+            let snapshot = GameSnapshot(
+                id: event.id ?? UUID().uuidString,
+                competition: event.shortName ?? event.name ?? league.subtitle,
+                state: SportsGameState.fromESPN(status?.type?.state),
+                clock: status?.displayClock ?? "",
+                statusDetail: status?.type?.shortDetail ?? "",
+                home: mapSide(home),
+                away: mapSide(away),
+                events: mapGoalEvents(competition.details ?? []),
+                leaderboardEntries: [],
+                eventURL: Self.eventURL(for: event.id, league: league),
+                startDate: ESPNDate.parse(event.date ?? ""),
+                followedTeamID: "league",
+                leagueDefinition: league,
+                venueName: competition.venue?.fullName,
+                venueCountry: nil
+            )
+
+            if snapshot.state.isLive || snapshot.isToday { return snapshot }
+            if includeUpcoming, let startDate = snapshot.startDate, startDate >= Date() { return snapshot }
+            return nil
+        }
+    }
+
+    private func leaderboardSnapshots(
+        from response: ESPNScoreboardResponse,
+        followedTeams: [FollowedTeam],
+        league: SportsLeagueDefinition,
+        includeUpcoming: Bool
+    ) -> [GameSnapshot] {
+        return response.events.compactMap { event in
+            guard let competition = event.competitions.first else { return nil }
+
+            let matchedFollow = competition.competitors.compactMap { competitor -> FollowedTeam? in
+                followedTeams.first(where: { leaderboardCompetitorMatches($0, competitor: competitor) })
+            }.first
+
+            // ESPN publishes upcoming F1 races before it publishes their driver
+            // field, so pre-race competitions commonly have zero competitors.
+            // A driver follow still means the user wants that race in the notch.
+            let followedTeam = matchedFollow ?? (league.sport == "racing" ? followedTeams.first : nil)
+            guard let followedTeam else { return nil }
+
+            if matchedFollow == nil, league.sport == "racing" {
+                print(
+                    "🏎️ F1 race has no matching driver payload; keeping race for followed driver:",
+                    followedTeam.name,
+                    event.name ?? event.id ?? "unknown event",
+                    "competitors=\(competition.competitors.count)"
+                )
+            }
+
+            if league.sport == "racing",
+               let snapshot = raceSnapshot(from: event, competition: competition, league: league, includeUpcoming: includeUpcoming) {
+                return GameSnapshot(
+                    id: snapshot.id,
+                    competition: snapshot.competition,
+                    state: snapshot.state,
+                    clock: snapshot.clock,
+                    statusDetail: snapshot.statusDetail,
+                    home: snapshot.home,
+                    away: snapshot.away,
+                    events: snapshot.events,
+                    leaderboardEntries: snapshot.leaderboardEntries,
+                    eventURL: snapshot.eventURL,
+                    startDate: snapshot.startDate,
+                    followedTeamID: followedTeam.id,
+                    leagueDefinition: snapshot.leagueDefinition,
+                    venueName: snapshot.venueName,
+                    venueCountry: snapshot.venueCountry
+                )
+            }
+
+            return nil
+        }
+    }
+
+    private func raceSnapshot(
+        from event: ESPNEvent,
+        competition: ESPNCompetition,
+        league: SportsLeagueDefinition,
+        includeUpcoming: Bool
+    ) -> GameSnapshot? {
+        let status = competition.status ?? event.status
+        let parsedDate = ESPNDate.parse(event.date ?? "")
+        let snapshot = GameSnapshot(
+            id: event.id ?? UUID().uuidString,
+            competition: event.name ?? event.shortName ?? league.subtitle,
+            state: SportsGameState.fromESPN(status?.type?.state),
+            clock: status?.displayClock ?? "",
+            statusDetail: status?.type?.shortDetail ?? "",
+            home: SportsTeamSide(teamId: "", name: "", abbreviation: "", logoURL: "", score: "", record: nil),
+            away: SportsTeamSide(teamId: "", name: "", abbreviation: "", logoURL: "", score: "", record: nil),
+            events: [],
+            leaderboardEntries: raceEntries(from: competition),
+            eventURL: Self.eventURL(for: event.id, league: league),
+            startDate: parsedDate,
+            followedTeamID: "league",
+            leagueDefinition: league,
+            venueName: event.circuit?.fullName,
+            venueCountry: event.circuit?.address?.country
+        )
+
+        if snapshot.state.isLive || snapshot.isToday { return snapshot }
+        if includeUpcoming, let startDate = snapshot.startDate, startDate >= Date() {
+            return snapshot
+        }
+        return nil
+    }
+
     private func mapSide(_ competitor: ESPNCompetitor) -> SportsTeamSide {
         let record = competitor.records?.first(where: { ($0.summary ?? "").isEmpty == false })?.summary
         return SportsTeamSide(
@@ -804,6 +1457,88 @@ actor SportsDataService {
             score: competitor.score ?? "-",
             record: record
         )
+    }
+
+    private func mapTennisSide(_ competitor: TennisCompetitor) -> SportsTeamSide {
+        SportsTeamSide(
+            teamId: tennisCompetitorID(for: competitor) ?? "",
+            name: tennisCompetitorName(for: competitor) ?? "Unknown Player",
+            abbreviation: "",
+            logoURL: competitor.athlete?.flag?.href ?? "",
+            score: competitor.linescores?.last.flatMap { $0.value.map { String(Int($0)) } } ?? "-",
+            record: nil,
+            setScores: competitor.linescores?.compactMap { $0.value.map { String(Int($0)) } } ?? [],
+            isWinner: competitor.winner == true
+        )
+    }
+
+    private func raceEntries(from competition: ESPNCompetition) -> [SportsLeaderboardEntry] {
+        competition.competitors
+            .sorted { lhs, rhs in
+                (lhs.order ?? Int.max) < (rhs.order ?? Int.max)
+            }
+            .prefix(3)
+            .enumerated()
+            .map { index, competitor in
+                let position = competitor.order ?? (index + 1)
+                let name = competitor.athlete?.displayName
+                    ?? competitor.athlete?.fullName
+                    ?? competitor.athlete?.shortName
+                    ?? "Driver"
+                let secondary = competitor.team?.displayName
+                    ?? competitor.team?.shortDisplayName
+                    ?? competitor.team?.name
+                    ?? competitor.athlete?.flag?.alt
+                let trailing: String?
+                if position == 1 {
+                    trailing = "Leader"
+                } else if let score = competitor.score, !score.isEmpty {
+                    trailing = score
+                } else {
+                    trailing = nil
+                }
+
+                return SportsLeaderboardEntry(
+                    position: position,
+                    name: name,
+                    secondaryText: secondary,
+                    trailingText: trailing,
+                    flagURL: competitor.athlete?.flag?.href
+                )
+            }
+    }
+
+    private func leaderboardCompetitorIdentifiers(for competitor: ESPNCompetitor) -> [String] {
+        [
+            competitor.id,
+            competitor.team?.id,
+            competitor.athlete?.id
+        ]
+        .compactMap { $0 }
+    }
+
+    private func leaderboardCompetitorMatches(_ followedTeam: FollowedTeam, competitor: ESPNCompetitor) -> Bool {
+        if leaderboardCompetitorIdentifiers(for: competitor).contains(followedTeam.teamId) {
+            return true
+        }
+
+        let followedName = followedTeam.name
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        let candidateNames = [
+            competitor.team?.displayName,
+            competitor.team?.shortDisplayName,
+            competitor.team?.name,
+            competitor.athlete?.displayName,
+            competitor.athlete?.shortName,
+            competitor.athlete?.fullName,
+            competitor.roster?.displayName,
+            competitor.roster?.shortDisplayName
+        ]
+        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+
+        return candidateNames.contains(followedName)
     }
 
     private func mapGoalEvents(_ details: [ESPNCompetitionDetail]) -> [GoalEvent] {
@@ -823,14 +1558,42 @@ actor SportsDataService {
         }
         return URL(string: "https://www.espn.com/\(league.espnGamePath)/_/gameId/\(eventID)")
     }
+
+    private func tennisCompetitorID(for competitor: TennisCompetitor) -> String? {
+        competitor.id
+            ?? competitor.athlete?.id
+            ?? competitor.athlete?.guid
+    }
+
+    private func tennisCompetitorName(for competitor: TennisCompetitor) -> String? {
+        competitor.athlete?.displayName
+            ?? competitor.athlete?.shortName
+            ?? competitor.athlete?.fullName
+    }
+
+    private func tennisCompetitorIdentifiers(for competitor: TennisCompetitor) -> [String] {
+        [
+            competitor.id,
+            competitor.athlete?.id,
+            competitor.athlete?.guid
+        ]
+        .compactMap { $0 }
+    }
+
+    private func isMeaningfulTennisName(_ name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        let lowered = trimmed.lowercased()
+        return lowered != "tbd" && lowered != "?"
+    }
 }
 
 enum SportsSnapshotPriority {
     static func score(for snapshot: GameSnapshot) -> Int {
         if snapshot.state.isLive { return 0 }
-        if snapshot.isStartingSoonToday { return 1 }
-        if snapshot.state.isPost && snapshot.isToday { return 2 }
-        return 3
+        if snapshot.state.isPre { return 1 }
+        if snapshot.state.isPost { return 3 }
+        return 2
     }
 
     static func compare(lhs: GameSnapshot, rhs: GameSnapshot) -> Bool {
@@ -841,6 +1604,10 @@ enum SportsSnapshotPriority {
         let lhsDate = lhs.startDate ?? .distantFuture
         let rhsDate = rhs.startDate ?? .distantFuture
         if lhsDate != rhsDate { return lhsDate < rhsDate }
+
+        if lhs.isSpecificCompetitorFollow != rhs.isSpecificCompetitorFollow {
+            return lhs.isSpecificCompetitorFollow && !rhs.isSpecificCompetitorFollow
+        }
 
         return lhs.followedTeamID < rhs.followedTeamID
     }
@@ -924,9 +1691,12 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     let widgetID: String
 
     @Published private(set) var followedTeams: [FollowedTeam]
+    @Published private(set) var followedLeagues: [FollowedLeague]
+    @Published private(set) var followedPlayers: [FollowedPlayer]
     @Published private(set) var games: [GameSnapshot] = []
     @Published private(set) var primaryGame: GameSnapshot?
     @Published var focusedGameID: String?
+    @Published private(set) var compactPinnedGameID: String?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var matchDetails: [String: SportsMatchDetail] = [:]
@@ -940,6 +1710,8 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
     init(widgetID: String) {
         self.widgetID = widgetID
         self.followedTeams = SportsPreferences.loadFollowedTeams()
+        self.followedLeagues = SportsPreferences.loadFollowedLeagues()
+        self.followedPlayers = SportsPreferences.starredPlayers()
         registerNotifications()
         startPollingLoop()
     }
@@ -958,11 +1730,25 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
 
     var compactGame: GameSnapshot? {
         guard Defaults[.sportsShowLiveInClosedNotch] else { return nil }
-        return primaryGame?.state.isLive == true ? primaryGame : nil
+        let liveGames = games.filter { $0.state.isLive }
+        guard !liveGames.isEmpty else { return nil }
+
+        if let compactPinnedGameID,
+           let pinned = liveGames.first(where: { $0.id == compactPinnedGameID }) {
+            return pinned
+        }
+
+        return fallbackCompactLiveGame(from: liveGames)
+    }
+
+    var compactAdditionalLiveCount: Int {
+        guard let compactGame else { return 0 }
+        return max(0, games.filter { $0.state.isLive && $0.id != compactGame.id }.count)
     }
 
     func focus(game: GameSnapshot) {
         focusedGameID = game.id
+        compactPinnedGameID = game.id
     }
 
     func focusAdjacentGame(step: Int) {
@@ -980,7 +1766,9 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         }
 
         let nextIndex = min(max(currentIndex + step, 0), games.count - 1)
-        focusedGameID = games[nextIndex].id
+        let nextGame = games[nextIndex]
+        focusedGameID = nextGame.id
+        compactPinnedGameID = nextGame.id
     }
 
     func hasAdjacentGame(step: Int) -> Bool {
@@ -1027,7 +1815,13 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
 
     func refreshNow() async {
         followedTeams = SportsPreferences.loadFollowedTeams()
-        guard !followedTeams.isEmpty else {
+        followedLeagues = SportsPreferences.loadFollowedLeagues()
+        followedPlayers = SportsPreferences.starredPlayers()
+        print("🏟️ Sports widget refresh: teams=\(followedTeams.count) leagues=\(followedLeagues.count) players=\(followedPlayers.count)")
+        if !followedPlayers.isEmpty {
+            print("🎾 Sports widget refresh players:", followedPlayers.map { "\($0.league):\($0.name)[\($0.playerId)]" }.joined(separator: ", "))
+        }
+        guard !followedTeams.isEmpty || !followedLeagues.isEmpty || !followedPlayers.isEmpty else {
             games = []
             primaryGame = nil
             focusedGameID = nil
@@ -1039,10 +1833,24 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         defer { isLoading = false }
 
         do {
-            let snapshots = try await SportsDataService.shared.snapshots(for: followedTeams)
+            let snapshots = try await SportsDataService.shared.snapshots(
+                for: followedTeams,
+                followedLeagues: followedLeagues,
+                followedPlayers: followedPlayers
+            )
             let visibleMatches = Array(snapshots.prefix(max(2, min(7, Defaults[.sportsMaximumMatches]))))
             games = visibleMatches
-            primaryGame = visibleMatches.first(where: { $0.state.isLive }) ?? visibleMatches.first
+            let liveMatches = visibleMatches.filter { $0.state.isLive }
+            let fallbackLiveGame = fallbackCompactLiveGame(from: liveMatches)
+            primaryGame = fallbackLiveGame ?? visibleMatches.first
+
+            if let compactPinnedGameID,
+               !liveMatches.contains(where: { $0.id == compactPinnedGameID }) {
+                self.compactPinnedGameID = fallbackLiveGame?.id
+            } else if self.compactPinnedGameID == nil {
+                self.compactPinnedGameID = fallbackLiveGame?.id
+            }
+
             if focusedGame == nil {
                 focusedGameID = primaryGame?.id
             } else if let focusedGameID, !visibleMatches.contains(where: { $0.id == focusedGameID }) {
@@ -1052,7 +1860,22 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
         } catch {
             games = []
             primaryGame = nil
+            compactPinnedGameID = nil
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func fallbackCompactLiveGame(from liveGames: [GameSnapshot]) -> GameSnapshot? {
+        liveGames.min { lhs, rhs in
+            if lhs.isSpecificCompetitorFollow != rhs.isSpecificCompetitorFollow {
+                return lhs.isSpecificCompetitorFollow && !rhs.isSpecificCompetitorFollow
+            }
+
+            let lhsDate = lhs.startDate ?? .distantFuture
+            let rhsDate = rhs.startDate ?? .distantFuture
+            if lhsDate != rhsDate { return lhsDate < rhsDate }
+
+            return lhs.followedTeamID < rhs.followedTeamID
         }
     }
 
@@ -1109,10 +1932,16 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     let updatedTeams = SportsPreferences.loadFollowedTeams()
+                    let updatedLeagues = SportsPreferences.loadFollowedLeagues()
+                    let updatedPlayers = SportsPreferences.starredPlayers()
                     let teamsChanged = updatedTeams != self.followedTeams
+                    let leaguesChanged = updatedLeagues != self.followedLeagues
+                    let playersChanged = updatedPlayers != self.followedPlayers
                     self.followedTeams = updatedTeams
+                    self.followedLeagues = updatedLeagues
+                    self.followedPlayers = updatedPlayers
                     self.objectWillChange.send()
-                    if teamsChanged {
+                    if teamsChanged || leaguesChanged || playersChanged {
                         await self.refreshNow()
                     }
                 }
@@ -1153,7 +1982,11 @@ private enum ESPNDate {
                 return date
             }
         }
-        return nil
+
+        // ESPN sometimes varies only by fractional seconds. Keep the explicit
+        // no-seconds UTC format above, then use Foundation's ISO parser as a
+        // tolerant fallback for F1 session/event timestamps.
+        return ISO8601DateFormatter().date(from: string)
     }
 }
 
@@ -1235,6 +2068,52 @@ private struct ESPNScoreboardResponse: Decodable {
     let events: [ESPNEvent]
 }
 
+private struct TennisScoreboardResponse: Decodable {
+    let events: [TennisEvent]
+}
+
+private struct TennisEvent: Decodable {
+    let id: String
+    let name: String
+    let groupings: [TennisGrouping]?
+}
+
+private struct TennisGrouping: Decodable {
+    let competitions: [TennisMatch]?
+}
+
+private struct TennisMatch: Decodable {
+    let id: String
+    let date: String?
+    let status: ESPNStatus?
+    let round: TennisRound?
+    let competitors: [TennisCompetitor]?
+}
+
+private struct TennisRound: Decodable {
+    let displayName: String?
+}
+
+private struct TennisCompetitor: Decodable {
+    let id: String?
+    let winner: Bool?
+    let athlete: TennisAthlete?
+    let linescores: [TennisLineScore]?
+}
+
+private struct TennisAthlete: Decodable {
+    let guid: String?
+    let id: String?
+    let displayName: String?
+    let shortName: String?
+    let fullName: String?
+    let flag: ESPNFlag?
+}
+
+private struct TennisLineScore: Decodable {
+    let value: Double?
+}
+
 private struct ESPNEvent: Decodable {
     let id: String?
     let name: String?
@@ -1242,6 +2121,17 @@ private struct ESPNEvent: Decodable {
     let date: String?
     let competitions: [ESPNCompetition]
     let status: ESPNStatus?
+    let circuit: ESPNCircuit?
+}
+
+private struct ESPNCircuit: Decodable {
+    let fullName: String?
+    let address: ESPNCircuitAddress?
+}
+
+private struct ESPNCircuitAddress: Decodable {
+    let city: String?
+    let country: String?
 }
 
 private struct ESPNCompetition: Decodable {
@@ -1249,6 +2139,18 @@ private struct ESPNCompetition: Decodable {
     let details: [ESPNCompetitionDetail]?
     let status: ESPNStatus?
     let venue: ESPNVenue?
+
+    enum CodingKeys: String, CodingKey {
+        case competitors, details, status, venue
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        competitors = try container.decodeIfPresent([ESPNCompetitor].self, forKey: .competitors) ?? []
+        details = try container.decodeIfPresent([ESPNCompetitionDetail].self, forKey: .details)
+        status = try container.decodeIfPresent(ESPNStatus.self, forKey: .status)
+        venue = try container.decodeIfPresent(ESPNVenue.self, forKey: .venue)
+    }
 }
 
 private struct ESPNCompetitionDetail: Decodable {
@@ -1268,10 +2170,33 @@ private struct ESPNDisplayClock: Decodable {
 }
 
 private struct ESPNCompetitor: Decodable {
+    let id: String?
     let homeAway: String?
+    let order: Int?
     let team: ESPNTeam?
+    let athlete: ESPNScoreboardAthlete?
+    let roster: ESPNScoreboardRoster?
     let score: String?
     let records: [ESPNRecord]?
+}
+
+private struct ESPNScoreboardAthlete: Decodable {
+    let id: String?
+    let displayName: String?
+    let shortName: String?
+    let fullName: String?
+    let flag: ESPNFlag?
+}
+
+private struct ESPNScoreboardRoster: Decodable {
+    let displayName: String?
+    let shortDisplayName: String?
+    let athletes: [ESPNScoreboardAthlete]?
+}
+
+private struct ESPNFlag: Decodable {
+    let href: String?
+    let alt: String?
 }
 
 private struct ESPNRecord: Decodable {
