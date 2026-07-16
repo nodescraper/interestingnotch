@@ -20,3 +20,16 @@ xcrun notarytool store-credentials interestingnotch-notary \
 Then run `Configuration/signing/build_release.sh` with `APPLE_TEAM_ID` set to the 10-character Team ID and `NOTARYTOOL_PROFILE` set to the profile name.
 
 The resulting DMG is signed, notarized, and stapled. A user can drag the app to Applications without bypassing Gatekeeper.
+
+To make Sparkle updates work for a local/manual release, publish the appcast too:
+
+```bash
+APPLE_TEAM_ID=YOURTEAMID \
+NOTARYTOOL_PROFILE=interestingnotch-notary \
+Configuration/signing/build_release.sh
+
+SPARKLE_PRIVATE_KEY_FILE=/path/to/private_sparkle_key \
+Configuration/signing/publish_appcast.sh 1.1.1
+```
+
+`publish_appcast.sh` updates both `appcast.xml` files. Commit and push them to `main` so GitHub Pages serves the new release to installed apps.

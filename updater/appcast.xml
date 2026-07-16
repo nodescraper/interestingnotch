@@ -1,9 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>InterestingNotch Updates</title>
         <link>https://github.com/nodescraper/interestingnotch/releases</link>
         <description>Release feed for InterestingNotch.</description>
         <language>en</language>
+        <item>
+            <title>1.0.3</title>
+            <pubDate>Thu, 16 Jul 2026 20:57:36 +0200</pubDate>
+            <link>https://github.com/nodescraper/interestingnotch/releases</link>
+            <sparkle:version>283</sparkle:version>
+            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<html>
+  <body>
+    <h1>InterestingNotch 1.1.1</h1>
+    <p>See the GitHub release for details.</p>
+  </body>
+</html>
+]]></description>
+            <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.1/InterestingNotch.dmg" length="11151315" type="application/octet-stream" sparkle:edSignature="zgbhM4sLCxPWzbycWkjnQoSFEl83WVQum7wLVhsoFyvsiV6/wb1LydPAmjYuz9dzMxRTjP8ODmXRWHMHTvA6Dw=="/>
+        </item>
     </channel>
 </rss>
