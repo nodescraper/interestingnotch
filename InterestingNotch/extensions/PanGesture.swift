@@ -57,6 +57,7 @@ private struct ScrollMonitor: NSViewRepresentable {
         private let threshold: CGFloat
         private let action: (CGFloat, NSEvent.Phase) -> Void
         private var localMonitor: Any?
+        private weak var hostView: NSView?
         private var accumulated: CGFloat = 0
         private var active = false
         private var endTask: Task<Void, Never>?
@@ -87,6 +88,7 @@ private struct ScrollMonitor: NSViewRepresentable {
 
         func installMonitor(on view: NSView) {
             removeMonitor()
+            hostView = view
 
             // Local monitor for normal in-window scroll events.
             localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
@@ -104,11 +106,26 @@ private struct ScrollMonitor: NSViewRepresentable {
 
             accumulated = 0
             active = false
+            hostView = nil
             endTask?.cancel()
             endTask = nil
         }
 
         private func handleScroll(_ event: NSEvent) {
+            guard let hostView else { return }
+
+            let locationInView = hostView.convert(event.locationInWindow, from: nil)
+            guard hostView.bounds.contains(locationInView) else {
+                if active {
+                    action(accumulated.magnitude, .ended)
+                }
+                active = false
+                accumulated = 0
+                endTask?.cancel()
+                endTask = nil
+                return
+            }
+
             if event.phase == .ended || event.momentumPhase == .ended {
                 if active {
                     action(accumulated.magnitude, .ended)

@@ -205,7 +205,7 @@ struct ContentView: View {
     private func compactSportsLeadingWidth(for game: GameSnapshot) -> CGFloat {
         switch game.leagueDefinition.format {
         case .sets:
-            return vm.hasNotch ? 48 : 44
+            return vm.hasNotch ? 60 : 54
         case .leaderboard:
             return vm.hasNotch ? 68 : 60
         case .teamScore, .innings:
@@ -216,7 +216,7 @@ struct ContentView: View {
     private func compactSportsTrailingWidth(for game: GameSnapshot) -> CGFloat {
         switch game.leagueDefinition.format {
         case .sets:
-            return vm.hasNotch ? 48 : 44
+            return vm.hasNotch ? 60 : 54
         case .leaderboard:
             return vm.hasNotch ? 76 : 66
         case .teamScore, .innings:
@@ -469,16 +469,21 @@ struct ContentView: View {
                     .opacity((isNotchHeightZero && vm.notchState == .closed) ? 0.01 : 1)
                 
                 mainLayout
+                    // Track the notch at its intrinsic rendered size. Some widget
+                    // pages intentionally draw below the nominal openNotchSize
+                    // into the window's reserved shadow area; attaching hover
+                    // after the fixed frame makes that visible content behave as
+                    // though the pointer already left the notch.
+                    .contentShape(Rectangle())
+                    .onHover { hovering in
+                        handleHover(hovering)
+                    }
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         return view
                             .animation(vm.notchState == .open ? StandardAnimations.open : StandardAnimations.close, value: vm.notchState)
                             .animation(StandardAnimations.close, value: computedChinWidth)
                             .animation(.smooth, value: gestureProgress)
-                    }
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        handleHover(hovering)
                     }
                     .onTapGesture {
                         doOpen()
@@ -487,12 +492,6 @@ struct ContentView: View {
                         view
                             .panGesture(direction: .down) { translation, phase in
                                 handleDownGesture(translation: translation, phase: phase)
-                            }
-                    }
-                    .conditionalModifier(Defaults[.closeGestureEnabled] && Defaults[.enableGestures]) { view in
-                        view
-                            .panGesture(direction: .up) { translation, phase in
-                                handleUpGesture(translation: translation, phase: phase)
                             }
                     }
                     .conditionalModifier(Defaults[.enableHorizontalMediaGestures] && Defaults[.enableGestures]) { view in
@@ -547,6 +546,14 @@ struct ContentView: View {
                     }
                     .onReceive(widgetEngine.objectWillChange) { _ in
                         DispatchQueue.main.async {
+                            syncCompactSneakPeekLifecycle()
+                        }
+                    }
+                    .onReceive(compactSportsModelPublisher) { _ in
+                        DispatchQueue.main.async {
+                            if let sportsGame = compactSportsGame {
+                                lastCompactSportsGame = sportsGame
+                            }
                             syncCompactSneakPeekLifecycle()
                         }
                     }
@@ -613,6 +620,7 @@ struct ContentView: View {
                         //                    }
                         //                    .keyboardShortcut("E", modifiers: .command)
                     }
+
                 if vm.chinHeight > 0 {
                     Rectangle()
                         .fill(Color.black.opacity(0.01))
@@ -1349,6 +1357,8 @@ struct ContentView: View {
                         Text(compactTennisCode(for: game.home.name))
                             .font(.system(size: 13, weight: .regular, design: .rounded))
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
 
                         Text(game.home.score)
                             .font(.system(size: 13, weight: .regular, design: .rounded))
@@ -1365,6 +1375,8 @@ struct ContentView: View {
                         Text(compactTennisCode(for: game.away.name))
                             .font(.system(size: 13, weight: .regular, design: .rounded))
                             .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
 
                         compactSportsExtraLiveBadge
                     }
@@ -1578,34 +1590,6 @@ struct ContentView: View {
         }
     }
 
-    private func handleUpGesture(translation: CGFloat, phase: NSEvent.Phase) {
-        guard vm.notchState == .open && !vm.isHoveringCalendar else { return }
-
-        withAnimation(animationSpring) {
-            gestureProgress = (translation / Defaults[.gestureSensitivity]) * -20
-        }
-
-        if phase == .ended {
-            withAnimation(animationSpring) {
-                gestureProgress = .zero
-            }
-        }
-
-        if translation > Defaults[.gestureSensitivity] {
-            withAnimation(animationSpring) {
-                isHovering = false
-            }
-            if !SharingStateManager.shared.preventNotchClose { 
-                gestureProgress = .zero
-                vm.close()
-            }
-
-            if Defaults[.enableHaptics] {
-                haptics.toggle()
-            }
-        }
-    }
-
     private func handleNextTrackGesture(translation: CGFloat, phase: NSEvent.Phase) {
         handleHorizontalMediaGesture(translation: translation, phase: phase, feedback: -1) {
             musicManager.nextTrack()
@@ -1763,6 +1747,13 @@ struct ContentView: View {
         }
 
         return model
+    }
+
+    private var compactSportsModelPublisher: AnyPublisher<Void, Never> {
+        guard let model = compactSportsModel else {
+            return Empty<Void, Never>(completeImmediately: false).eraseToAnyPublisher()
+        }
+        return model.objectWillChange.eraseToAnyPublisher()
     }
 
     private var compactSportsGame: GameSnapshot? {

@@ -14,6 +14,7 @@ enum WidgetTabPageKind: Equatable {
     case sports
     case clipboardHistory
     case voiceRecorder
+    case fileConverter
     case systemMonitor
     case placeholder
 }
@@ -42,6 +43,8 @@ enum WidgetTabPageResolver {
                 return .clipboardHistory
             case .voiceRecorder:
                 return .voiceRecorder
+            case .fileConverter:
+                return .fileConverter
             case .none:
                 break
             }
@@ -98,6 +101,12 @@ struct WidgetTabPageView: View {
                 case .voiceRecorder:
                     if let model = widget.interactiveRuntime as? VoiceRecorderWidgetModel {
                         VoiceRecorderWidgetPageView(widget: widget, model: model)
+                    } else {
+                        unavailableState
+                    }
+                case .fileConverter:
+                    if let model = widget.interactiveRuntime as? FileConverterWidgetModel {
+                        FileConverterWidgetPageView(widget: widget, model: model)
                     } else {
                         unavailableState
                     }

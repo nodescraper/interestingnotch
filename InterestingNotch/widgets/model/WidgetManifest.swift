@@ -147,6 +147,7 @@ struct WidgetManifest: Codable, Identifiable, Hashable, Sendable {
             case sports
             case clipboardHistory = "clipboard-history"
             case voiceRecorder = "voice-recorder"
+            case fileConverter = "file-converter"
         }
     }
 }

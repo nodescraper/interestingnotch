@@ -16,6 +16,51 @@ struct TabModel: Identifiable {
     var id: String { view.stableID }
 }
 
+@MainActor
+enum TabSelectionModelBuilder {
+    static func primaryTabs() -> [TabModel] {
+        [
+            TabModel(label: "Home", icon: "music.note", view: .home),
+        ]
+    }
+
+    static func secondaryTabs(
+        interestingShelf: Bool,
+        pinnedWidgetIDs: [String],
+        availableWidgets: [Widget]
+    ) -> [TabModel] {
+        var tabs: [TabModel] = []
+
+        if interestingShelf {
+            tabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
+        }
+
+        let widgetTabs = WidgetTabResolver
+            .descriptors(
+                pinnedWidgetIDs: pinnedWidgetIDs,
+                availableWidgets: WidgetTabResolver.sources(from: availableWidgets)
+            )
+            .map { descriptor in
+                TabModel(label: descriptor.title, icon: descriptor.icon, view: descriptor.view)
+            }
+
+        tabs.append(contentsOf: widgetTabs)
+        return tabs
+    }
+
+    static func allTabs(
+        interestingShelf: Bool,
+        pinnedWidgetIDs: [String],
+        availableWidgets: [Widget]
+    ) -> [TabModel] {
+        primaryTabs() + secondaryTabs(
+            interestingShelf: interestingShelf,
+            pinnedWidgetIDs: pinnedWidgetIDs,
+            availableWidgets: availableWidgets
+        )
+    }
+}
+
 private enum WidgetTabStripItem: Identifiable {
     case tab(TabModel)
     case previousPage
@@ -45,29 +90,15 @@ struct TabSelectionView: View {
     private let maxWidgetTabsBeforePaging = 4
 
     private var primaryTabs: [TabModel] {
-        [
-            TabModel(label: "Home", icon: "house.fill", view: .home),
-        ]
+        TabSelectionModelBuilder.primaryTabs()
     }
 
     private var secondaryTabs: [TabModel] {
-        var tabs: [TabModel] = []
-
-        if interestingShelf {
-            tabs.append(TabModel(label: "Shelf", icon: "tray.fill", view: .shelf))
-        }
-
-        let widgetTabs = WidgetTabResolver
-            .descriptors(
-                pinnedWidgetIDs: pinnedWidgetIDs,
-                availableWidgets: WidgetTabResolver.sources(from: widgetEngine.widgets)
-            )
-            .map { descriptor in
-                TabModel(label: descriptor.title, icon: descriptor.icon, view: descriptor.view)
-            }
-
-        tabs.append(contentsOf: widgetTabs)
-        return tabs
+        TabSelectionModelBuilder.secondaryTabs(
+            interestingShelf: interestingShelf,
+            pinnedWidgetIDs: pinnedWidgetIDs,
+            availableWidgets: widgetEngine.widgets
+        )
     }
 
     private var widgetPageCount: Int {

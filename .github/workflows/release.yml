@@ -8,11 +8,20 @@ on:
       title:
         description: "Release title suffix"
         required: false
-        default: "Manual release"
+        default: "InterestingNotch release"
       release_notes:
         description: "Release notes markdown"
         required: false
-        default: "- Manual release"
+        default: |
+          ## What's new
+
+          - Improvements and fixes across InterestingNotch.
+
+          ## Install
+
+          - Download `InterestingNotch.dmg`
+          - Move `InterestingNotch.app` to `Applications`
+          - Launch the app
       is_beta:
         description: "Publish as beta/prerelease"
         required: false
@@ -90,8 +99,16 @@ jobs:
           INPUT_NOTES: ${{ github.event.inputs.release_notes }}
         run: |
           set -euo pipefail
-          TITLE="${INPUT_TITLE:-Manual release}"
-          BODY="${INPUT_NOTES:-- Manual release}"
+          TITLE="${INPUT_TITLE:-InterestingNotch release}"
+          BODY="${INPUT_NOTES:-## What's new
+
+- Improvements and fixes across InterestingNotch.
+
+## Install
+
+- Download \`InterestingNotch.dmg\`
+- Move \`InterestingNotch.app\` to \`Applications\`
+- Launch the app}"
 
           BODY_GITHUB=$(printf '%s' "$BODY" | sed '/^# /d' | perl -pe 's#<h1[^>]*>.*?</h1>##gi')
 
@@ -264,6 +281,14 @@ jobs:
 
           mkdir -p updater
           cp appcast.xml updater/appcast.xml
+
+      - name: Validate appcast contains a release item
+        run: |
+          set -euo pipefail
+          if ! grep -q "<item>" appcast.xml; then
+            echo "::error::Generated appcast.xml contains no release items. Sparkle will report 'up to date' even when GitHub has a newer release."
+            exit 1
+          fi
 
       - name: Commit appcast
         run: |

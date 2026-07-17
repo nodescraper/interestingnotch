@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C4FF00112C00000000000001 /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00102C00000000000001 /* MediaPlayerWidget.swift */; };
-		B1B700013A00000100000001 /* BluetoothDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */; };
-		B1B700023A00000100000001 /* BluetoothDevicesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */; };
-		B1B700053A00000100000001 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1B700063A00000100000001 /* IOBluetooth.framework */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -91,26 +87,20 @@
 		11A0D0463A00000100000001 /* WidgetLaunchLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */; };
 		11A0D0483A00000100000001 /* ColorPickerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */; };
 		11A0D04A3A00000100000001 /* WidgetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0493A00000100000001 /* WidgetLibrary.swift */; };
-		CUST00013A00000100000001 /* CustomPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000001 /* CustomPeek.swift */; };
-		CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000002 /* CustomPeekWatcher.swift */; };
-		CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */; };
 		11A0D04C3A00000100000001 /* ScreenColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04B3A00000100000001 /* ScreenColorPicker.swift */; };
 		11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */; };
 		11A0D0503A00000100000001 /* WorkshopInstalledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */; };
 		11A0D0523A00000100000001 /* TimerWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0513A00000100000001 /* TimerWidgetModel.swift */; };
 		11A0D0543A00000100000001 /* TimerWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0533A00000100000001 /* TimerWidgetPageView.swift */; };
-		11A0D0A03A00000100000001 /* WidgetTitleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D09F3A00000100000001 /* WidgetTitleRow.swift */; };
 		11A0D0563A00000100000001 /* VoiceRecorderWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */; };
 		11A0D0583A00000100000001 /* VoiceRecorderWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */; };
-		SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0023A00000100000001 /* SportsWidgetModel.swift */; };
-		SPORT0033A00000100000001 /* SportsWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0043A00000100000001 /* SportsWidgetPageView.swift */; };
-		SPORT0053A00000100000001 /* SportsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0063A00000100000001 /* SportsSettingsView.swift */; };
 		11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */; };
 		11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */; };
 		11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */; };
 		11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */; };
 		11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */; };
 		11A0D0863A00000100000001 /* CalendarWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D0853A00000100000001 /* CalendarWidgetModel.swift */; };
+		11A0D0A03A00000100000001 /* WidgetTitleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A0D09F3A00000100000001 /* WidgetTitleRow.swift */; };
 		11A45C792E34E63100CEB175 /* MediaChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A45C782E34E63100CEB175 /* MediaChecker.swift */; };
 		11C5E3132DFE85970065821E /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3112DFE85970065821E /* SettingsWindowController.swift */; };
 		11C5E3162DFE88510065821E /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C5E3152DFE88510065821E /* SettingsView.swift */; };
@@ -122,8 +112,6 @@
 		11CFC6652E09C7B300748C80 /* OnboardingFinishView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */; };
 		11D58EA22E760AE100FA8377 /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D58EA12E760AE100FA8377 /* ImageService.swift */; };
 		11DB26662EDD0BE1001EA0CF /* LyricsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26652EDD0BE1001EA0CF /* LyricsService.swift */; };
-		C4FF00012C00000000000001 /* CaffeineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00002C00000000000001 /* CaffeineManager.swift */; };
-		C4FF00032C00000000000001 /* CaffeineSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00022C00000000000001 /* CaffeineSettingsView.swift */; };
 		11DB26732EDD0CDF001EA0CF /* ShortcutsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26712EDD0CDF001EA0CF /* ShortcutsSettingsView.swift */; };
 		11DB26742EDD0CDF001EA0CF /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB266C2EDD0CDF001EA0CF /* GeneralSettingsView.swift */; };
 		11DB26752EDD0CDF001EA0CF /* ShelfSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DB26702EDD0CDF001EA0CF /* ShelfSettingsView.swift */; };
@@ -151,8 +139,6 @@
 		1471639A2C5D35FF0068B555 /* MusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147163992C5D35FF0068B555 /* MusicManager.swift */; };
 		1471A8592C6281BD0058408D /* InterestingNotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1471A8582C6281BD0058408D /* InterestingNotchWindow.swift */; };
 		149E0B972C737D00006418B1 /* WebcamManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B962C737D00006418B1 /* WebcamManager.swift */; };
-		A11CE0013A00000100000001 /* SystemPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0023A00000100000001 /* SystemPermissionManager.swift */; };
-		A11CE0033A00000100000001 /* PermissionConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0043A00000100000001 /* PermissionConfigurationTests.swift */; };
 		149E0B9A2C737D40006418B1 /* WebcamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149E0B992C737D40006418B1 /* WebcamView.swift */; };
 		14A7E5882C64A89C008C1BE9 /* HelloAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */; };
 		14A7E5972C65FD31008C1BE9 /* interesting.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 14A7E5962C65FD31008C1BE9 /* interesting.m4a */; };
@@ -188,6 +174,8 @@
 		9A987A0D2C73CA66005CA465 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A987A032C73CA66005CA465 /* ShelfView.swift */; };
 		9A987A102C73CA8D005CA465 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 9A987A0F2C73CA8D005CA465 /* Collections */; };
 		9AB0C6BD2C73C9CB00F7CD30 /* NotchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */; };
+		A11CE0013A00000100000001 /* SystemPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0023A00000100000001 /* SystemPermissionManager.swift */; };
+		A11CE0033A00000100000001 /* PermissionConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0043A00000100000001 /* PermissionConfigurationTests.swift */; };
 		B10348D92C74E56000475897 /* ConditionalModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10348D82C74E56000475897 /* ConditionalModifier.swift */; };
 		B10F84A32C6C9596009F3026 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10F84A22C6C9596009F3026 /* TestView.swift */; };
 		B141C2412CA5F53F00AC8CC8 /* SparkleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B141C2402CA5F53E00AC8CC8 /* SparkleView.swift */; };
@@ -202,6 +190,9 @@
 		B1A78C822C8BA08100BD51B0 /* FullscreenMediaDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */; };
 		B1B112912C6A572100093D8F /* EditPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112902C6A572100093D8F /* EditPanelView.swift */; };
 		B1B112932C6A577E00093D8F /* MouseTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B112922C6A577E00093D8F /* MouseTracker.swift */; };
+		B1B700013A00000100000001 /* BluetoothDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */; };
+		B1B700023A00000100000001 /* BluetoothDevicesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */; };
+		B1B700053A00000100000001 /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1B700063A00000100000001 /* IOBluetooth.framework */; };
 		B1C448962C9712C4001F0858 /* ActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C448952C9712C4001F0858 /* ActionBar.swift */; };
 		B1C448982C972CC4001F0858 /* ListItemPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C448972C972CC4001F0858 /* ListItemPopover.swift */; };
 		B1C974342C642B6D0000E707 /* MarqueeTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C974332C642B6D0000E707 /* MarqueeTextView.swift */; };
@@ -211,8 +202,19 @@
 		B1D6FD432C6603730015F173 /* SoftwareUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */; };
 		B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F0A0012E60000100000001 /* BrightnessManager.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
+		C4FF00012C00000000000001 /* CaffeineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00002C00000000000001 /* CaffeineManager.swift */; };
+		C4FF00032C00000000000001 /* CaffeineSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00022C00000000000001 /* CaffeineSettingsView.swift */; };
+		C4FF00112C00000000000001 /* MediaPlayerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FF00102C00000000000001 /* MediaPlayerWidget.swift */; };
+		CUST00013A00000100000001 /* CustomPeek.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000001 /* CustomPeek.swift */; };
+		CUST00023A00000100000001 /* CustomPeekWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000002 /* CustomPeekWatcher.swift */; };
+		CUST00033A00000100000001 /* CustomWidgetsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */; };
 		F1F2A0A100000000000000F1 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		FCNV10013A00000100000001 /* FileConverterWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCNV10003A00000100000001 /* FileConverterWidgetModel.swift */; };
+		FCNV10023A00000100000001 /* FileConverterWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCNV10003A00000100000002 /* FileConverterWidgetPageView.swift */; };
+		SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0023A00000100000001 /* SportsWidgetModel.swift */; };
+		SPORT0033A00000100000001 /* SportsWidgetPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0043A00000100000001 /* SportsWidgetPageView.swift */; };
+		SPORT0053A00000100000001 /* SportsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPORT0063A00000100000001 /* SportsSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -258,10 +260,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C4FF00102C00000000000001 /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
-		B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceMonitor.swift; sourceTree = "<group>"; };
-		B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevicesSettingsView.swift; sourceTree = "<group>"; };
-		B1B700063A00000100000001 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -337,26 +335,20 @@
 		11A0D0453A00000100000001 /* WidgetLaunchLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLaunchLoader.swift; sourceTree = "<group>"; };
 		11A0D0473A00000100000001 /* ColorPickerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0493A00000100000001 /* WidgetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetLibrary.swift; sourceTree = "<group>"; };
-		CUST00003A00000100000001 /* CustomPeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeek.swift; sourceTree = "<group>"; };
-		CUST00003A00000100000002 /* CustomPeekWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeekWatcher.swift; sourceTree = "<group>"; };
-		CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetsSettingsView.swift; sourceTree = "<group>"; };
 		11A0D04B3A00000100000001 /* ScreenColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenColorPicker.swift; sourceTree = "<group>"; };
 		11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D04F3A00000100000001 /* WorkshopInstalledView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopInstalledView.swift; sourceTree = "<group>"; };
 		11A0D0513A00000100000001 /* TimerWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0533A00000100000001 /* TimerWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerWidgetPageView.swift; sourceTree = "<group>"; };
-		11A0D09F3A00000100000001 /* WidgetTitleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTitleRow.swift; sourceTree = "<group>"; };
 		11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0573A00000100000001 /* VoiceRecorderWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderWidgetPageView.swift; sourceTree = "<group>"; };
-		SPORT0023A00000100000001 /* SportsWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetModel.swift; sourceTree = "<group>"; };
-		SPORT0043A00000100000001 /* SportsWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetPageView.swift; sourceTree = "<group>"; };
-		SPORT0063A00000100000001 /* SportsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsSettingsView.swift; sourceTree = "<group>"; };
 		11A0D05F3A00000100000001 /* SystemMonitorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorProvider.swift; sourceTree = "<group>"; };
 		11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetModel.swift; sourceTree = "<group>"; };
 		11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetPageView.swift; sourceTree = "<group>"; };
 		11A0D0853A00000100000001 /* CalendarWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetModel.swift; sourceTree = "<group>"; };
+		11A0D09F3A00000100000001 /* WidgetTitleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTitleRow.swift; sourceTree = "<group>"; };
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -368,8 +360,6 @@
 		11CFC6642E09C7B300748C80 /* OnboardingFinishView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFinishView.swift; sourceTree = "<group>"; };
 		11D58EA12E760AE100FA8377 /* ImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 		11DB26652EDD0BE1001EA0CF /* LyricsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyricsService.swift; sourceTree = "<group>"; };
-		C4FF00002C00000000000001 /* CaffeineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineManager.swift; sourceTree = "<group>"; };
-		C4FF00022C00000000000001 /* CaffeineSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineSettingsView.swift; sourceTree = "<group>"; };
 		11DB26672EDD0CDF001EA0CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsView.swift; sourceTree = "<group>"; };
 		11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsView.swift; sourceTree = "<group>"; };
@@ -397,8 +387,6 @@
 		147163992C5D35FF0068B555 /* MusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicManager.swift; sourceTree = "<group>"; };
 		1471A8582C6281BD0058408D /* InterestingNotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterestingNotchWindow.swift; sourceTree = "<group>"; };
 		149E0B962C737D00006418B1 /* WebcamManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamManager.swift; sourceTree = "<group>"; };
-		A11CE0023A00000100000001 /* SystemPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPermissionManager.swift; sourceTree = "<group>"; };
-		A11CE0043A00000100000001 /* PermissionConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionConfigurationTests.swift; sourceTree = "<group>"; };
 		149E0B992C737D40006418B1 /* WebcamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebcamView.swift; sourceTree = "<group>"; };
 		14A7E5872C64A89C008C1BE9 /* HelloAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelloAnimation.swift; sourceTree = "<group>"; };
 		14A7E5962C65FD31008C1BE9 /* interesting.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = interesting.m4a; sourceTree = "<group>"; };
@@ -434,6 +422,8 @@
 		9A0887342C7AFF8E00C160EA /* TabSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSelectionView.swift; sourceTree = "<group>"; };
 		9A987A032C73CA66005CA465 /* ShelfView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
 		9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotchHomeView.swift; sourceTree = "<group>"; };
+		A11CE0023A00000100000001 /* SystemPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPermissionManager.swift; sourceTree = "<group>"; };
+		A11CE0043A00000100000001 /* PermissionConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionConfigurationTests.swift; sourceTree = "<group>"; };
 		AFAD1670A870402D88BFFE47 /* AudioOutputRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioOutputRouteResolver.swift; sourceTree = "<group>"; };
 		B10348D82C74E56000475897 /* ConditionalModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionalModifier.swift; sourceTree = "<group>"; };
 		B10F84A22C6C9596009F3026 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
@@ -446,6 +436,9 @@
 		B1A78C812C8BA08100BD51B0 /* FullscreenMediaDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenMediaDetection.swift; sourceTree = "<group>"; };
 		B1B112902C6A572100093D8F /* EditPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPanelView.swift; sourceTree = "<group>"; };
 		B1B112922C6A577E00093D8F /* MouseTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MouseTracker.swift; sourceTree = "<group>"; };
+		B1B700033A00000100000001 /* BluetoothDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceMonitor.swift; sourceTree = "<group>"; };
+		B1B700043A00000100000001 /* BluetoothDevicesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevicesSettingsView.swift; sourceTree = "<group>"; };
+		B1B700063A00000100000001 /* IOBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOBluetooth.framework; path = System/Library/Frameworks/IOBluetooth.framework; sourceTree = SDKROOT; };
 		B1C448952C9712C4001F0858 /* ActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionBar.swift; sourceTree = "<group>"; };
 		B1C448972C972CC4001F0858 /* ListItemPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListItemPopover.swift; sourceTree = "<group>"; };
 		B1C974332C642B6D0000E707 /* MarqueeTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarqueeTextView.swift; sourceTree = "<group>"; };
@@ -455,8 +448,19 @@
 		B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftwareUpdater.swift; sourceTree = "<group>"; };
 		B1F0A0012E60000100000001 /* BrightnessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessManager.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
+		C4FF00002C00000000000001 /* CaffeineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineManager.swift; sourceTree = "<group>"; };
+		C4FF00022C00000000000001 /* CaffeineSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaffeineSettingsView.swift; sourceTree = "<group>"; };
+		C4FF00102C00000000000001 /* MediaPlayerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerWidget.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000001 /* CustomPeek.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeek.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000002 /* CustomPeekWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPeekWatcher.swift; sourceTree = "<group>"; };
+		CUST00003A00000100000003 /* CustomWidgetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWidgetsSettingsView.swift; sourceTree = "<group>"; };
 		F1F2A0A200000000000000F2 /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		FCNV10003A00000100000001 /* FileConverterWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileConverterWidgetModel.swift; sourceTree = "<group>"; };
+		FCNV10003A00000100000002 /* FileConverterWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileConverterWidgetPageView.swift; sourceTree = "<group>"; };
+		SPORT0023A00000100000001 /* SportsWidgetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetModel.swift; sourceTree = "<group>"; };
+		SPORT0043A00000100000001 /* SportsWidgetPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsWidgetPageView.swift; sourceTree = "<group>"; };
+		SPORT0063A00000100000001 /* SportsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportsSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -671,6 +675,7 @@
 				SPORT0023A00000100000001 /* SportsWidgetModel.swift */,
 				11A0D06F3A00000100000001 /* ClipboardHistoryWidgetModel.swift */,
 				11A0D0553A00000100000001 /* VoiceRecorderWidgetModel.swift */,
+				FCNV10003A00000100000001 /* FileConverterWidgetModel.swift */,
 			);
 			path = model;
 			sourceTree = "<group>";
@@ -705,6 +710,7 @@
 				11A0D0833A00000100000001 /* CalendarWidgetPageView.swift */,
 				11A0D04D3A00000100000001 /* ColorPickerWidgetPageView.swift */,
 				11A0D0713A00000100000001 /* ClipboardHistoryWidgetPageView.swift */,
+				FCNV10003A00000100000002 /* FileConverterWidgetPageView.swift */,
 				SPORT0043A00000100000001 /* SportsWidgetPageView.swift */,
 				11A0D0613A00000100000001 /* SystemMonitorWidgetPageView.swift */,
 				11A0D0533A00000100000001 /* TimerWidgetPageView.swift */,
@@ -1393,6 +1399,7 @@
 				SPORT0013A00000100000001 /* SportsWidgetModel.swift in Sources */,
 				11A0D0703A00000100000001 /* ClipboardHistoryWidgetModel.swift in Sources */,
 				11A0D0563A00000100000001 /* VoiceRecorderWidgetModel.swift in Sources */,
+				FCNV10013A00000100000001 /* FileConverterWidgetModel.swift in Sources */,
 				11A0D0603A00000100000001 /* SystemMonitorProvider.swift in Sources */,
 				11A0D0253A00000100000001 /* WidgetSlotRenderer.swift in Sources */,
 				11A0D00A3A00000100000001 /* Extractor.swift in Sources */,
@@ -1403,6 +1410,7 @@
 				11A0D0233A00000100000001 /* WidgetStore.swift in Sources */,
 				11A0D04E3A00000100000001 /* ColorPickerWidgetPageView.swift in Sources */,
 				11A0D0723A00000100000001 /* ClipboardHistoryWidgetPageView.swift in Sources */,
+				FCNV10023A00000100000001 /* FileConverterWidgetPageView.swift in Sources */,
 				768D37C2300682F800175C3F /* NetworkMonitorProvider.swift in Sources */,
 				11A0D0623A00000100000001 /* SystemMonitorWidgetPageView.swift in Sources */,
 				11A0D0843A00000100000001 /* CalendarWidgetPageView.swift in Sources */,
@@ -1711,13 +1719,13 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = InterestingNotch/InterestingNotch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 284;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"InterestingNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = SX4A7T7RQ7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
@@ -1733,7 +1741,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InterestingNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "InterestingNotch";
+				INFOPLIST_KEY_CFBundleDisplayName = InterestingNotch;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -1777,14 +1785,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = InterestingNotch/InterestingNotch.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 284;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"InterestingNotch/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = SX4A7T7RQ7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
@@ -1799,7 +1806,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InterestingNotch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "InterestingNotch";
+				INFOPLIST_KEY_CFBundleDisplayName = InterestingNotch;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_LSUIElement = YES;

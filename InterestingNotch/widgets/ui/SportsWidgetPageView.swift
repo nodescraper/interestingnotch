@@ -13,6 +13,20 @@ import AppKit
 import SwiftUI
 
 struct SportsWidgetPageView: View {
+    private enum LeaderboardMoveFlash: String {
+        case gain
+        case loss
+
+        var color: Color {
+            switch self {
+            case .gain:
+                return Color(red: 0.3569, green: 0.7412, blue: 0.3882)
+            case .loss:
+                return Color(red: 0.92, green: 0.28, blue: 0.28)
+            }
+        }
+    }
+
     let widget: Widget
     @ObservedObject var model: SportsWidgetModel
 
@@ -23,6 +37,8 @@ struct SportsWidgetPageView: View {
     private let bigScoreSize: CGFloat = 32
     private let crestSize: CGFloat = 40
     private let middleBandHeight: CGFloat = 92
+    private let leaderboardRowHeight: CGFloat = 42
+    private let leaderboardViewportMaxHeight: CGFloat = 120
     private let scrollCommitThreshold: CGFloat = 85
     private let scrollPreviewLimit: CGFloat = 42
 
@@ -41,10 +57,28 @@ struct SportsWidgetPageView: View {
     @State private var scrollGestureCommitted = false
     @State private var scrollLockUntil: Date = .distantPast
     @State private var dragGestureCommitted = false
+    @State private var leaderboardPreviousPositions: [String: [String: Int]] = [:]
+    @State private var leaderboardPositionFlashes: [String: LeaderboardMoveFlash] = [:]
+    @State private var leaderboardBlocksCloseGesture = false
+    @State private var leaderboardScrollOffset: CGFloat = 0
+    @State private var leaderboardScrollInteractionActive = false
 
     // MARK: - Derived
 
     private var games: [GameSnapshot] { model.games }
+
+    private var currentMiddleBandHeight: CGFloat {
+        guard let game = model.focusedGame,
+              game.leagueDefinition.format == .leaderboard else {
+            return middleBandHeight
+        }
+
+        if game.state.isPre {
+            return middleBandHeight
+        }
+
+        return min(leaderboardRowHeight * 5, leaderboardViewportMaxHeight)
+    }
 
     private var currentIndex: Int {
         guard let id = model.focusedGame?.id,
@@ -67,7 +101,7 @@ struct SportsWidgetPageView: View {
                 .animation(.easeInOut(duration: 0.28), value: model.focusedGame?.id)
 
             middleBand
-                .frame(height: middleBandHeight)
+                .frame(height: currentMiddleBandHeight)
 
             if let game = model.focusedGame {
                 footerMeta(for: game)
@@ -80,6 +114,27 @@ struct SportsWidgetPageView: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sports")
+        .onAppear {
+            syncLeaderboardPositionState(with: games)
+        }
+        .onChange(of: games) { newGames in
+            syncLeaderboardPositionState(with: newGames)
+            if !newGames.contains(where: isScrollableF1Leaderboard) {
+                setLeaderboardCloseGestureBlocked(false)
+            }
+        }
+        .onChange(of: model.focusedGame?.id) { _, _ in
+            guard let focusedGame = model.focusedGame,
+                  isScrollableF1Leaderboard(focusedGame) else {
+                leaderboardScrollOffset = 0
+                leaderboardScrollInteractionActive = false
+                setLeaderboardCloseGestureBlocked(false)
+                return
+            }
+        }
+        .onDisappear {
+            setLeaderboardCloseGestureBlocked(false)
+        }
     }
 
     // MARK: - Filmstrip
@@ -94,6 +149,7 @@ struct SportsWidgetPageView: View {
                 .contentShape(Rectangle())
                 .background(
                     SportsPageScrollCatcher(
+                        allowsVerticalPassthrough: model.focusedGame.map(isScrollableF1Leaderboard) ?? false,
                         onScroll: { deltaX, _ in
                             handleScroll(deltaX: deltaX, pageWidth: pageWidth)
                         },
@@ -355,8 +411,8 @@ struct SportsWidgetPageView: View {
             Spacer(minLength: 0)
 
             VStack(alignment: .leading, spacing: 12) {
-                setPlayerRow(game.home, isCurrent: game.state.isLive)
-                setPlayerRow(game.away, isCurrent: game.state.isLive)
+                setPlayerRow(game.home, opponent: game.away, gameState: game.state)
+                setPlayerRow(game.away, opponent: game.home, gameState: game.state)
             }
 
             Spacer(minLength: 0)
@@ -384,11 +440,11 @@ struct SportsWidgetPageView: View {
         .onTapGesture { openGamePage(game) }
     }
 
-    private func setPlayerRow(_ player: SportsTeamSide, isCurrent: Bool) -> some View {
+    private func setPlayerRow(_ player: SportsTeamSide, opponent: SportsTeamSide, gameState: SportsGameState) -> some View {
         HStack(spacing: 10) {
             Text(player.name)
                 .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(player.isWinner ? tennisWinnerColor : .white.opacity(0.7))
+                .foregroundStyle(tennisPlayerNameColor(for: player, gameState: gameState))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -396,12 +452,41 @@ struct SportsWidgetPageView: View {
                 ForEach(Array(player.setScores.enumerated()), id: \.offset) { index, score in
                     Text(score)
                         .font(.system(size: 17, weight: index == player.setScores.count - 1 ? .bold : .semibold, design: .rounded))
-                        .foregroundStyle(index == player.setScores.count - 1 && isCurrent ? accent : .white.opacity(0.85))
+                        .foregroundStyle(tennisSetScoreColor(for: player, opponent: opponent, scoreIndex: index, gameState: gameState))
                         .monospacedDigit()
                         .frame(minWidth: 20, alignment: .trailing)
                 }
             }
         }
+    }
+
+    private func tennisPlayerNameColor(for player: SportsTeamSide, gameState: SportsGameState) -> Color {
+        if gameState.isPost {
+            return player.isWinner ? tennisWinnerColor : .white
+        }
+        return .white
+    }
+
+    private func tennisSetScoreColor(for player: SportsTeamSide, opponent: SportsTeamSide, scoreIndex: Int, gameState: SportsGameState) -> Color {
+        if gameState.isPost {
+            let playerScore = Int(player.setScores[scoreIndex]) ?? 0
+            let opponentScore = scoreIndex < opponent.setScores.count ? (Int(opponent.setScores[scoreIndex]) ?? 0) : 0
+            return playerScore > opponentScore ? .white : .white.opacity(0.45)
+        }
+
+        if gameState.isLive {
+            let playerScore = Int(player.setScores[scoreIndex]) ?? 0
+            let opponentScore = scoreIndex < opponent.setScores.count ? (Int(opponent.setScores[scoreIndex]) ?? 0) : 0
+            let isCurrentSet = scoreIndex == player.setScores.count - 1
+
+            if isCurrentSet {
+                return accent
+            }
+
+            return playerScore > opponentScore ? .white : .white.opacity(0.45)
+        }
+
+        return .white.opacity(0.85)
     }
 
     private func upcomingSetPlayerRow(_ player: SportsTeamSide) -> some View {
@@ -432,30 +517,64 @@ struct SportsWidgetPageView: View {
     }
 
     private func leaderboardRaceContent(_ game: GameSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 10) {
+            if game.leaderboardEntries.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(game.competition)
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
 
-                    Text(leaderboardSubtitle(for: game))
+                    Text(leaderboardEmptyStateSubtitle(for: game))
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(subtitleColor)
-                        .lineLimit(1)
+                        .lineLimit(2)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                NativeLeaderboardScrollView(
+                    onOffsetChanged: { offset in
+                        leaderboardScrollOffset = -offset
+                        guard isScrollableF1Leaderboard(game) else {
+                            setLeaderboardCloseGestureBlocked(false)
+                            return
+                        }
 
-                Spacer(minLength: 12)
-
-                statusBadge(text: leaderboardBadgeText(for: game))
-            }
-
-            VStack(spacing: 7) {
-                ForEach(Array(game.leaderboardEntries.enumerated()), id: \.element.id) { index, entry in
-                    leaderboardRow(entry, highlighted: index == 0)
+                        // While a physical gesture or its momentum is active,
+                        // reaching the top must not hand the same gesture to the
+                        // notch-close recognizer. Release only after native
+                        // scrolling reports that the full gesture has ended.
+                        if !leaderboardScrollInteractionActive {
+                            setLeaderboardCloseGestureBlocked(offset > 1)
+                        }
+                    },
+                    onScrollActivityChanged: { isActive in
+                        if isActive {
+                            beginLeaderboardVerticalScroll()
+                        } else {
+                            endLeaderboardVerticalScroll()
+                        }
+                    }
+                ) {
+                    VStack(spacing: 6) {
+                        ForEach(game.leaderboardEntries) { entry in
+                            leaderboardRow(
+                                entry,
+                                highlighted: entry.position == 1,
+                                flash: leaderboardPositionFlashes[leaderboardFlashKey(gameID: game.id, entryID: entry.id)]
+                            )
+                            .id(entry.sourceID ?? entry.id)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: entry.position)
+                        }
+                    }
+                    .padding(.trailing, 2)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .animation(
+                    .spring(response: 0.5, dampingFraction: 0.8),
+                    value: game.leaderboardEntries.map { "\($0.id):\($0.position)" }
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -507,26 +626,38 @@ struct SportsWidgetPageView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 
-    private func leaderboardRow(_ entry: SportsLeaderboardEntry, highlighted: Bool) -> some View {
+    private func leaderboardRow(
+        _ entry: SportsLeaderboardEntry,
+        highlighted: Bool,
+        flash: LeaderboardMoveFlash?
+    ) -> some View {
         HStack(spacing: 12) {
+            if let teamColorHex = entry.teamColorHex,
+               let teamColor = Color(hex: teamColorHex) {
+                Capsule(style: .continuous)
+                    .fill(teamColor)
+                    .frame(width: 3)
+                    .frame(height: 34)
+            }
+
             Text("P\(entry.position)")
-                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(highlighted ? accent : .white.opacity(0.45))
                 .frame(width: 38, alignment: .leading)
 
             if let flagURL = entry.flagURL, !flagURL.isEmpty {
-                crest(flagURL, size: 18)
+                crest(flagURL, size: 20)
             }
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(entry.name)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(highlighted ? accent : .white)
                     .lineLimit(1)
 
                 if let secondaryText = entry.secondaryText, !secondaryText.isEmpty {
                     Text(secondaryText)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(subtitleColor)
                         .lineLimit(1)
                 }
@@ -534,19 +665,34 @@ struct SportsWidgetPageView: View {
 
             Spacer(minLength: 8)
 
-            if let trailingText = entry.trailingText, !trailingText.isEmpty {
-                Text(trailingText)
-                    .font(.system(size: 17, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(highlighted ? 0.75 : 0.55))
+            if let statusText = entry.statusText,
+               statusText.localizedCaseInsensitiveContains("pit") {
+                Text("IN PIT")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(.yellow.opacity(0.95))
                     .lineLimit(1)
+            } else if let trailingText = entry.trailingText, !trailingText.isEmpty {
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(trailingText)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white.opacity(highlighted ? 0.9 : 0.55))
+                        .lineLimit(1)
+
+                    if let lapText = entry.lapText, !lapText.isEmpty {
+                        Text(lapText)
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundStyle(subtitleColor)
+                            .lineLimit(1)
+                    }
+                }
             }
         }
         .padding(.horizontal, 12)
-        .frame(height: 42)
+        .frame(height: leaderboardRowHeight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(highlighted ? accent.opacity(0.16) : .clear)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill((flash?.color ?? .clear).opacity(flash == nil ? 0 : 0.18))
         )
     }
 
@@ -623,7 +769,7 @@ struct SportsWidgetPageView: View {
     private var titleText: String {
         guard let game = model.focusedGame else { return "Sports" }
         if game.leagueDefinition.format == .leaderboard {
-            return game.leagueDefinition.subtitle
+            return game.state == .pre ? game.leagueDefinition.subtitle : game.competition
         }
         if game.leagueDefinition.format == .sets {
             return "\(game.home.name) vs \(game.away.name)"
@@ -636,7 +782,7 @@ struct SportsWidgetPageView: View {
     private var captionText: String {
         guard let game = model.focusedGame else { return "Follow teams to see upcoming matches" }
         if game.leagueDefinition.format == .leaderboard {
-            return game.state == .pre ? "Next race" : (game.venueName ?? game.competition)
+            return game.state == .pre ? "Next race" : leaderboardSubtitle(for: game)
         }
         if game.leagueDefinition.format == .sets {
             return [game.competition, game.venueName].compactMap { $0 }.joined(separator: " · ")
@@ -646,6 +792,16 @@ struct SportsWidgetPageView: View {
 
     private var headerRightText: String? {
         guard let game = model.focusedGame else { return nil }
+        if game.leagueDefinition.format == .leaderboard {
+            switch game.state {
+            case .live:
+                return "LIVE"
+            case .post:
+                return "FINAL"
+            default:
+                return nil
+            }
+        }
         if game.leagueDefinition.format == .sets {
             switch game.state {
             case .pre:
@@ -663,6 +819,9 @@ struct SportsWidgetPageView: View {
 
     private var headerRightTextColor: Color {
         guard let game = model.focusedGame else { return .white }
+        if game.leagueDefinition.format == .leaderboard, (game.state == .live || game.state == .post) {
+            return accent
+        }
         if game.leagueDefinition.format == .sets, (game.state == .pre || game.state == .live || game.state == .post) {
             return accent
         }
@@ -671,6 +830,9 @@ struct SportsWidgetPageView: View {
 
     private var headerShowsIndicator: Bool {
         guard let game = model.focusedGame else { return false }
+        if game.leagueDefinition.format == .leaderboard {
+            return game.state == .live
+        }
         return game.leagueDefinition.format == .sets && game.state == .live
     }
 
@@ -709,7 +871,7 @@ struct SportsWidgetPageView: View {
     private func footerTrailingText(for game: GameSnapshot) -> String? {
         switch game.leagueDefinition.format {
         case .leaderboard:
-            return (game.state.isLive || game.state.isPost) ? "Top \(max(game.leaderboardEntries.count, 1))" : nil
+            return nil
         case .sets:
             return nil
         case .teamScore:
@@ -741,6 +903,87 @@ struct SportsWidgetPageView: View {
             return "FINAL"
         }
         return "RACE"
+    }
+
+    private func leaderboardEmptyStateSubtitle(for game: GameSnapshot) -> String {
+        let prefix = game.leagueDefinition.subtitle
+        let status = !game.statusDetail.isEmpty ? game.statusDetail : "In Progress"
+
+        if let venueName = game.venueName, !venueName.isEmpty {
+            return "\(prefix) · \(status) · \(venueName)"
+        }
+
+        return "\(prefix) · \(status)"
+    }
+
+    private func leaderboardFlashKey(gameID: String, entryID: String) -> String {
+        "\(gameID)|\(entryID)"
+    }
+
+    private func isScrollableF1Leaderboard(_ game: GameSnapshot) -> Bool {
+        game.leagueDefinition.sport == "racing"
+            && game.leagueDefinition.league == "f1"
+            && (game.state.isLive || game.state.isPost)
+    }
+
+    private func setLeaderboardCloseGestureBlocked(_ shouldBlock: Bool) {
+        guard leaderboardBlocksCloseGesture != shouldBlock else { return }
+        leaderboardBlocksCloseGesture = shouldBlock
+        if shouldBlock {
+            SharingStateManager.shared.beginInteraction()
+        } else {
+            SharingStateManager.shared.endInteraction()
+        }
+    }
+
+    private func beginLeaderboardVerticalScroll() {
+        leaderboardScrollInteractionActive = true
+        setLeaderboardCloseGestureBlocked(true)
+    }
+
+    private func endLeaderboardVerticalScroll() {
+        leaderboardScrollInteractionActive = false
+        if leaderboardScrollOffset >= -1 {
+            setLeaderboardCloseGestureBlocked(false)
+        }
+    }
+
+    private func syncLeaderboardPositionState(with games: [GameSnapshot]) {
+        let leaderboardGames = games.filter {
+            $0.leagueDefinition.format == .leaderboard && ($0.state.isLive || $0.state.isPost)
+        }
+
+        var nextPreviousPositions = leaderboardPreviousPositions
+        let activeGameIDs = Set(leaderboardGames.map(\.id))
+        nextPreviousPositions = nextPreviousPositions.filter { activeGameIDs.contains($0.key) }
+
+        for game in leaderboardGames {
+            let previousPositions = nextPreviousPositions[game.id] ?? [:]
+            var currentPositions: [String: Int] = [:]
+
+            for entry in game.leaderboardEntries {
+                currentPositions[entry.id] = entry.position
+                guard let previousPosition = previousPositions[entry.id],
+                      previousPosition != entry.position else { continue }
+
+                let flash: LeaderboardMoveFlash = entry.position < previousPosition ? .gain : .loss
+                let flashKey = leaderboardFlashKey(gameID: game.id, entryID: entry.id)
+                leaderboardPositionFlashes[flashKey] = flash
+
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(900))
+                    if leaderboardPositionFlashes[flashKey] == flash {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            leaderboardPositionFlashes.removeValue(forKey: flashKey)
+                        }
+                    }
+                }
+            }
+
+            nextPreviousPositions[game.id] = currentPositions
+        }
+
+        leaderboardPreviousPositions = nextPreviousPositions
     }
 
     private func setsBadgeText(for game: GameSnapshot) -> String {
@@ -897,17 +1140,20 @@ struct SportsWidgetPageView: View {
 }
 
 private struct SportsPageScrollCatcher: NSViewRepresentable {
+    let allowsVerticalPassthrough: Bool
     let onScroll: (_ deltaX: CGFloat, _ deltaY: CGFloat) -> Void
     let onEnded: () -> Void
 
     func makeNSView(context: Context) -> ScrollCatcherView {
         let view = ScrollCatcherView()
+        view.allowsVerticalPassthrough = allowsVerticalPassthrough
         view.onScroll = onScroll
         view.onEnded = onEnded
         return view
     }
 
     func updateNSView(_ nsView: ScrollCatcherView, context: Context) {
+        nsView.allowsVerticalPassthrough = allowsVerticalPassthrough
         nsView.onScroll = onScroll
         nsView.onEnded = onEnded
     }
@@ -917,6 +1163,7 @@ private struct SportsPageScrollCatcher: NSViewRepresentable {
     }
 
     final class ScrollCatcherView: NSView {
+        var allowsVerticalPassthrough = false
         var onScroll: ((CGFloat, CGFloat) -> Void)?
         var onEnded: (() -> Void)?
         private var monitor: Any?
@@ -934,6 +1181,11 @@ private struct SportsPageScrollCatcher: NSViewRepresentable {
                 let pointInView = self.convert(event.locationInWindow, from: nil)
                 guard self.bounds.contains(pointInView) else { return event }
 
+                if self.allowsVerticalPassthrough,
+                   abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX) {
+                    return event
+                }
+
                 self.onScroll?(event.scrollingDeltaX, event.scrollingDeltaY)
                 if event.phase == .ended || event.momentumPhase == .ended {
                     self.onEnded?()
@@ -948,5 +1200,196 @@ private struct SportsPageScrollCatcher: NSViewRepresentable {
         }
 
         override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    }
+}
+
+/// A real AppKit scroll view for the F1 field. Keeping scrolling inside
+/// `NSScrollView` preserves macOS trackpad momentum, rubber-banding and native
+/// deceleration instead of replaying wheel deltas through SwiftUI overlays.
+private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
+    let content: Content
+    let onOffsetChanged: (CGFloat) -> Void
+    let onScrollActivityChanged: (Bool) -> Void
+
+    init(
+        onOffsetChanged: @escaping (CGFloat) -> Void,
+        onScrollActivityChanged: @escaping (Bool) -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+        self.onOffsetChanged = onOffsetChanged
+        self.onScrollActivityChanged = onScrollActivityChanged
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(
+            onOffsetChanged: onOffsetChanged,
+            onScrollActivityChanged: onScrollActivityChanged
+        )
+    }
+
+    func makeNSView(context: Context) -> NativeMomentumScrollView {
+        let scrollView = NativeMomentumScrollView()
+        scrollView.drawsBackground = false
+        scrollView.borderType = .noBorder
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.scrollerStyle = .overlay
+        scrollView.verticalScrollElasticity = .automatic
+        scrollView.horizontalScrollElasticity = .none
+
+        context.coordinator.install(content: content, in: scrollView)
+        return scrollView
+    }
+
+    func updateNSView(_ nsView: NativeMomentumScrollView, context: Context) {
+        context.coordinator.onOffsetChanged = onOffsetChanged
+        context.coordinator.onScrollActivityChanged = onScrollActivityChanged
+        context.coordinator.update(content: content)
+    }
+
+    static func dismantleNSView(_ nsView: NativeMomentumScrollView, coordinator: Coordinator) {
+        coordinator.teardown()
+    }
+
+    @MainActor
+    final class Coordinator: NSObject {
+        var onOffsetChanged: (CGFloat) -> Void
+        var onScrollActivityChanged: (Bool) -> Void
+
+        private weak var scrollView: NativeMomentumScrollView?
+        private var hostingView: NSHostingView<Content>?
+        private var boundsObserver: NSObjectProtocol?
+        private var endTask: Task<Void, Never>?
+        private var isScrolling = false
+
+        init(
+            onOffsetChanged: @escaping (CGFloat) -> Void,
+            onScrollActivityChanged: @escaping (Bool) -> Void
+        ) {
+            self.onOffsetChanged = onOffsetChanged
+            self.onScrollActivityChanged = onScrollActivityChanged
+        }
+
+        func install(content: Content, in scrollView: NativeMomentumScrollView) {
+            self.scrollView = scrollView
+
+            let hostingView = NSHostingView(rootView: content)
+            hostingView.isFlipped = true
+            hostingView.autoresizingMask = [.width]
+            self.hostingView = hostingView
+            scrollView.documentView = hostingView
+            scrollView.contentView.postsBoundsChangedNotifications = true
+            scrollView.onVerticalScroll = { [weak self] event in
+                self?.handleScrollEvent(event)
+            }
+
+            boundsObserver = NotificationCenter.default.addObserver(
+                forName: NSView.boundsDidChangeNotification,
+                object: scrollView.contentView,
+                queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.reportOffset()
+                }
+            }
+
+            layoutDocumentView()
+        }
+
+        func update(content: Content) {
+            hostingView?.rootView = content
+            layoutDocumentView()
+        }
+
+        func teardown() {
+            endTask?.cancel()
+            endTask = nil
+            if let boundsObserver {
+                NotificationCenter.default.removeObserver(boundsObserver)
+            }
+            boundsObserver = nil
+            scrollView?.onVerticalScroll = nil
+            scrollView = nil
+            hostingView = nil
+
+            if isScrolling {
+                isScrolling = false
+                DispatchQueue.main.async { [onScrollActivityChanged] in
+                    onScrollActivityChanged(false)
+                }
+            }
+        }
+
+        private func layoutDocumentView() {
+            guard let scrollView, let hostingView else { return }
+
+            DispatchQueue.main.async { [weak self, weak scrollView, weak hostingView] in
+                guard let self, let scrollView, let hostingView else { return }
+
+                let width = max(scrollView.contentView.bounds.width, 1)
+                hostingView.frame.size.width = width
+                hostingView.layoutSubtreeIfNeeded()
+                let fittingHeight = hostingView.fittingSize.height
+                let height = max(fittingHeight, scrollView.contentView.bounds.height)
+                hostingView.frame = NSRect(x: 0, y: 0, width: width, height: height)
+
+                let maximumOffset = max(0, height - scrollView.contentView.bounds.height)
+                let clampedOffset = min(max(0, scrollView.contentView.bounds.origin.y), maximumOffset)
+                if scrollView.contentView.bounds.origin.y != clampedOffset {
+                    scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedOffset))
+                    scrollView.reflectScrolledClipView(scrollView.contentView)
+                }
+                self.reportOffset()
+            }
+        }
+
+        private func reportOffset() {
+            guard let scrollView else { return }
+            onOffsetChanged(max(0, scrollView.contentView.bounds.origin.y))
+        }
+
+        private func handleScrollEvent(_ event: NSEvent) {
+            endTask?.cancel()
+            endTask = nil
+
+            if !isScrolling {
+                isScrolling = true
+                onScrollActivityChanged(true)
+            }
+
+            if event.momentumPhase == .ended {
+                scheduleEnd(after: .milliseconds(40))
+            } else if event.phase == .ended {
+                // A momentum phase can begin just after the finger phase ends.
+                // Keep ownership briefly so that handoff cannot close the notch.
+                scheduleEnd(after: .milliseconds(180))
+            } else if event.phase.isEmpty && event.momentumPhase.isEmpty {
+                // Mouse wheels do not provide gesture phases.
+                scheduleEnd(after: .milliseconds(180))
+            }
+        }
+
+        private func scheduleEnd(after delay: Duration) {
+            endTask?.cancel()
+            endTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: delay)
+                guard let self, !Task.isCancelled, self.isScrolling else { return }
+                self.isScrolling = false
+                self.onScrollActivityChanged(false)
+            }
+        }
+    }
+}
+
+private final class NativeMomentumScrollView: NSScrollView {
+    var onVerticalScroll: ((NSEvent) -> Void)?
+
+    override func scrollWheel(with event: NSEvent) {
+        if abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX) {
+            onVerticalScroll?(event)
+        }
+        super.scrollWheel(with: event)
     }
 }

@@ -395,6 +395,16 @@
         }
       }
     },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "%d%%" : {
       "localizations" : {
         "en" : {
@@ -458,6 +468,9 @@
           }
         }
       }
+    },
+    "+%lld" : {
+
     },
     "00:00" : {
 
@@ -5276,6 +5289,7 @@
       }
     },
     "Close gesture" : {
+      "extractionState" : "stale",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
@@ -6014,6 +6028,12 @@
           }
         }
       }
+    },
+    "Convert another file" : {
+
+    },
+    "Converting %@…" : {
+
     },
     "Copy %@" : {
 
@@ -7799,6 +7819,9 @@
           }
         }
       }
+    },
+    "Drop a file to convert" : {
+
     },
     "Drop files here" : {
       "localizations" : {
@@ -11446,6 +11469,12 @@
       }
     },
     "Image" : {
+
+    },
+    "Images · PDF · Text" : {
+
+    },
+    "IN PIT" : {
 
     },
     "In progress" : {
@@ -16406,6 +16435,9 @@
       }
     },
     "Open clipboard shortcut" : {
+
+    },
+    "Open file" : {
 
     },
     "Open in Calendar" : {
@@ -24375,6 +24407,9 @@
           }
         }
       }
+    },
+    "to" : {
+
     },
     "Today" : {
 

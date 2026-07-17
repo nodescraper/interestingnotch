@@ -39,13 +39,12 @@ if [[ -z "$SPARKLE_PRIVATE_KEY_CONTENT" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$RELEASE_NOTES_HTML" ]]; then
-  if [[ -n "$RELEASE_NOTES_FILE" ]]; then
-    if [[ ! -f "$RELEASE_NOTES_FILE" ]]; then
-      echo "Release notes file not found: $RELEASE_NOTES_FILE" >&2
-      exit 1
-    fi
-    escaped_notes="$(python3 - "$RELEASE_NOTES_FILE" <<'PY'
+if [[ -n "$RELEASE_NOTES_FILE" ]]; then
+  if [[ ! -f "$RELEASE_NOTES_FILE" ]]; then
+    echo "Release notes file not found: $RELEASE_NOTES_FILE" >&2
+    exit 1
+  fi
+  escaped_notes="$(python3 - "$RELEASE_NOTES_FILE" <<'PY'
 import html
 import pathlib
 import sys
@@ -54,9 +53,9 @@ text = pathlib.Path(sys.argv[1]).read_text()
 print("<html><body><pre>" + html.escape(text) + "</pre></body></html>")
 PY
 )"
-    printf '%s\n' "$escaped_notes" > "$RELEASE_NOTES_HTML"
-  else
-    cat > "$RELEASE_NOTES_HTML" <<EOF
+  printf '%s\n' "$escaped_notes" > "$RELEASE_NOTES_HTML"
+else
+  cat > "$RELEASE_NOTES_HTML" <<EOF
 <html>
   <body>
     <h1>InterestingNotch $VERSION</h1>
@@ -64,7 +63,6 @@ PY
   </body>
 </html>
 EOF
-  fi
 fi
 
 SPARKLE_METADATA_PATH="$ROOT_DIR/InterestingNotch.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"

@@ -65,6 +65,8 @@ archive.log
 *.p12
 *.cer
 *.mobileprovision
+Configuration/signing/local_release.sh
+Configuration/signing/local_release.env
 
 # Local custom widget / peek content
 .interestingnotch/

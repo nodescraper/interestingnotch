@@ -112,8 +112,10 @@ final class CompactSneakPeekEngine {
         switch notchState {
         case .open:
             setRevealed(false, for: screenUUID)
-            // Content is hidden while open, so it is safe to prepare the next
-            // compact activity immediately.
+            // Once the notch opens, compact content should unmount immediately
+            // so the full notch UI never shares space with the closed-notch
+            // sneak peek during hover/open transitions.
+            setRendered(false, for: screenUUID)
             setRenderedActivityID(activityID, for: screenUUID)
 
         case .closed:

@@ -21,6 +21,19 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 
 ---
 
+## Quick start
+
+Most people should install the prebuilt app:
+
+- [Download the latest DMG](https://github.com/nodescraper/interestingnotch/releases/latest)
+- Open `InterestingNotch.dmg`
+- Drag `InterestingNotch.app` into `Applications`
+- Launch the app and grant the permissions for the features you want to use
+
+If you prefer to build from source, the Xcode path is still below in [Getting started](#getting-started).
+
+---
+
 ## Contents
 
 - [What it is](#what-it-is)
@@ -179,6 +192,10 @@ The settings experience has been reorganized around this library, so adding and 
 
 ## Getting started
 
+If you want the ready-made app, use the DMG from the latest release above.
+
+If you want to build it yourself:
+
 ```bash
 git clone https://github.com/nodescraper/interestingnotch.git
 cd interestingnotch
@@ -197,4 +214,4 @@ Built on the foundation of [boring.notch](https://github.com/TheBoredTeam/boring
 
 ## License
 
-This repository currently carries the upstream **GNU GPL v3.0** license.
+InterestingNotch is licensed under the upstream **GNU GPL v3.0** license. See [LICENSE](LICENSE) for the full text.

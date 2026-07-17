@@ -280,9 +280,13 @@ struct SportsLeaderboardEntry: Equatable, Hashable, Identifiable, Sendable {
     let name: String
     let secondaryText: String?
     let trailingText: String?
+    let lapText: String?
+    let statusText: String?
     let flagURL: String?
+    let teamColorHex: String?
+    let sourceID: String?
 
-    var id: String { "\(position)-\(name)" }
+    var id: String { sourceID ?? "\(position)-\(name)" }
 }
 
 struct GameSnapshot: Equatable, Identifiable, Sendable {
@@ -996,10 +1000,170 @@ actor SportsDataService {
             }
         }
 
-        let deduped = Dictionary(grouping: snapshots, by: \.id).compactMap { _, matches in
+        let enrichedSnapshots = await enrichLiveF1Snapshots(snapshots)
+        let deduped = Dictionary(grouping: enrichedSnapshots, by: \.id).compactMap { _, matches in
             matches.min(by: SportsSnapshotPriority.compare)
         }
         return deduped.sorted(by: SportsSnapshotPriority.compare)
+    }
+
+    private func enrichLiveF1Snapshots(_ snapshots: [GameSnapshot]) async -> [GameSnapshot] {
+        var enriched = snapshots
+
+        for index in enriched.indices {
+            let snapshot = enriched[index]
+            guard snapshot.leagueDefinition.sport == "racing",
+                  snapshot.leagueDefinition.league == "f1",
+                  snapshot.state.isLive else { continue }
+
+            do {
+                enriched[index] = try await enrichF1Snapshot(snapshot)
+            } catch {
+                // The site scoreboard is the intentional baseline. A core API
+                // failure must never remove or blank a live F1 race.
+                print("🏎️ F1 core enrichment unavailable for \(snapshot.id):", error)
+            }
+        }
+
+        return enriched
+    }
+
+    private func enrichF1Snapshot(_ snapshot: GameSnapshot) async throws -> GameSnapshot {
+        guard let eventID = snapshot.id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let eventURL = URL(string: "https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/events/\(eventID)?lang=en&region=us") else {
+            return snapshot
+        }
+
+        let eventResponse: CoreF1EventResponse = try await fetchCore(eventURL)
+        guard let competition = eventResponse.competitions?.first,
+              let competitionID = competition.id,
+              let competitorsURL = URL(string: "https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/events/\(eventID)/competitions/\(competitionID)/competitors?lang=en&region=us") else {
+            return snapshot
+        }
+
+        let competitorResponse: CoreF1CompetitorsResponse = try await fetchCore(competitorsURL)
+        let coreCompetitors = competitorResponse.values.filter { $0.id != nil }
+        guard !coreCompetitors.isEmpty else { return snapshot }
+
+        let identityByID: [String: SportsLeaderboardEntry] = Dictionary(
+            uniqueKeysWithValues: snapshot.leaderboardEntries.compactMap { entry in
+                entry.sourceID.map { ($0, entry) }
+            }
+        )
+        let orderedCore = coreCompetitors.sorted {
+            ($0.order ?? Int.max) < ($1.order ?? Int.max)
+        }
+        let enrichedPayloads: [(entry: SportsLeaderboardEntry, laps: Int?)] = await withTaskGroup(
+            of: (fallbackIndex: Int, entry: SportsLeaderboardEntry, laps: Int?).self
+        ) { group in
+            for (fallbackIndex, core) in orderedCore.enumerated() {
+                group.addTask {
+                    let competitorID = core.id
+                    let identity = competitorID.flatMap { identityByID[$0] }
+                    var gap: String?
+                    var laps: Int?
+                    var statsPosition: Int?
+
+                    if let competitorID,
+                       let statsURL = URL(string: "https://sports.core.api.espn.com/v2/sports/racing/leagues/f1/events/\(eventID)/competitions/\(competitionID)/competitors/\(competitorID)/statistics?lang=en&region=us"),
+                       let (data, _) = try? await URLSession.shared.data(from: statsURL) {
+                        let statsDecoder = JSONDecoder()
+                        if let statistics = try? statsDecoder.decode(CoreF1StatisticsResponse.self, from: data) {
+                            gap = statistics.value(named: "gapToLeader")
+                            laps = statistics.integerValue(named: "lapsCompleted")
+                            statsPosition = statistics.integerValue(named: "position")
+                                ?? statistics.integerValue(named: "place")
+                        }
+                    }
+
+                    let resolvedPosition = statsPosition ?? core.order ?? (fallbackIndex + 1)
+                    let resolvedGap: String?
+                    if resolvedPosition == 1 {
+                        resolvedGap = "Leader"
+                    } else if let gap, gap != "-", !gap.isEmpty {
+                        resolvedGap = gap
+                    } else {
+                        resolvedGap = nil
+                    }
+
+                    let entry = SportsLeaderboardEntry(
+                        position: resolvedPosition,
+                        name: identity?.name ?? "Driver",
+                        secondaryText: core.vehicle?.manufacturer ?? identity?.secondaryText,
+                        trailingText: resolvedGap,
+                        lapText: laps.map { "Lap \($0)" },
+                        statusText: nil,
+                        flagURL: identity?.flagURL,
+                        teamColorHex: core.vehicle?.teamColor,
+                        sourceID: competitorID
+                    )
+
+                    return (fallbackIndex: fallbackIndex, entry: entry, laps: laps)
+                }
+            }
+
+            var payloads: [(fallbackIndex: Int, entry: SportsLeaderboardEntry, laps: Int?)] = []
+            for await payload in group {
+                payloads.append(payload)
+            }
+            return payloads
+                .sorted { lhs, rhs in
+                    if lhs.entry.position != rhs.entry.position {
+                        return lhs.entry.position < rhs.entry.position
+                    }
+                    return lhs.fallbackIndex < rhs.fallbackIndex
+                }
+                .map { (entry: $0.entry, laps: $0.laps) }
+        }
+
+        let enrichedEntries = enrichedPayloads.map(\.entry)
+        let maxLaps = enrichedPayloads.compactMap(\.laps).max() ?? 0
+
+        let session = f1SessionName(for: competition.type?.abbreviation)
+        let statusDetail: String
+        if maxLaps > 0 {
+            statusDetail = session.isEmpty ? "Lap \(maxLaps)" : "\(session) · Lap \(maxLaps)"
+        } else if !session.isEmpty {
+            statusDetail = session
+        } else {
+            statusDetail = snapshot.statusDetail
+        }
+
+        return GameSnapshot(
+            id: snapshot.id,
+            competition: snapshot.competition,
+            state: snapshot.state,
+            clock: snapshot.clock,
+            statusDetail: statusDetail,
+            home: snapshot.home,
+            away: snapshot.away,
+            events: snapshot.events,
+            leaderboardEntries: enrichedEntries,
+            eventURL: snapshot.eventURL,
+            startDate: snapshot.startDate,
+            followedTeamID: snapshot.followedTeamID,
+            leagueDefinition: snapshot.leagueDefinition,
+            venueName: snapshot.venueName,
+            venueCountry: snapshot.venueCountry
+        )
+    }
+
+    private func f1SessionName(for abbreviation: String?) -> String {
+        switch abbreviation?.uppercased() {
+        case "FP1": return "Practice 1"
+        case "FP2": return "Practice 2"
+        case "FP3": return "Practice 3"
+        case "SQ": return "Sprint Qualifying"
+        case "S": return "Sprint"
+        case "Q": return "Qualifying"
+        case "R": return "Race"
+        default: return abbreviation ?? ""
+        }
+    }
+
+    private func fetchCore<Response: Decodable>(_ url: URL) async throws -> Response {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try decoder.decode(Response.self, from: data)
     }
 
     private func tennisSnapshots(for league: SportsLeagueDefinition, players: [FollowedPlayer]) async throws -> [GameSnapshot] {
@@ -1477,7 +1641,6 @@ actor SportsDataService {
             .sorted { lhs, rhs in
                 (lhs.order ?? Int.max) < (rhs.order ?? Int.max)
             }
-            .prefix(3)
             .enumerated()
             .map { index, competitor in
                 let position = competitor.order ?? (index + 1)
@@ -1485,10 +1648,7 @@ actor SportsDataService {
                     ?? competitor.athlete?.fullName
                     ?? competitor.athlete?.shortName
                     ?? "Driver"
-                let secondary = competitor.team?.displayName
-                    ?? competitor.team?.shortDisplayName
-                    ?? competitor.team?.name
-                    ?? competitor.athlete?.flag?.alt
+                let secondary = competitor.athlete?.flag?.alt
                 let trailing: String?
                 if position == 1 {
                     trailing = "Leader"
@@ -1503,7 +1663,11 @@ actor SportsDataService {
                     name: name,
                     secondaryText: secondary,
                     trailingText: trailing,
-                    flagURL: competitor.athlete?.flag?.href
+                    lapText: nil,
+                    statusText: nil,
+                    flagURL: competitor.athlete?.flag?.href,
+                    teamColorHex: nil,
+                    sourceID: competitor.id
                 )
             }
     }
@@ -1591,9 +1755,19 @@ actor SportsDataService {
 enum SportsSnapshotPriority {
     static func score(for snapshot: GameSnapshot) -> Int {
         if snapshot.state.isLive { return 0 }
-        if snapshot.state.isPre { return 1 }
-        if snapshot.state.isPost { return 3 }
-        return 2
+
+        // Keep today's followed matches ahead of future fixtures, even when
+        // they have already finished, so the widget does not drop a just-ended
+        // game in favor of something upcoming days later.
+        if snapshot.isToday {
+            if snapshot.state.isPre { return 1 }
+            if snapshot.state.isPost { return 2 }
+            return 3
+        }
+
+        if snapshot.state.isPre { return 4 }
+        if snapshot.state.isPost { return 6 }
+        return 5
     }
 
     static func compare(lhs: GameSnapshot, rhs: GameSnapshot) -> Bool {
@@ -1838,8 +2012,16 @@ final class SportsWidgetModel: ObservableObject, InteractiveWidgetRuntime {
                 followedLeagues: followedLeagues,
                 followedPlayers: followedPlayers
             )
-            let visibleMatches = Array(snapshots.prefix(max(2, min(7, Defaults[.sportsMaximumMatches]))))
-            games = visibleMatches
+            let visibleLimit = max(2, min(7, Defaults[.sportsMaximumMatches]))
+            let visibleMatches = Array(snapshots.prefix(visibleLimit)).sorted { lhs, rhs in
+                if lhs.state.isPost != rhs.state.isPost {
+                    return !lhs.state.isPost && rhs.state.isPost
+                }
+                return SportsSnapshotPriority.compare(lhs: lhs, rhs: rhs)
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                games = visibleMatches
+            }
             let liveMatches = visibleMatches.filter { $0.state.isLive }
             let fallbackLiveGame = fallbackCompactLiveGame(from: liveMatches)
             primaryGame = fallbackLiveGame ?? visibleMatches.first
@@ -2201,6 +2383,105 @@ private struct ESPNFlag: Decodable {
 
 private struct ESPNRecord: Decodable {
     let summary: String?
+}
+
+private struct CoreF1EventResponse: Decodable {
+    let competitions: [CoreF1Competition]?
+}
+
+private struct CoreF1Competition: Decodable {
+    let id: String?
+    let type: CoreF1CompetitionType?
+}
+
+private struct CoreF1CompetitionType: Decodable {
+    let abbreviation: String?
+}
+
+private struct CoreF1CompetitorsResponse: Decodable {
+    let items: [CoreF1Competitor]?
+    let competitors: [CoreF1Competitor]?
+
+    var values: [CoreF1Competitor] { items ?? competitors ?? [] }
+}
+
+private struct CoreF1Competitor: Decodable {
+    let id: String?
+    let order: Int?
+    let vehicle: CoreF1Vehicle?
+}
+
+private struct CoreF1Vehicle: Decodable {
+    let number: String?
+    let manufacturer: String?
+    let teamColor: String?
+}
+
+private struct CoreF1StatisticsResponse: Decodable {
+    let splits: CoreF1StatisticsSplits?
+
+    /// Returns the human-facing value, preferring ESPN's formatted display
+    /// value (for example "+0.145") over the raw numeric value.
+    func value(named name: String) -> String? {
+        guard let stat = stat(named: name) else { return nil }
+        if let display = stat.displayValue, !display.isEmpty {
+            return display
+        }
+        return stat.numericValue.map(formatted)
+    }
+
+    func integerValue(named name: String) -> Int? {
+        guard let stat = stat(named: name) else { return nil }
+        if let display = stat.displayValue,
+           let integer = Int(display) ?? Double(display).map({ Int($0) }) {
+            return integer
+        }
+        return stat.numericValue.map { Int($0) }
+    }
+
+    private func stat(named name: String) -> CoreF1Statistic? {
+        splits?.categories?
+            .flatMap { $0.stats ?? [] }
+            .first { $0.name?.caseInsensitiveCompare(name) == .orderedSame }
+    }
+
+    private func formatted(_ value: Double) -> String {
+        value.rounded() == value ? String(Int(value)) : String(value)
+    }
+}
+
+private struct CoreF1StatisticsSplits: Decodable {
+    let categories: [CoreF1StatisticsCategory]?
+}
+
+private struct CoreF1StatisticsCategory: Decodable {
+    let stats: [CoreF1Statistic]?
+}
+
+private struct CoreF1Statistic: Decodable {
+    let name: String?
+    let displayValue: String?
+    let numericValue: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case name, displayValue, value
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        displayValue = try container.decodeIfPresent(String.self, forKey: .displayValue)
+
+        // ESPN normally sends this as a JSON number, but tolerate a string too.
+        if let number = try? container.decodeIfPresent(Double.self, forKey: .value) {
+            numericValue = number
+        } else if let string = try? container.decode(String.self, forKey: .value),
+                  let parsed = Double(string) {
+            numericValue = parsed
+        } else {
+            numericValue = nil
+        }
+    }
 }
 
 private struct ESPNTeam: Decodable {

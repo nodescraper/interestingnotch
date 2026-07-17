@@ -18,11 +18,22 @@ struct InterestingHeader: View {
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
     @Default(.showPinButton) private var showPinButton
     @Default(.pinNotchOpen) private var pinNotchOpen
+    @State private var headerSwipeTriggered = false
+    @State private var lastHeaderSwipeDate: Date = .distantPast
+    @State private var haptics = false
 
     private var shouldShowTabs: Bool {
         (!tvm.isEmpty && Defaults[.interestingShelf])
             || !pinnedWidgetIDs.isEmpty
             || coordinator.alwaysShowTabs
+    }
+
+    private var orderedTabs: [TabModel] {
+        TabSelectionModelBuilder.allTabs(
+            interestingShelf: Defaults[.interestingShelf],
+            pinnedWidgetIDs: pinnedWidgetIDs,
+            availableWidgets: WidgetEngine.shared.widgets
+        )
     }
 
     var body: some View {
@@ -111,11 +122,22 @@ struct InterestingHeader: View {
         }
         .foregroundColor(.gray)
         .environmentObject(vm)
+        .contentShape(Rectangle())
+        .conditionalModifier(vm.notchState == .open && shouldShowTabs && Defaults[.enableGestures]) { view in
+            view
+                .panGesture(direction: .left) { translation, phase in
+                    handleHeaderTabSwipe(translation: translation, phase: phase, step: -1)
+                }
+                .panGesture(direction: .right) { translation, phase in
+                    handleHeaderTabSwipe(translation: translation, phase: phase, step: 1)
+                }
+        }
         .onChange(of: caffeineEnabled) {
             if !caffeineEnabled {
                 caffeineManager.deactivate()
             }
         }
+        .sensoryFeedback(.alignment, trigger: haptics)
     }
 
     private var caffeineButton: some View {
@@ -164,6 +186,37 @@ struct InterestingHeader: View {
             return true
         default:
             return false
+        }
+    }
+
+    private func handleHeaderTabSwipe(translation: CGFloat, phase: NSEvent.Phase, step: Int) {
+        guard shouldShowTabs else { return }
+
+        if phase == .ended {
+            headerSwipeTriggered = false
+            return
+        }
+
+        let now = Date()
+        guard now.timeIntervalSince(lastHeaderSwipeDate) > 0.35 else { return }
+        guard !headerSwipeTriggered else { return }
+        guard translation > Defaults[.gestureSensitivity] else { return }
+
+        guard let currentIndex = orderedTabs.firstIndex(where: { $0.view == coordinator.currentView }) else {
+            return
+        }
+
+        let nextIndex = min(max(currentIndex + step, 0), orderedTabs.count - 1)
+        guard nextIndex != currentIndex else { return }
+
+        headerSwipeTriggered = true
+        lastHeaderSwipeDate = now
+        withAnimation(.smooth) {
+            coordinator.currentView = orderedTabs[nextIndex].view
+        }
+
+        if Defaults[.enableHaptics] {
+            haptics.toggle()
         }
     }
 }

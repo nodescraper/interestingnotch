@@ -244,9 +244,6 @@ struct GeneralSettings: View {
                 Defaults.Toggle(key: .enableHorizontalMediaGestures) {
                     Text("Change media with horizontal gestures")
                 }
-                Defaults.Toggle(key: .closeGestureEnabled) {
-                    Text("Close gesture")
-                }
                 Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
                     HStack {
                         Text("Gesture sensitivity")

@@ -143,6 +143,8 @@ private enum WidgetRuntimeResolver {
             return ClipboardHistoryWidgetModel(widgetID: manifest.id)
         case .voiceRecorder:
             return VoiceRecorderWidgetModel(widgetID: manifest.id)
+        case .fileConverter:
+            return FileConverterWidgetModel(widgetID: manifest.id)
         }
     }
 

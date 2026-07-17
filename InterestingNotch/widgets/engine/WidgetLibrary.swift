@@ -9,7 +9,7 @@ import Foundation
 
 enum WidgetLibrary {
     static var bundledManifests: [WidgetManifest] {
-        [calendarManifest, colorPickerManifest, timerManifest, sportsManifest, clipboardHistoryManifest, voiceRecorderManifest, systemMonitorManifest]
+        [calendarManifest, colorPickerManifest, timerManifest, sportsManifest, clipboardHistoryManifest, voiceRecorderManifest, fileConverterManifest, systemMonitorManifest]
     }
 
     static func seedBundledManifestsIfNeeded(
@@ -163,6 +163,29 @@ enum WidgetLibrary {
             onTap: nil,
             permissions: ["microphone"],
             interactive: .init(type: .voiceRecorder)
+        )
+    }
+
+    private static var fileConverterManifest: WidgetManifest {
+        WidgetManifest(
+            schema: 1,
+            kind: .interactive,
+            id: "file-converter",
+            name: "File Converter",
+            author: "NodeScraper",
+            source: nil,
+            extract: nil,
+            render: .init(
+                template: .iconLabel,
+                slots: [
+                    "icon": .string("arrow.trianglehead.2.clockwise.rotate.90"),
+                    "label": .string("Convert images & PDFs"),
+                    "color": .string("accent"),
+                ]
+            ),
+            onTap: nil,
+            permissions: nil,
+            interactive: .init(type: .fileConverter)
         )
     }
 
