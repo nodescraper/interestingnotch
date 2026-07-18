@@ -771,23 +771,10 @@ struct ContentView: View {
                               .padding(.leading, 4)
                               .padding(.trailing, 8)
                           }
-                          // Old sneak peek music
-                          else if coordinator.sneakPeekState(for: vm.screenUUID).type == .music {
-                              if vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard {
-                                  HStack(alignment: .center) {
-                                      Image(systemName: "music.note")
-                                      GeometryReader { geo in
-                                          MarqueeText(musicManager.songTitle + " - " + musicManager.artistName,  color: Defaults[.playerColorTinting] ? Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.6) : .gray, delayDuration: 1.0, frameWidth: geo.size.width)
-                                      }
-                                  }
-                                  .foregroundStyle(.gray)
-                                  .padding(.bottom, 10)
-                              }
-                          }
                       }
                   }
               }
-              .conditionalModifier((coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type == .music) && vm.notchState == .closed && !vm.hideOnClosed && Defaults[.sneakPeekStyles] == .standard) || (coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .caffeine) && (vm.notchState == .closed))) { view in
+              .conditionalModifier(coordinator.shouldShowSneakPeek(on: vm.screenUUID) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .music) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .timer) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .systemMonitor) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .voiceRecorder) && (coordinator.sneakPeekState(for: vm.screenUUID).type != .caffeine) && (vm.notchState == .closed)) { view in
                   view
                       .fixedSize()
               }
@@ -860,7 +847,6 @@ struct ContentView: View {
                     RoundedRectangle(
                         cornerRadius: closedCornerRadius)
                 )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 .frame(
                     width: musicCompactArtworkSize,
                     height: musicCompactArtworkSize

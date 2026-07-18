@@ -18,7 +18,7 @@ helper_name=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$helper/C
 [[ "$helper_id" == "$main_id.InterestingNotchXPCHelper" ]]
 [[ "$helper_name" == "InterestingNotch" ]]
 
-for key in NSCameraUsageDescription NSMicrophoneUsageDescription NSBluetoothAlwaysUsageDescription NSCalendarsFullAccessUsageDescription NSRemindersFullAccessUsageDescription; do
+for key in NSCameraUsageDescription NSAudioCaptureUsageDescription NSMicrophoneUsageDescription NSBluetoothAlwaysUsageDescription NSCalendarsFullAccessUsageDescription NSRemindersFullAccessUsageDescription; do
   /usr/libexec/PlistBuddy -c "Print :$key" "$info" >/dev/null
 done
 

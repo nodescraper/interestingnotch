@@ -103,6 +103,11 @@ final class WidgetExtractorTests: XCTestCase {
             icon = "mic.fill"
             label = "Record voice notes"
             permissions = ["microphone"]
+        case .fileConverter:
+            name = "File Converter"
+            icon = "arrow.trianglehead.2.clockwise.rotate.90"
+            label = "Convert images & PDFs"
+            permissions = nil
         }
 
         return WidgetManifest(

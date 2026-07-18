@@ -122,8 +122,13 @@ final class CompactSneakPeekEngine {
             // Closing the notch or replacing one compact activity with another
             // always collapses first, then reveals the new activity through the
             // same engine animation.
-            if previousInput?.notchState == .open || activityChanged {
+            let needsHandoff = previousInput?.notchState == .open || activityChanged
+            if needsHandoff {
                 setRevealed(false, for: screenUUID)
+                // Do not keep the outgoing view mounted while the full player
+                // is being removed. Matched artwork geometry can otherwise
+                // animate the compact player into view during the close.
+                setRendered(false, for: screenUUID)
             } else {
                 setRevealed(true, for: screenUUID)
             }
@@ -135,9 +140,10 @@ final class CompactSneakPeekEngine {
                 guard self.lastInputs[screenUUID]?.notchState == .closed,
                       self.lastInputs[screenUUID]?.isActive == true,
                       self.lastInputs[screenUUID]?.activityID == activityID else { return }
-                // Keep the outgoing activity mounted during collapse. Swap only
-                // now, while fully hidden, before revealing the incoming one.
+                // Mount only after the close animation has finished, while the
+                // incoming activity is still hidden, then reveal it together.
                 self.setRenderedActivityID(activityID, for: screenUUID)
+                self.setRendered(true, for: screenUUID)
                 self.setRevealed(true, for: screenUUID)
             }
         }

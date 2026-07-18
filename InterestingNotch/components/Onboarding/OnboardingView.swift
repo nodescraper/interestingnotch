@@ -17,6 +17,7 @@ enum OnboardingStep {
     case microphonePermission
     case bluetoothPermission
     case accessibilityPermission
+    case audioCapturePermission
     case musicPermission
     case widgetSelection
     case softwareUpdatePermission
@@ -178,6 +179,31 @@ struct OnboardingView: View {
                                 SystemPermissionManager.shared.openSettings(.accessibility)
                             }
                             withAnimation(.easeInOut(duration: 0.6)) {
+                                step = .audioCapturePermission
+                            }
+                        }
+                    },
+                    onSkip: {
+                        withAnimation(.easeInOut(duration: 0.6)) {
+                            step = .audioCapturePermission
+                        }
+                    }
+                )
+                .transition(.opacity)
+
+            case .audioCapturePermission:
+                PermissionRequestView(
+                    icon: Image(systemName: "waveform"),
+                    title: "Enable Audio Capture",
+                    description: "InterestingNotch can capture the currently playing app's audio to draw the real-time waveform in the notch.",
+                    privacyNote: "Audio is processed locally and is never recorded, uploaded, or shared.",
+                    onAllow: {
+                        Task {
+                            let granted = await AudioCaptureManager.shared.requestAudioCapturePermission()
+                            if !granted {
+                                SystemPermissionManager.shared.openSettings(.screenRecording)
+                            }
+                            withAnimation(.easeInOut(duration: 0.6)) {
                                 step = .musicPermission
                             }
                         }
@@ -244,7 +270,8 @@ struct WidgetSelectionView: View {
 
     init(onContinue: @escaping () -> Void) {
         self.onContinue = onContinue
-        _selectedIDs = State(initialValue: Set(Defaults[.pinnedWidgetIDs]))
+        let pinnedIDs = Defaults[.pinnedWidgetIDs]
+        _selectedIDs = State(initialValue: Set(pinnedIDs))
     }
 
     var body: some View {
@@ -258,7 +285,7 @@ struct WidgetSelectionView: View {
                 .font(.title)
                 .fontWeight(.semibold)
 
-            Text("Select the widgets you want to appear as tabs in your notch. New widgets like Voice Recorder and System Monitor are included here, and you can change this later in the Workshop.")
+            Text("Select the widgets you want to appear as tabs in your notch. All available widgets are included here, and you can change this later in the Workshop.")
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.secondary)
@@ -313,6 +340,12 @@ struct WidgetSelectionView: View {
             VisualEffectView(material: .underWindowBackground, blendingMode: .behindWindow)
                 .ignoresSafeArea()
         )
+        .onAppear {
+            selectAllWidgetsForFreshInstallIfNeeded()
+        }
+        .onChange(of: engine.widgets.map(\.id)) { _, _ in
+            selectAllWidgetsForFreshInstallIfNeeded()
+        }
     }
 
     private func toggle(_ widgetID: String) {
@@ -321,6 +354,15 @@ struct WidgetSelectionView: View {
         } else {
             selectedIDs.insert(widgetID)
         }
+    }
+
+    private func selectAllWidgetsForFreshInstallIfNeeded() {
+        guard Defaults[.pinnedWidgetIDs].isEmpty,
+              selectedIDs.isEmpty,
+              !engine.widgets.isEmpty
+        else { return }
+
+        selectedIDs = Set(engine.widgets.map(\.id))
     }
 }
 

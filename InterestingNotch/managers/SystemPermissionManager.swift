@@ -15,6 +15,7 @@ enum SystemSettingsDestination: CaseIterable {
     case reminders
     case bluetooth
     case accessibility
+    case screenRecording
 
     var candidateURLStrings: [String] {
         switch self {
@@ -33,6 +34,8 @@ enum SystemSettingsDestination: CaseIterable {
             ]
         case .accessibility:
             return ["x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]
+        case .screenRecording:
+            return ["x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"]
         }
     }
 }

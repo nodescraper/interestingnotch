@@ -59,9 +59,6 @@ struct SportsWidgetPageView: View {
     @State private var dragGestureCommitted = false
     @State private var leaderboardPreviousPositions: [String: [String: Int]] = [:]
     @State private var leaderboardPositionFlashes: [String: LeaderboardMoveFlash] = [:]
-    @State private var leaderboardBlocksCloseGesture = false
-    @State private var leaderboardScrollOffset: CGFloat = 0
-    @State private var leaderboardScrollInteractionActive = false
 
     // MARK: - Derived
 
@@ -119,21 +116,6 @@ struct SportsWidgetPageView: View {
         }
         .onChange(of: games) { newGames in
             syncLeaderboardPositionState(with: newGames)
-            if !newGames.contains(where: isScrollableF1Leaderboard) {
-                setLeaderboardCloseGestureBlocked(false)
-            }
-        }
-        .onChange(of: model.focusedGame?.id) { _, _ in
-            guard let focusedGame = model.focusedGame,
-                  isScrollableF1Leaderboard(focusedGame) else {
-                leaderboardScrollOffset = 0
-                leaderboardScrollInteractionActive = false
-                setLeaderboardCloseGestureBlocked(false)
-                return
-            }
-        }
-        .onDisappear {
-            setLeaderboardCloseGestureBlocked(false)
         }
     }
 
@@ -533,30 +515,7 @@ struct SportsWidgetPageView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
-                NativeLeaderboardScrollView(
-                    onOffsetChanged: { offset in
-                        leaderboardScrollOffset = -offset
-                        guard isScrollableF1Leaderboard(game) else {
-                            setLeaderboardCloseGestureBlocked(false)
-                            return
-                        }
-
-                        // While a physical gesture or its momentum is active,
-                        // reaching the top must not hand the same gesture to the
-                        // notch-close recognizer. Release only after native
-                        // scrolling reports that the full gesture has ended.
-                        if !leaderboardScrollInteractionActive {
-                            setLeaderboardCloseGestureBlocked(offset > 1)
-                        }
-                    },
-                    onScrollActivityChanged: { isActive in
-                        if isActive {
-                            beginLeaderboardVerticalScroll()
-                        } else {
-                            endLeaderboardVerticalScroll()
-                        }
-                    }
-                ) {
+                NativeLeaderboardScrollView {
                     VStack(spacing: 6) {
                         ForEach(game.leaderboardEntries) { entry in
                             leaderboardRow(
@@ -926,28 +885,6 @@ struct SportsWidgetPageView: View {
             && (game.state.isLive || game.state.isPost)
     }
 
-    private func setLeaderboardCloseGestureBlocked(_ shouldBlock: Bool) {
-        guard leaderboardBlocksCloseGesture != shouldBlock else { return }
-        leaderboardBlocksCloseGesture = shouldBlock
-        if shouldBlock {
-            SharingStateManager.shared.beginInteraction()
-        } else {
-            SharingStateManager.shared.endInteraction()
-        }
-    }
-
-    private func beginLeaderboardVerticalScroll() {
-        leaderboardScrollInteractionActive = true
-        setLeaderboardCloseGestureBlocked(true)
-    }
-
-    private func endLeaderboardVerticalScroll() {
-        leaderboardScrollInteractionActive = false
-        if leaderboardScrollOffset >= -1 {
-            setLeaderboardCloseGestureBlocked(false)
-        }
-    }
-
     private func syncLeaderboardPositionState(with games: [GameSnapshot]) {
         let leaderboardGames = games.filter {
             $0.leagueDefinition.format == .leaderboard && ($0.state.isLive || $0.state.isPost)
@@ -1208,28 +1145,17 @@ private struct SportsPageScrollCatcher: NSViewRepresentable {
 /// deceleration instead of replaying wheel deltas through SwiftUI overlays.
 private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
     let content: Content
-    let onOffsetChanged: (CGFloat) -> Void
-    let onScrollActivityChanged: (Bool) -> Void
 
-    init(
-        onOffsetChanged: @escaping (CGFloat) -> Void,
-        onScrollActivityChanged: @escaping (Bool) -> Void,
-        @ViewBuilder content: () -> Content
-    ) {
+    init(@ViewBuilder content: () -> Content) {
         self.content = content()
-        self.onOffsetChanged = onOffsetChanged
-        self.onScrollActivityChanged = onScrollActivityChanged
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(
-            onOffsetChanged: onOffsetChanged,
-            onScrollActivityChanged: onScrollActivityChanged
-        )
+        Coordinator()
     }
 
-    func makeNSView(context: Context) -> NativeMomentumScrollView {
-        let scrollView = NativeMomentumScrollView()
+    func makeNSView(context: Context) -> NSScrollView {
+        let scrollView = NSScrollView()
         scrollView.drawsBackground = false
         scrollView.borderType = .noBorder
         scrollView.hasVerticalScroller = false
@@ -1243,36 +1169,20 @@ private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
         return scrollView
     }
 
-    func updateNSView(_ nsView: NativeMomentumScrollView, context: Context) {
-        context.coordinator.onOffsetChanged = onOffsetChanged
-        context.coordinator.onScrollActivityChanged = onScrollActivityChanged
+    func updateNSView(_ nsView: NSScrollView, context: Context) {
         context.coordinator.update(content: content)
     }
 
-    static func dismantleNSView(_ nsView: NativeMomentumScrollView, coordinator: Coordinator) {
+    static func dismantleNSView(_ nsView: NSScrollView, coordinator: Coordinator) {
         coordinator.teardown()
     }
 
     @MainActor
     final class Coordinator: NSObject {
-        var onOffsetChanged: (CGFloat) -> Void
-        var onScrollActivityChanged: (Bool) -> Void
-
-        private weak var scrollView: NativeMomentumScrollView?
+        private weak var scrollView: NSScrollView?
         private var hostingView: NSHostingView<Content>?
-        private var boundsObserver: NSObjectProtocol?
-        private var endTask: Task<Void, Never>?
-        private var isScrolling = false
 
-        init(
-            onOffsetChanged: @escaping (CGFloat) -> Void,
-            onScrollActivityChanged: @escaping (Bool) -> Void
-        ) {
-            self.onOffsetChanged = onOffsetChanged
-            self.onScrollActivityChanged = onScrollActivityChanged
-        }
-
-        func install(content: Content, in scrollView: NativeMomentumScrollView) {
+        func install(content: Content, in scrollView: NSScrollView) {
             self.scrollView = scrollView
 
             let hostingView = NSHostingView(rootView: content)
@@ -1280,20 +1190,6 @@ private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
             hostingView.autoresizingMask = [.width]
             self.hostingView = hostingView
             scrollView.documentView = hostingView
-            scrollView.contentView.postsBoundsChangedNotifications = true
-            scrollView.onVerticalScroll = { [weak self] event in
-                self?.handleScrollEvent(event)
-            }
-
-            boundsObserver = NotificationCenter.default.addObserver(
-                forName: NSView.boundsDidChangeNotification,
-                object: scrollView.contentView,
-                queue: .main
-            ) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.reportOffset()
-                }
-            }
 
             layoutDocumentView()
         }
@@ -1304,22 +1200,8 @@ private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
         }
 
         func teardown() {
-            endTask?.cancel()
-            endTask = nil
-            if let boundsObserver {
-                NotificationCenter.default.removeObserver(boundsObserver)
-            }
-            boundsObserver = nil
-            scrollView?.onVerticalScroll = nil
             scrollView = nil
             hostingView = nil
-
-            if isScrolling {
-                isScrolling = false
-                DispatchQueue.main.async { [onScrollActivityChanged] in
-                    onScrollActivityChanged(false)
-                }
-            }
         }
 
         private func layoutDocumentView() {
@@ -1341,55 +1223,7 @@ private struct NativeLeaderboardScrollView<Content: View>: NSViewRepresentable {
                     scrollView.contentView.scroll(to: NSPoint(x: 0, y: clampedOffset))
                     scrollView.reflectScrolledClipView(scrollView.contentView)
                 }
-                self.reportOffset()
             }
         }
-
-        private func reportOffset() {
-            guard let scrollView else { return }
-            onOffsetChanged(max(0, scrollView.contentView.bounds.origin.y))
-        }
-
-        private func handleScrollEvent(_ event: NSEvent) {
-            endTask?.cancel()
-            endTask = nil
-
-            if !isScrolling {
-                isScrolling = true
-                onScrollActivityChanged(true)
-            }
-
-            if event.momentumPhase == .ended {
-                scheduleEnd(after: .milliseconds(40))
-            } else if event.phase == .ended {
-                // A momentum phase can begin just after the finger phase ends.
-                // Keep ownership briefly so that handoff cannot close the notch.
-                scheduleEnd(after: .milliseconds(180))
-            } else if event.phase.isEmpty && event.momentumPhase.isEmpty {
-                // Mouse wheels do not provide gesture phases.
-                scheduleEnd(after: .milliseconds(180))
-            }
-        }
-
-        private func scheduleEnd(after delay: Duration) {
-            endTask?.cancel()
-            endTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(for: delay)
-                guard let self, !Task.isCancelled, self.isScrolling else { return }
-                self.isScrolling = false
-                self.onScrollActivityChanged(false)
-            }
-        }
-    }
-}
-
-private final class NativeMomentumScrollView: NSScrollView {
-    var onVerticalScroll: ((NSEvent) -> Void)?
-
-    override func scrollWheel(with event: NSEvent) {
-        if abs(event.scrollingDeltaY) > abs(event.scrollingDeltaX) {
-            onVerticalScroll?(event)
-        }
-        super.scrollWheel(with: event)
     }
 }

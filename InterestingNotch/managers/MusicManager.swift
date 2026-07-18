@@ -193,9 +193,6 @@ class MusicManager: ObservableObject {
                 self.updateIdleState(state: state.isPlaying)
             }
 
-            if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
-                self.updateSneakPeek()
-            }
         }
 
         // Check for changes in track metadata using last artwork change values
@@ -229,11 +226,6 @@ class MusicManager: ObservableObject {
                 self.lastArtworkArtist = state.artist
                 self.lastArtworkAlbum = state.album
                 self.lastArtworkBundleIdentifier = state.bundleIdentifier
-            }
-
-            // Only update sneak peek if there's actual content and something changed
-            if !state.title.isEmpty && !state.artist.isEmpty && state.isPlaying {
-                self.updateSneakPeek()
             }
 
             // Fetch lyrics on content change
@@ -435,16 +427,6 @@ class MusicManager: ObservableObject {
                 withAnimation(.smooth) {
                     self?.avgColor = color ?? .white
                 }
-            }
-        }
-    }
-
-    private func updateSneakPeek() {
-        if isPlaying && Defaults[.enableSneakPeek] {
-            if Defaults[.sneakPeekStyles] == .standard {
-                coordinator.toggleSneakPeek(status: true, type: .music)
-            } else {
-                coordinator.toggleExpandingView(status: true, type: .music)
             }
         }
     }

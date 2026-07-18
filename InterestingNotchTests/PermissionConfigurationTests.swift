@@ -23,6 +23,7 @@ final class PermissionConfigurationTests: XCTestCase {
         let info = try plist(at: "InterestingNotch/Info.plist")
         let requiredKeys = [
             "NSCameraUsageDescription",
+            "NSAudioCaptureUsageDescription",
             "NSMicrophoneUsageDescription",
             "NSBluetoothAlwaysUsageDescription",
             "NSCalendarsFullAccessUsageDescription",
@@ -34,6 +35,21 @@ final class PermissionConfigurationTests: XCTestCase {
             XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             XCTAssertTrue(value.contains("InterestingNotch"))
         }
+    }
+
+    func testAllBundledWidgetsAreAvailableToTheInstaller() {
+        let expectedIDs: Set<String> = [
+            "calendar",
+            "color-picker",
+            "timer",
+            "sports",
+            "clipboard-history",
+            "voice-recorder",
+            "file-converter",
+            "system-monitor",
+        ]
+
+        XCTAssertEqual(Set(WidgetLibrary.bundledManifests.map(\.id)), expectedIDs)
     }
 
     func testSandboxEntitlementsPermitRequestedHardwareAndData() throws {

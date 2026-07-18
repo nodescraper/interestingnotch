@@ -26,8 +26,10 @@ struct ClipboardHistoryWidgetPageView: View {
     @State private var detailCache: [String: ClipDetail] = [:]
 
     private let accent = Color.effectiveAccent
-    private let cardWidth: CGFloat = 115
-    private let cardHeight: CGFloat = 115
+    private let cardSpacing: CGFloat = 10
+    // Cards fill the full height of the drop area; width = height × 1.56
+    // (was 1.2, bumped 30% wider so the content has room to breathe).
+    private let cardAspect: CGFloat = 1.56
 
     /// Detail for an item, computed once and reused. Keyed by id (content is
     /// immutable per item, so id is a stable key).
@@ -51,22 +53,27 @@ struct ClipboardHistoryWidgetPageView: View {
             emptyState
         } else {
             GeometryReader { geo in
-                let rowHeight = cardHeight + 20
-                let contentWidth = totalContentWidth
+                // Card fills the full height of the drop area; width is 120%
+                // of the height (1:1.2 → width = height × 1.2).
+                let cardHeight = geo.size.height
+                let cardWidth = cardHeight * cardAspect
+
                 let viewportWidth = geo.size.width
+                let contentWidth = totalContentWidth(cardWidth: cardWidth)
                 // How far the row can scroll (0 when everything fits).
                 let maxOffset = max(0, contentWidth - viewportWidth)
 
-                LazyHStack(spacing: 10) {
+                LazyHStack(spacing: cardSpacing) {
                     ForEach(model.items) { item in
-                        historyCard(for: item)
+                        historyCard(for: item, cardWidth: cardWidth, cardHeight: cardHeight)
                     }
                 }
-                .padding(.horizontal, 10)
-                .frame(height: rowHeight, alignment: .leading)
+                .frame(height: cardHeight, alignment: .topLeading)
                 .offset(x: -currentOffset(maxOffset: maxOffset))
-                .frame(width: viewportWidth, height: rowHeight, alignment: .leading)
-                .clipped()
+                .frame(width: viewportWidth, height: cardHeight, alignment: .topLeading)
+                // Clip a touch wider than the cards so a hovered card's border
+                // on the top & bottom edges isn't shaved off by the viewport.
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous).inset(by: -3))
                 // Trackpad two-finger scroll / mouse wheel, behind the cards so
                 // it catches scroll but never steals clicks from the buttons.
                 .background(
@@ -92,17 +99,19 @@ struct ClipboardHistoryWidgetPageView: View {
                         }
                 )
             }
-            .frame(height: cardHeight + 20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .fixedSize(horizontal: false, vertical: true)
+            // 10pt breathing room on the sides and bottom (and top) of the
+            // scroll area inside the panel.
+            .padding(.horizontal, 10)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
-    /// Total width of all cards + spacing + horizontal padding.
-    private var totalContentWidth: CGFloat {
+    /// Total width of all cards + spacing, for a given card width.
+    private func totalContentWidth(cardWidth: CGFloat) -> CGFloat {
         let count = CGFloat(model.items.count)
         guard count > 0 else { return 0 }
-        return count * cardWidth + (count - 1) * 10 + 32   // spacing 10, padding 16*2
+        return count * cardWidth + (count - 1) * cardSpacing
     }
 
     /// Live drag offset takes precedence while dragging; else the settled offset.
@@ -135,52 +144,49 @@ struct ClipboardHistoryWidgetPageView: View {
 
     // MARK: - Card
 
-    private func historyCard(for item: ClipboardHistoryItem) -> some View {
+    private func historyCard(for item: ClipboardHistoryItem, cardWidth: CGFloat, cardHeight: CGFloat) -> some View {
         let hovered = hoveredItemID == item.id
         let detail = detail(for: item)
 
-        return VStack(alignment: .leading, spacing: 0) {
-                // Header: type icon + meta on the left, pin on the right.
-                HStack(spacing: 6) {
-                    Image(systemName: detail.symbol)
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(accent)
+        return ZStack(alignment: .topLeading) {
+            // Content is the hero — fills the card top-to-bottom.
+            VStack(alignment: .leading, spacing: 0) {
+                cardHero(for: item, detail: detail)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 
+                // Compact footer: type icon + meta, quiet and out of the way.
+                HStack(spacing: 5) {
+                    Image(systemName: detail.symbol)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(accent)
                     Text(detail.meta)
-                        .font(.system(size: 9.5, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.5))
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.45))
                         .tracking(0.4)
                         .lineLimit(1)
-
                     Spacer(minLength: 0)
-
-                    pinButton(for: item)
-                        .opacity(hovered || item.pinned ? 1 : 0)
                 }
-                .padding(.horizontal, 11)
-                .padding(.top, 10)
-
-                Spacer(minLength: 8)
-
-                // Hero: the content itself.
-                cardHero(for: item, detail: detail)
-                    .padding(.horizontal, 11)
-                    .padding(.bottom, 7)
             }
-            .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
-            .background(cardBackground(for: item, detail: detail))
-            .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .strokeBorder(.white.opacity(hovered ? 0.18 : 0.07), lineWidth: 1)
-            )
-            // Hover feedback that does NOT change layout bounds: a subtle fill
-            // brightening + border, instead of scaleEffect/shadow which reflow.
-            .overlay(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(.white.opacity(hovered ? 0.05 : 0))
-            )
-            .animation(.easeOut(duration: 0.15), value: hovered)
+            .padding(12)
+
+            // Pin overlays the top-right corner. Rendered above the card and
+            // given its own tap so it never triggers the card's restore tap.
+            pinButton(for: item)
+                .opacity(hovered || item.pinned ? 1 : 0)
+                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                .padding(9)
+        }
+        .frame(width: cardWidth, height: cardHeight, alignment: .topLeading)
+        .background(cardBackground(for: item, detail: detail, hovered: hovered))
+        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+        // ONE hover/border layer, inset just inside the clipped bounds so it
+        // reads as an even outline on all four sides.
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .inset(by: 0.5)
+                .strokeBorder(.white.opacity(hovered ? 0.22 : 0.07), lineWidth: 1)
+        )
+        .animation(.easeOut(duration: 0.15), value: hovered)
         .contentShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
         .onTapGesture {
             model.restoreHistoryItem(item)
@@ -196,55 +202,56 @@ struct ClipboardHistoryWidgetPageView: View {
     private func cardHero(for item: ClipboardHistoryItem, detail: ClipDetail) -> some View {
         switch detail.style {
         case .color(let color):
-            HStack(spacing: 9) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+            VStack(alignment: .leading, spacing: 10) {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(color)
-                    .frame(width: 30, height: 30)
-                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .frame(height: 44)
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .strokeBorder(.white.opacity(0.18), lineWidth: 1))
                 Text((item.content ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
         case .link(let domain):
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(domain)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text(item.content ?? "")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(.white.opacity(0.45))
-                    .lineLimit(1)
+                    .lineLimit(3)
                     .truncationMode(.middle)
+                Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
         case .image:
-            Text("Image")
-                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Background renders the thumbnail; keep the hero empty so the
+            // image reads full-bleed behind the footer.
+            Color.clear
 
         case .text:
             Text(item.previewTitle)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .font(.system(size: 14, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.92))
-                .lineLimit(3)
+                .lineLimit(5)
                 .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
     // MARK: - Background per type
 
     @ViewBuilder
-    private func cardBackground(for item: ClipboardHistoryItem, detail: ClipDetail) -> some View {
+    private func cardBackground(for item: ClipboardHistoryItem, detail: ClipDetail, hovered: Bool) -> some View {
         switch detail.style {
         case .image:
             if let image = item.thumbnailImage {
@@ -253,24 +260,26 @@ struct ClipboardHistoryWidgetPageView: View {
                     .scaledToFill()
                     .overlay(
                         LinearGradient(
-                            colors: [.black.opacity(0.15), .black.opacity(0.55)],
+                            colors: [.black.opacity(0.15), .black.opacity(hovered ? 0.45 : 0.55)],
                             startPoint: .top, endPoint: .bottom
                         )
                     )
             } else {
-                Color.white.opacity(0.05)
+                Color.white.opacity(hovered ? 0.09 : 0.05)
             }
         case .color(let color):
             // Faint wash of the color itself behind the card.
             ZStack {
-                Color.white.opacity(0.04)
+                Color.white.opacity(hovered ? 0.07 : 0.04)
                 LinearGradient(
-                    colors: [color.opacity(0.22), color.opacity(0.05)],
+                    colors: [color.opacity(hovered ? 0.28 : 0.22), color.opacity(0.05)],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             }
         default:
-            Color.white.opacity(0.05)
+            // Hover brightens the card's own fill instead of overlaying the
+            // whole card with a translucent layer (which washed everything).
+            Color.white.opacity(hovered ? 0.09 : 0.05)
         }
     }
 

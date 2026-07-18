@@ -11468,9 +11468,6 @@
         }
       }
     },
-    "Image" : {
-
-    },
     "Images · PDF · Text" : {
 
     },
@@ -19819,7 +19816,7 @@
     "Select the paired devices whose connection changes should appear in the notch." : {
 
     },
-    "Select the widgets you want to appear as tabs in your notch. New widgets like Voice Recorder and System Monitor are included here, and you can change this later in the Workshop." : {
+    "Select the widgets you want to appear as tabs in your notch. All available widgets are included here, and you can change this later in the Workshop." : {
 
     },
     "Select which provider to use for system controls. BetterDisplay and Lunar require their respective apps to be installed and running." : {

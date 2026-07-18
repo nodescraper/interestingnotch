@@ -80,7 +80,7 @@ struct ColorPickerWidgetPageView: View {
                 .padding(.top, 6)
         }
         .frame(minWidth: 150, alignment: .leading)
-        .frame(height: swatchSize, alignment: .center)
+        .frame(height: swatchSize, alignment: .top)
     }
 
     private var hexRow: some View {
@@ -89,7 +89,7 @@ struct ColorPickerWidgetPageView: View {
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(model.displayHex)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.white)
                     .lineLimit(1)
