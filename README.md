@@ -9,10 +9,22 @@
 
 A powerful, extensible take on the Mac notch — built on the foundation of boring.notch, then pushed far beyond it with native widgets, a pinnable widget library, Bluetooth connection notifications, a built-in caffeine control, and a custom-widget system you can script yourself.
 
-![macOS](https://img.shields.io/badge/macOS-notch-111827?logo=apple&logoColor=white)
-![Swift](https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white)
-![Local first](https://img.shields.io/badge/local%20first-no%20cloud-0F766E)
-![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-334155)
+<p>
+  <img src="https://img.shields.io/badge/macOS-notch-111827?logo=apple&logoColor=white" alt="macOS">
+  <img src="https://img.shields.io/badge/Swift-SwiftUI-F05138?logo=swift&logoColor=white" alt="Swift">
+  <img src="https://img.shields.io/badge/local%20first-no%20cloud-0F766E" alt="Local first">
+  <img src="https://img.shields.io/badge/license-GPL--3.0-334155" alt="License: GPL-3.0">
+  <a href="https://github.com/nodescraper/interestingnotch/releases/latest"><img src="https://img.shields.io/github/v/release/nodescraper/interestingnotch?color=1f6feb&label=release" alt="Latest release"></a>
+  <a href="https://ko-fi.com/nodescraper"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi"></a>
+</p>
+
+<p>
+  <a href="https://github.com/nodescraper/interestingnotch/releases/latest"><b>Download</b></a> ·
+  <a href="#getting-started">Build from source</a> ·
+  <a href="#widgets">Widgets</a> ·
+  <a href="#custom-widgets-beta">Custom widgets</a> ·
+  <a href="#support">Support</a>
+</p>
 
 </div>
 
@@ -25,12 +37,17 @@ A powerful, extensible take on the Mac notch — built on the foundation of bori
 
 Most people should install the prebuilt app:
 
-- [Download the latest DMG](https://github.com/nodescraper/interestingnotch/releases/latest)
-- Open `InterestingNotch.dmg`
-- Drag `InterestingNotch.app` into `Applications`
-- Launch the app and grant the permissions for the features you want to use
+1. [Download the latest DMG](https://github.com/nodescraper/interestingnotch/releases/latest)
+2. Open `InterestingNotch.dmg`
+3. Drag `InterestingNotch.app` into `Applications`
+4. Launch the app and grant the permissions for the features you want to use
 
-If you prefer to build from source, the Xcode path is still below in [Getting started](#getting-started).
+Prefer to build it yourself? See [Getting started](#getting-started).
+
+### Requirements
+
+- macOS 14 (Sonoma) or later <!-- TODO: set your real minimum deployment target -->
+- A Mac with a notch (or a Mac using the notch area on an external display)
 
 ---
 
@@ -45,6 +62,8 @@ If you prefer to build from source, the Xcode path is still below in [Getting st
 - [Bluetooth connection notifications](#bluetooth-connection-notifications)
 - [Widget library](#widget-library)
 - [Getting started](#getting-started)
+- [Contributing](#contributing)
+- [Support](#support)
 - [Credits](#credits)
 - [License](#license)
 
@@ -85,6 +104,7 @@ A consistent, Apple-like family of widgets designed for the notch — quiet, gla
 | **Clipboard History** | Recent text, links, and images as scrollable cards — recopy or pin with one click. |
 | **Calendar** | A compact month grid plus an agenda of events and reminders; tap to open in Calendar or Reminders. |
 | **Voice Recorder** | Capture quick voice notes with a live waveform, elapsed time, and instant reveal of the saved file. |
+| **File Converter** | Drag in an image, PDF, or text file and convert it natively — JPG/PNG/HEIC/WebP/TIFF, PDF↔image, and TXT/RTF/HTML/Markdown → PDF. |
 
 Any widget can be **pinned** from the library to become its own notch tab.
 
@@ -110,6 +130,7 @@ The Sports widget brings a full match-first flow into InterestingNotch: a live n
 - **Multi-game paging** — swipe or scroll through multiple followed matches directly inside the notch.
 - **Team drill-in** — move from leagues to teams to fixtures without leaving the widget library flow.
 - **Match detail** — open a full summary view with key events, stat bars, venue info, and status.
+- **Live Formula 1** — constructor, team colour, gap to leader, and laps for each driver, refreshed live.
 
 ---
 
@@ -192,7 +213,7 @@ The settings experience has been reorganized around this library, so adding and 
 
 ## Getting started
 
-If you want the ready-made app, use the DMG from the latest release above.
+If you want the ready-made app, use the DMG from the [latest release](https://github.com/nodescraper/interestingnotch/releases/latest).
 
 If you want to build it yourself:
 
@@ -206,9 +227,37 @@ Build and run in Xcode. On first launch, grant the permissions the features you 
 
 ---
 
+## Contributing
+
+Contributions, bug reports, and feature ideas are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request, and see [SECURITY.md](SECURITY.md) for how to report a security issue.
+
+- **Found a bug?** [Open an issue](https://github.com/nodescraper/interestingnotch/issues) with your macOS version and steps to reproduce.
+- **Have an idea?** Start a discussion or issue before large changes so we can align on direction.
+- **Building a custom widget?** Share it — the [custom-widget system](#custom-widgets-beta) is designed for exactly this.
+
+---
+
+## Support
+
+InterestingNotch is free and open source, built and maintained in my spare time. If it earns a place in your notch, you can help keep it caffeinated:
+
+<div align="center">
+
+<a href="https://ko-fi.com/nodescraper"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white&style=for-the-badge" alt="Support on Ko-fi"></a>
+
+**[ko-fi.com/nodescraper](https://ko-fi.com/nodescraper)**
+
+</div>
+
+Support is entirely optional and never gates any feature — the app stays fully free either way. Starring the repo helps too, and costs nothing. ⭐
+
+---
+
 ## Credits
 
 Built on the foundation of [boring.notch](https://github.com/TheBoredTeam/boring.notch) by The Bored Team. InterestingNotch is a public fork that preserves upstream attribution and extends it with its own widget family, widget library, custom-widget system, Caffeine control, Bluetooth connection notifications, and a redesigned settings layout.
+
+Third-party components and their licenses are listed in [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES).
 
 ---
 
