@@ -14,12 +14,12 @@
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description><![CDATA[<html>
   <body>
-    <h1>InterestingNotch 1.1.2</h1>
+    <h1>InterestingNotch 1.1.3</h1>
     <p>See the GitHub release for details.</p>
   </body>
 </html>
 ]]></description>
-            <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.2/InterestingNotch.dmg" length="11151298" type="application/octet-stream" sparkle:edSignature="Ctoy0S/bedpcKPSPKSOyDeKHWvna/f/G/Epc42eKi0mPd+fEdYXC3TVisBaEk6rlJIDd1oV4e0u0QAlt3r0KBA=="/>
+            <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.3/InterestingNotch.dmg" length="11151298" type="application/octet-stream" sparkle:edSignature="Ctoy0S/bedpcKPSPKSOyDeKHWvna/f/G/Epc42eKi0mPd+fEdYXC3TVisBaEk6rlJIDd1oV4e0u0QAlt3r0KBA=="/>
         </item>
         <item>
             <title>1.0.3</title>
