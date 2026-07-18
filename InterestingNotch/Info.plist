@@ -13,6 +13,8 @@
 	<string>InterestingNotch</string>
 	<key>SUEnableAutomaticChecks</key>
 	<false/>
+	<key>SUShowReleaseNotes</key>
+	<false/>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>InterestingNotch analyzes audio from your music app to draw a real-time waveform in the notch. Audio is processed locally and never leaves your Mac.</string>
 	<key>NSMicrophoneUsageDescription</key>

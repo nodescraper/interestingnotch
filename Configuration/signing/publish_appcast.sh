@@ -144,7 +144,6 @@ printf '%s' "$SPARKLE_PRIVATE_KEY_CONTENT" | "$GENERATE_APPCAST_BIN" \
   --ed-key-file - \
   --link "https://github.com/$RELEASE_REPOSITORY/releases" \
   --download-url-prefix "https://github.com/$RELEASE_REPOSITORY/releases/download/v$VERSION/" \
-  --embed-release-notes \
   -o "$APPCAST_PATH" \
   "$RELEASE_DIR/"
 

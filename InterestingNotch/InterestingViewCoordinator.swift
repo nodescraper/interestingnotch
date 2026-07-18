@@ -364,8 +364,6 @@ class InterestingViewCoordinator: ObservableObject {
             }
 
         Task { @MainActor in
-            helloAnimationRunning = firstLaunch
-
             if Defaults[.osdReplacement] {
                 await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
             }

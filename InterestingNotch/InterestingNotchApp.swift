@@ -528,7 +528,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 self.showOnboardingWindow()
             }
-            playWelcomeSound()
         } else if MusicManager.shared.isNowPlayingDeprecated
             && Defaults[.mediaController] == .nowPlaying
         {
@@ -703,6 +702,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //                        NSApp.setActivationPolicy(.accessory)
                         window.close()
                         NSApp.deactivate()
+                        self.coordinator.helloAnimationRunning = true
+                        self.playWelcomeSound()
                     },
                     onOpenSettings: {
                         window.close()

@@ -274,7 +274,6 @@ jobs:
             --ed-key-file - \
             --link "https://github.com/${{ env.RELEASE_REPOSITORY }}/releases" \
             --download-url-prefix "https://github.com/${{ env.RELEASE_REPOSITORY }}/releases/download/v${VERSION}/" \
-            --embed-release-notes \
             "${CHANNEL_ARGS[@]}" \
             -o appcast.xml \
             Release/
