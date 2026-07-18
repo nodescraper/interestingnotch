@@ -6,6 +6,16 @@
         <description>Release feed for InterestingNotch.</description>
         <language>en</language>
         <item>
+            <title>1.1.4</title>
+            <pubDate>Sat, 18 Jul 2026 12:53:34 +0200</pubDate>
+            <link>https://github.com/nodescraper/interestingnotch/releases</link>
+            <sparkle:version>286</sparkle:version>
+            <sparkle:shortVersionString>1.1.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://nodescraper.github.io/interestingnotch/InterestingNotch.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.4/InterestingNotch.dmg" length="13956881" type="application/octet-stream" sparkle:edSignature="kdniuV+O9Frle2h7A8FNw49FPfVpuwKkI6bxG42BOCBkodq2HBnJW7iAOt/N79abvoHPgVj5o/j8MGeUQg+gDw=="/>
+        </item>
+        <item>
             <title>1.1.3</title>
             <pubDate>Sat, 18 Jul 2026 12:13:25 +0200</pubDate>
             <link>https://github.com/nodescraper/interestingnotch/releases</link>
@@ -36,22 +46,6 @@
 </html>
 ]]></description>
             <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.3/InterestingNotch.dmg" length="11151298" type="application/octet-stream" sparkle:edSignature="Ctoy0S/bedpcKPSPKSOyDeKHWvna/f/G/Epc42eKi0mPd+fEdYXC3TVisBaEk6rlJIDd1oV4e0u0QAlt3r0KBA=="/>
-        </item>
-        <item>
-            <title>1.0.3</title>
-            <pubDate>Thu, 16 Jul 2026 20:57:36 +0200</pubDate>
-            <link>https://github.com/nodescraper/interestingnotch/releases</link>
-            <sparkle:version>283</sparkle:version>
-            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<html>
-  <body>
-    <h1>InterestingNotch 1.1.1</h1>
-    <p>See the GitHub release for details.</p>
-  </body>
-</html>
-]]></description>
-            <enclosure url="https://github.com/nodescraper/interestingnotch/releases/download/v1.1.1/InterestingNotch.dmg" length="11151315" type="application/octet-stream" sparkle:edSignature="zgbhM4sLCxPWzbycWkjnQoSFEl83WVQum7wLVhsoFyvsiV6/wb1LydPAmjYuz9dzMxRTjP8ODmXRWHMHTvA6Dw=="/>
         </item>
     </channel>
 </rss>
