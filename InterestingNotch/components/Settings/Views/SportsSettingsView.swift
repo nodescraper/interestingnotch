@@ -22,6 +22,7 @@ private final class SportsSettingsModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published private(set) var followedLeagues = SportsPreferences.loadFollowedLeagues()
     @Published private(set) var starredTeams = SportsPreferences.starredTeams()
+    @Published private(set) var starredPlayers = SportsPreferences.starredPlayers()
 
     private var searchTask: Task<Void, Never>?
 
@@ -60,6 +61,7 @@ private final class SportsSettingsModel: ObservableObject {
     func refreshPreferences() {
         followedLeagues = SportsPreferences.loadFollowedLeagues()
         starredTeams = SportsPreferences.starredTeams()
+        starredPlayers = SportsPreferences.starredPlayers()
     }
 
     func toggleLeague(_ league: SportsLeagueDefinition) {
@@ -186,7 +188,6 @@ private final class SportsLeagueTeamsModel: ObservableObject {
 }
 
 struct SportsSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var model = SportsSettingsModel()
     @State private var path: [SportsSettingsRoute] = []
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
@@ -215,6 +216,10 @@ struct SportsSettingsView: View {
 
     private var pinnedTeams: [SportsTeamSearchResult] {
         model.starredTeams.map(SportsTeamSearchResult.init(followedTeam:))
+    }
+
+    private var pinnedPlayers: [SportsTeamSearchResult] {
+        model.starredPlayers.map(SportsTeamSearchResult.init(followedPlayer:))
     }
 
     private var sportGroups: [(String, [SportsLeagueDefinition])] {
@@ -250,6 +255,13 @@ struct SportsSettingsView: View {
                             }
                         }
                     }
+                    if !pinnedPlayers.isEmpty {
+                        Section("Pinned players") {
+                            ForEach(pinnedPlayers) { player in
+                                pinnedTeamRow(player)
+                            }
+                        }
+                    }
                     if !followingLeagues.isEmpty {
                         Section("Following") {
                             ForEach(followingLeagues) { leagueRow($0) }
@@ -262,14 +274,9 @@ struct SportsSettingsView: View {
                     }
                 }
             }
-            .searchable(text: $model.query, placement: .toolbar, prompt: "Search leagues and teams")
+            .searchable(text: $model.query, placement: .toolbar, prompt: "Search leagues, teams, and players")
             .overlay { if model.isLoading { ProgressView().tint(.effectiveAccent) } }
             .navigationTitle("Leagues")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
             .navigationDestination(for: SportsSettingsRoute.self) { route in
                 switch route {
                 case .league(let league):
@@ -292,9 +299,9 @@ struct SportsSettingsView: View {
         if let errorMessage = model.errorMessage {
             Section { Text(errorMessage).foregroundStyle(.secondary) }
         }
-        Section("Teams") {
+        Section("Teams and players") {
             if model.teamResults.isEmpty && !model.isLoading {
-                Text("No teams found").foregroundStyle(.secondary)
+                Text("No teams or players found").foregroundStyle(.secondary)
             }
             ForEach(model.teamResults) { team in
                 teamSearchRow(team)
@@ -387,7 +394,6 @@ struct SportsSettingsView: View {
 
 private struct SportsLeagueTeamsView: View {
     let league: SportsLeagueDefinition
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var model: SportsLeagueTeamsModel
     @State private var query = ""
 
@@ -419,9 +425,6 @@ private struct SportsLeagueTeamsView: View {
         }
         .searchable(text: $query, placement: .toolbar, prompt: league.format == .teamScore ? "Search teams" : "Search competitors")
         .navigationTitle(league.subtitle)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
-        }
     }
 
     private func filtered(_ teams: [SportsTeamSearchResult]) -> [SportsTeamSearchResult] {

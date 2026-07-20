@@ -39,6 +39,7 @@ If you prefer to build from source, the Xcode path is still below in [Getting st
 - [What it is](#what-it-is)
 - [Highlights](#highlights)
 - [Widgets](#widgets)
+- [File Converter](#file-converter)
 - [Sports widget](#sports-widget)
 - [Custom widgets](#custom-widgets-beta)
 - [Caffeine](#caffeine)
@@ -62,7 +63,7 @@ Everything runs locally. No cloud, no account.
 
 ## Highlights
 
-- **Native widgets** — timer, color picker, clipboard history, calendar, voice recorder, and system monitor.
+- **Native widgets** — timer, color picker, clipboard history, calendar, voice recorder, system monitor, and file converter.
 - **Pinnable widget library** — browse widgets and pin the ones you want as notch tabs.
 - **Custom widgets** — let your own scripts push sneak peeks to the notch with a single JSON file.
 - **Bluetooth connection notifications** — see when selected paired devices connect or disconnect.
@@ -75,7 +76,7 @@ Everything runs locally. No cloud, no account.
 
 ## Widgets
 
-A consistent, Apple-like family of widgets designed for the notch — quiet, glanceable, and interactive. These six widgets are managed from the Widget Library and can be pinned as tabs:
+A consistent, Apple-like family of widgets designed for the notch — quiet, glanceable, and interactive. These widgets are managed from the Widget Library and can be pinned as tabs:
 
 | Widget | What it does |
 |---|---|
@@ -85,14 +86,34 @@ A consistent, Apple-like family of widgets designed for the notch — quiet, gla
 | **Clipboard History** | Recent text, links, and images as scrollable cards — recopy or pin with one click. |
 | **Calendar** | A compact month grid plus an agenda of events and reminders; tap to open in Calendar or Reminders. |
 | **Voice Recorder** | Capture quick voice notes with a live waveform, elapsed time, and instant reveal of the saved file. |
+| **File Converter** | Drag in images, PDFs, or text documents and export them to a supported local format. |
 
 Any widget can be **pinned** from the library to become its own notch tab.
 
 ---
 
+## File Converter
+
+File Converter turns the notch into a small, local drag-and-drop conversion desk. Drop a supported file into the widget, choose the output format, and export the result without sending the file to a cloud service.
+
+<p align="center">
+  <img src="assets/file-converter.png" alt="InterestingNotch File Converter widget with a drag-and-drop conversion area" width="900">
+</p>
+
+It supports:
+
+- **Images** — convert between PNG, JPG, HEIC, WebP, TIFF, and PDF.
+- **PDFs** — render single-page PDFs to PNG, JPG, or TIFF, or export multi-page PDFs as a folder of page images.
+- **Text and documents** — convert TXT, RTF, HTML, and Markdown between text formats and export them as PDF.
+- **Local temporary output** — conversion results are prepared locally and revealed from the widget when they are ready.
+
+The converter uses native macOS image, PDF, and text frameworks. It intentionally focuses on dependable everyday formats instead of pretending to be a full document-layout engine for formats such as DOCX or EPUB.
+
+---
+
 ## Sports widget
 
-The Sports widget brings a full match-first flow into InterestingNotch: a live notch tab, a team page with upcoming fixtures and recent results, and a settings-side match detail page with timeline and stat comparisons.
+The Sports widget brings a match-first flow into InterestingNotch with separate views for the notch, league/team setup, team schedules, and detailed events. Follow leagues, teams, or supported tennis competitors, then pin the widget to keep the next relevant event close at hand.
 
 <p align="center">
   <img src="assets/sports-widget-notch.png" alt="InterestingNotch sports widget shown in the notch with an upcoming match" width="900">
@@ -108,8 +129,19 @@ The Sports widget brings a full match-first flow into InterestingNotch: a live n
 
 - **Pinned team priority** — starred teams take priority so the notch surfaces the next relevant match first.
 - **Multi-game paging** — swipe or scroll through multiple followed matches directly inside the notch.
-- **Team drill-in** — move from leagues to teams to fixtures without leaving the widget library flow.
-- **Match detail** — open a full summary view with key events, stat bars, venue info, and status.
+- **League and team views** — search the supported catalog, follow leagues, choose teams, and star the teams you care about most.
+- **Team schedule view** — see upcoming fixtures, recent results, and direct drill-in to a match.
+- **Match detail view** — open a full summary with score, match status, key events, venue information, and stat comparisons where the provider supplies them.
+
+### Sports presentations
+
+The notch chooses a presentation based on the sport rather than forcing every competition into the same scoreboard:
+
+- **Team-score view** — used for soccer, basketball, American football, hockey, and baseball. It shows the teams, score, live clock or status, competition, venue, and available scoring events.
+- **Leaderboard view** — used for Formula 1, PGA Tour, LPGA Tour, and UFC-style event feeds. It shows the event status and leading entries; live and finished F1 sessions provide a scrollable field with position updates.
+- **Tennis sets view** — used for ATP and WTA. It shows the players, set-by-set scores, match state, winner styling, and upcoming/live/final status.
+
+The current provider-backed catalog includes major soccer competitions such as the Premier League, La Liga, Serie A, Bundesliga, Ligue 1, MLS, Champions League, Europa League, and World Cup; NBA, WNBA, NCAAM, and NCAAW; NFL and NCAAF; NHL; MLB and NCAA Baseball; plus F1, PGA, LPGA, ATP, WTA, and UFC feeds.
 
 ---
 

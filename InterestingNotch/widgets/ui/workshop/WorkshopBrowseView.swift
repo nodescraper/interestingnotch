@@ -119,6 +119,7 @@ struct WorkshopBrowseView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .listRowBackground(Color(nsColor: .controlBackgroundColor))
     }
 
     private func availableWidgetRow(for widget: Widget) -> some View {

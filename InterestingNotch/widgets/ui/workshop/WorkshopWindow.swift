@@ -53,12 +53,18 @@ struct WorkshopWindow: View {
     @ObservedObject private var engine = WidgetEngine.shared
     @Default(.pinnedWidgetIDs) private var pinnedWidgetIDs
     @State private var selectedSection: WorkshopSelection = .section(.browse)
+    @State private var browseResetID = UUID()
     @State private var widgetsLoaded = false
 
     private var installedWidgets: [Widget] {
         pinnedWidgetIDs.compactMap { id in
             engine.widgets.first(where: { $0.id == id })
         }
+    }
+
+    private var selectedWidgetTitle: String? {
+        guard case .installedWidget(let widgetID) = selectedSection else { return nil }
+        return engine.widgets.first(where: { $0.id == widgetID })?.manifest.name ?? "Widget"
     }
 
     var body: some View {
@@ -89,6 +95,7 @@ struct WorkshopWindow: View {
                     WorkshopBrowseView { widgetID in
                         selectedSection = .installedWidget(widgetID)
                     }
+                    .id(browseResetID)
                 case .section(.mirror):
                     MirrorSettings()
                 case .section(.shelf):
@@ -105,11 +112,24 @@ struct WorkshopWindow: View {
                     WorkshopInstalledWidgetDetailView(widgetID: widgetID)
                 }
             }
+            .navigationTitle("")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationSplitViewStyle(.balanced)
         .toolbar(removing: .sidebarToggle)
         .toolbar {
+            if selectedWidgetTitle != nil {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        browseResetID = UUID()
+                        selectedSection = .section(.browse)
+                    } label: {
+                        Label("Widgets", systemImage: "chevron.left")
+                    }
+                    .help("Back to Widgets")
+                }
+            }
+
             ToolbarItem(placement: .principal) {
                 Text("")
                     .frame(width: 0, height: 0)

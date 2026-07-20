@@ -175,6 +175,15 @@ struct SportsTeamSearchResult: Identifiable, Equatable, Hashable, Sendable {
         abbreviation = ""
         logoURL = followedTeam.logoURL
     }
+
+    init(followedPlayer: FollowedPlayer) {
+        sport = followedPlayer.sport
+        league = followedPlayer.league
+        id = followedPlayer.playerId
+        name = followedPlayer.name
+        abbreviation = ""
+        logoURL = ""
+    }
 }
 
 enum SportsScheduleState: String, Hashable, Sendable {

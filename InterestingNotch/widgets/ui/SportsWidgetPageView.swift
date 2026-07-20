@@ -374,8 +374,6 @@ struct SportsWidgetPageView: View {
             teamColumn(for: game.away)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .contentShape(Rectangle())
-            .onTapGesture { openGamePage(game) }
         }
     }
 
@@ -401,8 +399,6 @@ struct SportsWidgetPageView: View {
         }
         .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .contentShape(Rectangle())
-        .onTapGesture { openGamePage(game) }
     }
 
     private func upcomingSetsContent(_ game: GameSnapshot) -> some View {
@@ -418,8 +414,6 @@ struct SportsWidgetPageView: View {
         }
         .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .contentShape(Rectangle())
-        .onTapGesture { openGamePage(game) }
     }
 
     private func setPlayerRow(_ player: SportsTeamSide, opponent: SportsTeamSide, gameState: SportsGameState) -> some View {
@@ -494,8 +488,6 @@ struct SportsWidgetPageView: View {
                 leaderboardUpcomingContent(game)
             }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { openGamePage(game) }
     }
 
     private func leaderboardRaceContent(_ game: GameSnapshot) -> some View {
@@ -1070,10 +1062,6 @@ struct SportsWidgetPageView: View {
             .frame(width: size, height: size)
     }
 
-    private func openGamePage(_ game: GameSnapshot) {
-        guard let url = game.eventURL else { return }
-        NSWorkspace.shared.open(url)
-    }
 }
 
 private struct SportsPageScrollCatcher: NSViewRepresentable {
